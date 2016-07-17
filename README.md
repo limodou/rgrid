@@ -8,7 +8,7 @@ Used to implement common data grid widget based on Riot. It includes:
 * dataset Data source API
 * rGrid Data grid which combined above components.
 
-## 安装说明
+## Install
 
 rGrid depends on Riot, jQuery mainly. They are not included in this project, so
 you can install them via bower:
@@ -72,4 +72,4 @@ The features list which already be implemented or will be implemented：
 
 ## Examples
 
-In `examples` directory 
+In `examples` directory
