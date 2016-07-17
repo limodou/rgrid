@@ -36,7 +36,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
       this.width = opts.width
     }
     if (opts.height === 'auto' || !opts.height) {
-      this.height = $(this.root).find('.rtable-root').height()
+      this.height = $(this.root).parent().height()
     } else {
       this.height = opts.height
     }
