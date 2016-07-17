@@ -27,11 +27,20 @@
       box-sizing: border-box;
       border-right:1px solid gray;
       border-bottom:1px solid gray;
+      background-color: white;
     }
-    .rtable-cell>div {
+    .rtable-cell>* {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .rtable-cell > .rtable-resizer {
+      width:4px;
+      position:absolute;
+      height:100%;
+      cursor: col-resize;
+      top:0px;
+      right:0px;
     }
     .rtable-header .rtable-cell {
       text-align:center;
@@ -57,12 +66,14 @@
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <div data-is="raw" content={title}></div>
+        <div if={leaf} class="rtable-resizer" onmousedown={colresize}></div>
       </div>
     </div>
     <div class="rtable-header rtable-main" style="width:{width-fix_width-1-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <div data-is="raw" content={title}></div>
+        <div if={leaf} class="rtable-resizer" onmousedown={colresize}></div>
       </div>
     </div>
 
@@ -141,9 +152,37 @@
     this.content_fixed = this.root.querySelectorAll(".rtable-body.rtable-fixed")[0]
     this.calHeader()
     this.bind(this.rows)
-    <!-- this.calVis() -->
     this.update()
   })
+
+  this.colresize = function (e) {
+    var start = e.clientX
+    var header = $(this.header)
+    var root = $(document)
+    var col = e.item
+    var width = col.width, d
+
+    //取消文字选择
+    document.selection && document.selection.empty && ( document.selection.empty(), 1)
+    || window.getSelection && window.getSelection().removeAllRanges();
+    document.body.onselectstart = function () {
+        return false;
+    };
+    header.css('-moz-user-select','none');
+
+    root.on('mousemove', function(e){
+      d = Math.max(width + e.clientX - start, 5)
+      col.real_col.width = d
+      self.calHeader()
+      self.update()
+    }).on('mouseup', function(e){
+        document.body.onselectstart = function(){
+            return true;//开启文字选择
+        };
+        header.css('-moz-user-select','text');
+        root.off('mousemove').off('mouseup')
+    })
+  }
 
   function getScrollbarWidth() {
       var oP = document.createElement('p'),
@@ -164,12 +203,13 @@
     this.calVis()
   })
 
-  function _parse_header(cols, max_level){
+  function _parse_header(cols, max_level, frozen){
     var columns = [], i, len, j, col,
       subs_len,
       path,
       rowspan, //每行平均层数，max_level/sub_len，如最大4层，当前总层数为2,则每行占两层
       colspan,
+      parent, //上一层的结点为下一层的父结点
       new_col, //记录显示用的表头单元
       last_pos, //记录上一层的列数，用于判断是否当前层要和前一个结点合并
       left  //某层最左结点
@@ -194,6 +234,8 @@
         if (j == subs_len - 1) {
           //如果是最后一层，则rowspan为最大值减其余层
           new_col.rowspan = max_level - (subs_len-1)*rowspan
+          new_col.leaf = true
+          //new_col.real_col = col
         } else {
           new_col.rowspan = rowspan
         }
@@ -203,6 +245,11 @@
         new_col.width = col.width
         new_col.height = new_col.rowspan * self.rowHeight
         new_col.top = (self.rowHeight) * j
+        new_col.frozen = frozen
+        new_col.buttons = col.buttons
+        new_col.render = col.render
+        new_col.name = col.name
+        new_col.real_col = col
 
         //查找同层最左边的结点，判断是否title和rowspan一致
         //如果一致，进行合并，即colspan +1
@@ -214,16 +261,22 @@
           left = null
 
         //取上一结点的col值
-        if (j == 0)
+        if (j == 0) {
           last_pos = -1
-        else {
-          last_pos = columns[j-1][columns[j-1].length-1].col
+          parent = null
+        } else {
+          //上一层的最后一个结点是父结点
+          parent = columns[j-1][columns[j-1].length-1]
+          last_pos = parent.col
         }
+
+        //进行合并的判断，当left不为null，并且标题，层级，并且位置小于当前位置
         if (left && left.title==new_col.title && left.level==new_col.level && last_pos<i) {
           left.colspan ++
           left.width += new_col.width
         } else {
           columns[j].push(new_col)
+          new_col.parent_col = parent
           if (i == 0) {
             new_col.left = 0
           } else {
@@ -281,20 +334,22 @@
       }
     }
 
-    columns = _parse_header(cols, max_level)
-    fix_columns = _parse_header(fix_cols, max_level)
+    columns = _parse_header(cols, max_level, false)
+    fix_columns = _parse_header(fix_cols, max_level, true)
 
     this.fix_cols = fix_cols
     this.main_cols = cols
     this.fix_columns = fix_columns
     this.main_columns = columns
+    this.max_level = max_level
 
-    this.calPos(max_level)
+    //console.log(fix_columns, columns)
+    this.calPos()
   }
 
   /* 计算各种坐标
   */
-  this.calPos = function(max_level) {
+  this.calPos = function() {
     var fix_width = 0, main_width = 0, col;
     for (var i=0, len=this.cols.length; i<len; i++) {
       col = this.cols[i]
@@ -305,7 +360,7 @@
       else
         main_width += col.width
     }
-    this.header_height = max_level * this.rowHeight
+    this.header_height = this.max_level * this.rowHeight
     this.fix_width = fix_width
     this.main_width = main_width //内容区宽度
     this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
@@ -327,7 +382,8 @@
     visible = []
     visiblefixed = []
     h = this.rowHeight
-    cols = this.fix_cols.concat(this.main_cols)
+    <!-- cols = this.fix_cols.concat(this.main_cols) -->
+    cols = this.fix_columns.concat(this.main_columns)
     for (i = 0, len = visrows.length; i < len; i++) {
       row = visrows[i];
       top = h*(first+i)

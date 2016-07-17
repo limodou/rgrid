@@ -1,4 +1,4 @@
-riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:{width}px;height:{height}px"> <div class="rtable-header rtable-fixed" riot-style="width:{fix_width}px;height:{header_height}px"> <div each="{fix_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div data-is="raw" content="{title}"></div> </div> </div> <div class="rtable-header rtable-main" riot-style="width:{width-fix_width-1-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;"> <div each="{main_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div data-is="raw" content="{title}"></div> </div> </div> <div class="rtable-body rtable-fixed" riot-style="width:{fix_width}px;bottom:{scrollbar_width}px;top:{header_height}px;"> <div class="rtable-content" riot-style="width:{fix_width}px;height:{rows.length*rowHeight}px;"> <div each="{visCells.fixed}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div data-is="raw" if="{!buttons}" content="{value}"></div> </div> </div> </div> <div class="rtable-body rtable-main" onscroll="{scrolling}" riot-style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:0px;"> <div class="rtable-content" riot-style="width:{main_width}px;height:{rows.length*rowHeight}px;"> <div each="{col in visCells.main}" no-reorder class="rtable-cell" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;"> <div data-is="raw" if="{!col.buttons}" content="{col.value}"></div> <virtual if="{col.buttons}" no-reorder each="{btn in col.buttons}"> <i if="{btn.icon}" class="fa fa-{btn.icon} action" title="{btn.title}" onclick="{parent.parent.action_click(parent.col, btn)}"></i> <a if="{btn.label}" class="action" title="{btn.title}" href="{btn.href || \'#\'}" onclick="{parent.parent.action_click(parent.col, btn)}">{btn.label}</a> </virtual> </div> </div> </div> </div> </div>', 'rtable .action,[riot-tag="rtable"] .action,[data-is="rtable"] .action{cursor:pointer;} rtable .rtable-root,[riot-tag="rtable"] .rtable-root,[data-is="rtable"] .rtable-root{ position:relative; border: 1px solid gray; box-sizing: border-box; } rtable .rtable-header,[riot-tag="rtable"] .rtable-header,[data-is="rtable"] .rtable-header{ position:absolute; box-sizing: border-box; } rtable .rtable-header.rtable-fixed,[riot-tag="rtable"] .rtable-header.rtable-fixed,[data-is="rtable"] .rtable-header.rtable-fixed{ left:0; top:0; } rtable .rtable-header.rtable-main,[riot-tag="rtable"] .rtable-header.rtable-main,[data-is="rtable"] .rtable-header.rtable-main{ top:0; overflow:hidden; border-right:1px solid gray; } rtable .rtable-cell,[riot-tag="rtable"] .rtable-cell,[data-is="rtable"] .rtable-cell{ position:absolute; box-sizing: border-box; border-right:1px solid gray; border-bottom:1px solid gray; } rtable .rtable-cell>div,[riot-tag="rtable"] .rtable-cell>div,[data-is="rtable"] .rtable-cell>div{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } rtable .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-header .rtable-cell,[data-is="rtable"] .rtable-header .rtable-cell{ text-align:center; vertical-align: middle; } rtable .rtable-body,[riot-tag="rtable"] .rtable-body,[data-is="rtable"] .rtable-body{ position:absolute; box-sizing: border-box; } rtable .rtable-body.rtable-fixed,[riot-tag="rtable"] .rtable-body.rtable-fixed,[data-is="rtable"] .rtable-body.rtable-fixed{ left:0; overflow: hidden; } rtable .rtable-body.rtable-main,[riot-tag="rtable"] .rtable-body.rtable-main,[data-is="rtable"] .rtable-body.rtable-main{ overflow: auto; }', '', function(opts) {
+riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:{width}px;height:{height}px"> <div class="rtable-header rtable-fixed" riot-style="width:{fix_width}px;height:{header_height}px"> <div each="{fix_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div data-is="raw" content="{title}"></div> <div if="{leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> </div> </div> <div class="rtable-header rtable-main" riot-style="width:{width-fix_width-1-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;"> <div each="{main_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div data-is="raw" content="{title}"></div> <div if="{leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> </div> </div> <div class="rtable-body rtable-fixed" riot-style="width:{fix_width}px;bottom:{scrollbar_width}px;top:{header_height}px;"> <div class="rtable-content" riot-style="width:{fix_width}px;height:{rows.length*rowHeight}px;"> <div each="{visCells.fixed}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div data-is="raw" if="{!buttons}" content="{value}"></div> </div> </div> </div> <div class="rtable-body rtable-main" onscroll="{scrolling}" riot-style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:0px;"> <div class="rtable-content" riot-style="width:{main_width}px;height:{rows.length*rowHeight}px;"> <div each="{col in visCells.main}" no-reorder class="rtable-cell" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;"> <div data-is="raw" if="{!col.buttons}" content="{col.value}"></div> <virtual if="{col.buttons}" no-reorder each="{btn in col.buttons}"> <i if="{btn.icon}" class="fa fa-{btn.icon} action" title="{btn.title}" onclick="{parent.parent.action_click(parent.col, btn)}"></i> <a if="{btn.label}" class="action" title="{btn.title}" href="{btn.href || \'#\'}" onclick="{parent.parent.action_click(parent.col, btn)}">{btn.label}</a> </virtual> </div> </div> </div> </div> </div>', 'rtable .action,[riot-tag="rtable"] .action,[data-is="rtable"] .action{cursor:pointer;} rtable .rtable-root,[riot-tag="rtable"] .rtable-root,[data-is="rtable"] .rtable-root{ position:relative; border: 1px solid gray; box-sizing: border-box; } rtable .rtable-header,[riot-tag="rtable"] .rtable-header,[data-is="rtable"] .rtable-header{ position:absolute; box-sizing: border-box; } rtable .rtable-header.rtable-fixed,[riot-tag="rtable"] .rtable-header.rtable-fixed,[data-is="rtable"] .rtable-header.rtable-fixed{ left:0; top:0; } rtable .rtable-header.rtable-main,[riot-tag="rtable"] .rtable-header.rtable-main,[data-is="rtable"] .rtable-header.rtable-main{ top:0; overflow:hidden; border-right:1px solid gray; } rtable .rtable-cell,[riot-tag="rtable"] .rtable-cell,[data-is="rtable"] .rtable-cell{ position:absolute; box-sizing: border-box; border-right:1px solid gray; border-bottom:1px solid gray; background-color: white; } rtable .rtable-cell>*,[riot-tag="rtable"] .rtable-cell>*,[data-is="rtable"] .rtable-cell>*{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } rtable .rtable-cell > .rtable-resizer,[riot-tag="rtable"] .rtable-cell > .rtable-resizer,[data-is="rtable"] .rtable-cell > .rtable-resizer{ width:4px; position:absolute; height:100%; cursor: col-resize; top:0px; right:0px; } rtable .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-header .rtable-cell,[data-is="rtable"] .rtable-header .rtable-cell{ text-align:center; vertical-align: middle; } rtable .rtable-body,[riot-tag="rtable"] .rtable-body,[data-is="rtable"] .rtable-body{ position:absolute; box-sizing: border-box; } rtable .rtable-body.rtable-fixed,[riot-tag="rtable"] .rtable-body.rtable-fixed,[data-is="rtable"] .rtable-body.rtable-fixed{ left:0; overflow: hidden; } rtable .rtable-body.rtable-main,[riot-tag="rtable"] .rtable-body.rtable-main,[data-is="rtable"] .rtable-body.rtable-main{ overflow: auto; }', '', function(opts) {
 
   var self = this
   var EL = self.root
@@ -46,9 +46,36 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     this.content_fixed = this.root.querySelectorAll(".rtable-body.rtable-fixed")[0]
     this.calHeader()
     this.bind(this.rows)
-
     this.update()
   })
+
+  this.colresize = function (e) {
+    var start = e.clientX
+    var header = $(this.header)
+    var root = $(document)
+    var col = e.item
+    var width = col.width, d
+
+    document.selection && document.selection.empty && ( document.selection.empty(), 1)
+    || window.getSelection && window.getSelection().removeAllRanges();
+    document.body.onselectstart = function () {
+        return false;
+    };
+    header.css('-moz-user-select','none');
+
+    root.on('mousemove', function(e){
+      d = Math.max(width + e.clientX - start, 5)
+      col.real_col.width = d
+      self.calHeader()
+      self.update()
+    }).on('mouseup', function(e){
+        document.body.onselectstart = function(){
+            return true;
+        };
+        header.css('-moz-user-select','text');
+        root.off('mousemove').off('mouseup')
+    })
+  }
 
   function getScrollbarWidth() {
       var oP = document.createElement('p'),
@@ -69,12 +96,13 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     this.calVis()
   })
 
-  function _parse_header(cols, max_level){
+  function _parse_header(cols, max_level, frozen){
     var columns = [], i, len, j, col,
       subs_len,
       path,
       rowspan,
       colspan,
+      parent,
       new_col,
       last_pos,
       left
@@ -98,6 +126,8 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
         if (j == subs_len - 1) {
 
           new_col.rowspan = max_level - (subs_len-1)*rowspan
+          new_col.leaf = true
+
         } else {
           new_col.rowspan = rowspan
         }
@@ -107,22 +137,32 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
         new_col.width = col.width
         new_col.height = new_col.rowspan * self.rowHeight
         new_col.top = (self.rowHeight) * j
+        new_col.frozen = frozen
+        new_col.buttons = col.buttons
+        new_col.render = col.render
+        new_col.name = col.name
+        new_col.real_col = col
 
         if (columns[j].length > 0)
           left = columns[j][columns[j].length-1]
         else
           left = null
 
-        if (j == 0)
+        if (j == 0) {
           last_pos = -1
-        else {
-          last_pos = columns[j-1][columns[j-1].length-1].col
+          parent = null
+        } else {
+
+          parent = columns[j-1][columns[j-1].length-1]
+          last_pos = parent.col
         }
+
         if (left && left.title==new_col.title && left.level==new_col.level && last_pos<i) {
           left.colspan ++
           left.width += new_col.width
         } else {
           columns[j].push(new_col)
+          new_col.parent_col = parent
           if (i == 0) {
             new_col.left = 0
           } else {
@@ -177,18 +217,19 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
       }
     }
 
-    columns = _parse_header(cols, max_level)
-    fix_columns = _parse_header(fix_cols, max_level)
+    columns = _parse_header(cols, max_level, false)
+    fix_columns = _parse_header(fix_cols, max_level, true)
 
     this.fix_cols = fix_cols
     this.main_cols = cols
     this.fix_columns = fix_columns
     this.main_columns = columns
+    this.max_level = max_level
 
-    this.calPos(max_level)
+    this.calPos()
   }
 
-  this.calPos = function(max_level) {
+  this.calPos = function() {
     var fix_width = 0, main_width = 0, col;
     for (var i=0, len=this.cols.length; i<len; i++) {
       col = this.cols[i]
@@ -199,7 +240,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
       else
         main_width += col.width
     }
-    this.header_height = max_level * this.rowHeight
+    this.header_height = this.max_level * this.rowHeight
     this.fix_width = fix_width
     this.main_width = main_width
     this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
@@ -220,7 +261,8 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     visible = []
     visiblefixed = []
     h = this.rowHeight
-    cols = this.fix_cols.concat(this.main_cols)
+
+    cols = this.fix_columns.concat(this.main_columns)
     for (i = 0, len = visrows.length; i < len; i++) {
       row = visrows[i];
       top = h*(first+i)
