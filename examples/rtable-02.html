@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>rtable Example 01 - Height, Width</title>
+    <style>
+    </style>
+  </head>
+  <body>
+    <h1>Simple Table</h1>
+
+    <rtable id="ex01"></rtable>
+    <rtable id="ex02"></rtable>
+
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/riot/riot.min.js"></script>
+    <script src="../dist/dataset.js"></script>
+    <script src="../dist/rtable.js"></script>
+    <script>
+      var cols = [
+        {name:'name1', title:'A/B', width:60, frozen:true},
+        {name:'name2', title:'A/C', width:200,frozen:true},
+        {name:'name3', title:'C/E/F', width:200},
+        {name:'name4', title:'C/E/H', width:200},
+        {name:'name5', title:'C/F/G', width:300},
+        {name:'name6', title:'C/F/I', width:200},
+        {name:'action', title:'X', width:60, buttons:[
+          {
+            label:'编辑',
+            onclick:function (row) {
+              console.log(row)
+            }
+          }
+        ]}
+      ]
+      var data = [], size=10000, c=6, d
+      for(var i=0; i<size; i++) {
+        d = {id:i+1}
+        for(var j=0; j<c; j++){
+          d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
+        }
+        data.push(d)
+      }
+      riot.mount('rtable#ex01', {cols:cols, data:data, width:800, height:400, rowHeight:24})
+
+      var cols = [
+        {name:'name1', title:'A', width:60},
+        {name:'name2', title:'B', width:60},
+        {name:'name3', title:'C', width:60},
+        {name:'name4', title:'D', width:60},
+        {name:'name5', title:'E', width:60},
+        {name:'name6', title:'F', width:60},
+        {name:'action', title:'X', width:60, buttons:[
+          {
+            label:'编辑',
+            onclick:function (row) {
+              console.log(row)
+            }
+          }
+        ]}
+      ]
+      var data = [], size=10000, c=6, d
+      for(var i=0; i<size; i++) {
+        d = {id:i+1}
+        for(var j=0; j<c; j++){
+          d['name'+(j+1)] = 'XXX-'+(i+1)+'-'+(j+1)
+        }
+        data.push(d)
+      }
+      riot.mount('rtable#ex02', {cols:cols, data:data, width:800, height:400, rowHeight:24})
+
+    </script>
+</html>
