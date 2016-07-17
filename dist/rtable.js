@@ -185,7 +185,6 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     this.fix_columns = fix_columns
     this.main_columns = columns
 
-    console.log(this.fix_columns, this.main_columns)
     this.calPos(max_level)
   }
 

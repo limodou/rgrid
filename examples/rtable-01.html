@@ -1,10 +1,6 @@
 <html>
   <head>
     <title>rtable Example 01 - Simple Table</title>
-    <style>
-      table {width:100%; border:1px solid gray;border-collapse: collapse;}
-      table td, table th {border:1px solid gray;}
-    </style>
   </head>
   <body>
     <h1>Simple Table</h1>
@@ -23,6 +19,6 @@
       var data = [], size=100
       for(var i=0; i<size; i++)
         data.push({id:i+1, name:'Name'+(i+1)})
-      riot.mount('rtable', {cols:cols, data:data})
+      riot.mount('rtable', {cols:cols, data:data, height:400})
     </script>
 </html>

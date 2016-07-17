@@ -289,7 +289,6 @@
     this.fix_columns = fix_columns
     this.main_columns = columns
 
-    console.log(this.fix_columns, this.main_columns)
     this.calPos(max_level)
   }
 
