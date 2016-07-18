@@ -29,33 +29,7 @@
         }
         data.push(d)
       }
-      riot.mount('rtable', {cols:cols, data:data, height:400})
-
-      var cols = [
-        {name:'name1', title:'A', width:60},
-        {name:'name2', title:'B', width:60},
-        {name:'name3', title:'C', width:60},
-        {name:'name4', title:'D', width:60},
-        {name:'name5', title:'E', width:60},
-        {name:'name6', title:'F', width:60},
-        {name:'action', title:'X', width:60, buttons:[
-          {
-            label:'编辑',
-            onclick:function (row) {
-              console.log(row)
-            }
-          }
-        ]}
-      ]
-      var data = [], size=10000, c=6, d
-      for(var i=0; i<size; i++) {
-        d = {id:i+1}
-        for(var j=0; j<c; j++){
-          d['name'+(j+1)] = 'XXX-'+(i+1)+'-'+(j+1)
-        }
-        data.push(d)
-      }
-      riot.mount('rtable#ex02', {cols:cols, data:data, width:800, height:400, rowHeight:24})
+      riot.mount('rtable', {cols:cols, data:data, height:400, indexCol:true, checkCol:true, multiSelect:true})
 
     </script>
 </html>
