@@ -85,6 +85,7 @@
     }
     .rtable-body.rtable-main {
       overflow: auto;
+      border-right: 1px solid gray;
     }
   </style>
 
@@ -109,24 +110,24 @@
     </div>
 
     <div class="rtable-body rtable-fixed"
-      style="width:{fix_width}px;bottom:{scrollbar_width}px;top:{header_height}px;bottom:1px;">
+      style="width:{fix_width}px;bottom:{scrollbar_width}px;top:{header_height}px;bottom:0px;">
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
         <div each={visCells.fixed} no-reorder class={rtable-cell:true, selected:selected}
           style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;{style}">
-          <div if={type!='check'} data-is="raw" if={!buttons} content={value}></div>
+          <div if={type!='check' && !buttons} data-is="raw" content={value}></div>
           <!-- display checkbox -->
           <input if={type=='check'} type="checkbox" onclick={checkcol} checked={selected} class="rtable-check"></input>
         </div>
       </div>
     </div>
     <div class="rtable-body rtable-main"  onscroll={scrolling}
-      style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:1px;width:{width-fix_width-scrollbar_width}px;">
+      style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:0px;width:{width-fix_width-scrollbar_width}px;">
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
         <div each={col in visCells.main} no-reorder class={rtable-cell:true, selected:col.selected}
             style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;">
-            <div if={type!='check'} data-is="raw" if={!col.buttons} content={col.value}></div>
+            <div if={type!='check' && !col.buttons} data-is="raw" content={col.value}></div>
             <!-- display checkbox -->
             <input if={type=='check'} type="checkbox" onclick={checkcol} checked={col.selected} class="rtable-check"></input>
             <div if={col.buttons} no-reorder each={btn in col.buttons}>
