@@ -58,17 +58,17 @@ The features list which already be implemented or will be implemented：
 - [X] Resizable column width and fixed column width
 - [X] Auto fit grid width, if there are some columns which have not width given, they'll be set with reset width
 - [ ] Column could be visible toggled dynamically
-- [ ] Order number column support
+- [X] Index of row display support, just like '#'
 - [X] Custom defined buttons
 - [ ] Resize width and height of grid
-- [ ] Checkbox column support
+- [X] Checkbox column support
 - [ ] Context menu
 - [X] Custom render for data cell
 - [ ] Custom style for row
-- [ ] Selected row support, include: single selection, multi selection, also support checkbox selection
+- [X] Selected row support, include: single selection, multi selection, also support checkbox selection, (click selection not support yet)
 - [ ] Cell editor
 - [ ] Tree grid support
-- [ ] Column order support
+- [ ] Column sort support
 
 ## Examples
 
