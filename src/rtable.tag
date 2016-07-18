@@ -1,3 +1,21 @@
+/*
+  rtable v1.0
+  author : limodou@gmail.com
+
+  options:
+    cols(Must):           column definition
+    data(Optional):       data source, could be DataSet instance, or just array or empty
+    height(Optional):     height of grid, if no provided, it'll use parent height, if the value is 'auto', it'll
+        increase grid     height automatically, so there will be no scroll-y at all
+    width(Optional):      width of grid, if no provided, it'll use parent width
+    rawHeight(Optional):  single row height. Default is 24px
+    nameField(Optional):  Which value will be used for name of column, default is 'name'
+    titleField(Optional): Which value will be used for title of column, default is 'title'
+    start:                Starting index value, it'll be used for index column
+
+  events:
+    onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
+*/
 <rtable>
 
   <style scoped>
@@ -111,7 +129,7 @@
   this.cols = opts.cols
   this.nameField = opts.nameField || 'name'
   this.titleField = opts.titleField || 'title'
-  this.options = opts.options || {}
+  this.onUpdate = opts.onUpdate || function(){}
   this.rowHeight = opts.rowHeight || 24
   this.visCells = []
   if (opts.data) {
@@ -128,16 +146,14 @@
   this.bind = function (dataset) {
     // 绑定事件
     dataset.on('*', function(r, d){
-      if (self.options.onUpdate) {
-        self.options.onUpdate(dataset)
-      }
+        self.onUpdate(dataset, r, d)
       self.update()
     })
   }
 
   this.on('mount', function() {
     if (opts.width === 'auto' || !opts.width) {
-      this.width = $(this.root).find('.rtable-root').width()
+      this.width = $(this.root).parent().width()
     } else {
       this.width = opts.width
     }
@@ -198,6 +214,7 @@
       return scrollbarWidth;
   }
   this.on('update', function(){
+    this.start = opts.start || 0
     if (!this.content)
       return
     this.calVis()
@@ -413,10 +430,6 @@
   }
 
 
-  this.on('update', function(){
-    this.start = opts.start || 0
-  })
-
   EL.load = function(newrows){
     self.rows.clear()
     self.rows.add(newrows)
@@ -449,9 +462,6 @@
   }
 
 </rtable>
-
-<rtable-header>
-</rtable-header>
 
 <raw>
   <span></span>
