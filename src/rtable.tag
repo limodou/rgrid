@@ -66,14 +66,14 @@
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <div data-is="raw" content={title}></div>
-        <div if={leaf} class="rtable-resizer" onmousedown={colresize}></div>
+        <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
       </div>
     </div>
     <div class="rtable-header rtable-main" style="width:{width-fix_width-1-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <div data-is="raw" content={title}></div>
-        <div if={leaf} class="rtable-resizer" onmousedown={colresize}></div>
+        <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
       </div>
     </div>
 
@@ -112,7 +112,7 @@
   this.nameField = opts.nameField || 'name'
   this.titleField = opts.titleField || 'title'
   this.options = opts.options || {}
-  this.rowHeight = opts.rowHeight || 34
+  this.rowHeight = opts.rowHeight || 24
   this.visCells = []
   if (opts.data) {
     if (Array.isArray(opts.data)) {
@@ -250,6 +250,7 @@
         new_col.render = col.render
         new_col.name = col.name
         new_col.real_col = col
+        new_col.fixed = col.fixed
 
         //查找同层最左边的结点，判断是否title和rowspan一致
         //如果一致，进行合并，即colspan +1

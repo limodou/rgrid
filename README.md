@@ -55,7 +55,7 @@ The features list which already be implemented or will be implemented：
 - [X] Multi header, and the definition may be as simple as possible
 - [X] Support frozen columns and will be display in left pane
 - [X] Header can be float and could be scrolled at horizontal level
-- [X] Header column width could be resized
+- [X] Resizable column width and fixed column width
 - [X] Auto fit grid width, if there are some columns which have not width given, they'll be set with reset width
 - [ ] Column could be visible toggled dynamically
 - [ ] Order number column support
