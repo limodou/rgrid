@@ -24,7 +24,7 @@
         {name:'name6', title:'C/F/I', width:200},
         {name:'action', title:'X', width:60, buttons:[
           {
-            label:'编辑',
+            label:'Edit',
             onclick:function (row) {
               console.log(row)
             }
@@ -39,8 +39,9 @@
         }
         data.push(d)
       }
-      riot.mount('rtable#ex01', {cols:cols, data:data, width:800, height:400, rowHeight:24})
+      riot.mount('rtable#ex01', {cols:cols, data:data, width:800, height:400, rowHeight:24, indexCol:true, checkCol:true})
 
+/*
       var cols = [
         {name:'name1', title:'A', width:60},
         {name:'name2', title:'B', width:60},
@@ -50,7 +51,7 @@
         {name:'name6', title:'F', width:60},
         {name:'action', title:'X', width:60, buttons:[
           {
-            label:'编辑',
+            label:'Edit',
             onclick:function (row) {
               console.log(row)
             }
@@ -66,6 +67,6 @@
         data.push(d)
       }
       riot.mount('rtable#ex02', {cols:cols, data:data, width:800, height:400, rowHeight:24})
-
+*/
     </script>
 </html>

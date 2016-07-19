@@ -16,11 +16,12 @@
     indexColWidth:        Width of index column, default is 40
     checkCol:             Display checkbox column
     multiSelect:          Multi selection, default is false
+    clickSelect:          If click can select row, default is 'row', others are: 'column', null
 
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
 */
-riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:{width}px;height:{height}px"> <div class="rtable-header rtable-fixed" riot-style="width:{fix_width}px;height:{header_height}px"> <div each="{fix_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="raw" content="{title}"></div> <input if="{type==\'check\' && parent.multiSelect}" type="checkbox" onclick="{checkall}" class="rtable-check"></input> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> </div> </div> <div class="rtable-header rtable-main" riot-style="width:{width-fix_width-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;"> <div each="{main_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="raw" content="{title}"></div> <input if="{type==\'check\' && parent.multiSelect}" type="checkbox" onclick="{checkall}" class="rtable-check"></input> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> </div> </div> <div class="rtable-body rtable-fixed" riot-style="width:{fix_width}px;bottom:{scrollbar_width}px;top:{header_height}px;bottom:0px;"> <div class="rtable-content" riot-style="width:{fix_width}px;height:{rows.length*rowHeight}px;"> <div each="{visCells.fixed}" no-reorder class="{rtable-cell:true, selected:selected}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;{style}"> <div if="{type!=\'check\' && !buttons}" data-is="raw" content="{value}"></div> <input if="{type==\'check\'}" type="checkbox" onclick="{checkcol}" __checked="{selected}" class="rtable-check"></input> </div> </div> </div> <div class="rtable-body rtable-main" onscroll="{scrolling}" ontouchmove="{touchmove}" onmousewheel="{mousewheel}" riot-style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:0px;width:{width-fix_width-scrollbar_width}px;"> <div class="rtable-content" riot-style="width:{main_width}px;height:{rows.length*rowHeight}px;"> <div each="{col in visCells.main}" no-reorder class="{rtable-cell:true, selected:col.selected}" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;"> <div if="{type!=\'check\' && !col.buttons}" data-is="raw" content="{col.value}"></div> <input if="{type==\'check\'}" type="checkbox" onclick="{checkcol}" __checked="{col.selected}" class="rtable-check"></input> <div if="{col.buttons}" no-reorder each="{btn in col.buttons}"> <i if="{btn.icon}" class="fa fa-{btn.icon} action" title="{btn.title}" onclick="{parent.parent.action_click(parent.col, btn)}"></i> <a if="{btn.label}" class="action" title="{btn.title}" href="{btn.href || \'#\'}" onclick="{parent.parent.action_click(parent.col, btn)}">{btn.label}</a> </div> </div> </div> </div> </div> </div>', 'rtable .action,[riot-tag="rtable"] .action,[data-is="rtable"] .action{cursor:pointer;} rtable .rtable-root,[riot-tag="rtable"] .rtable-root,[data-is="rtable"] .rtable-root{ position:relative; border: 1px solid gray; } rtable .rtable-header,[riot-tag="rtable"] .rtable-header,[data-is="rtable"] .rtable-header{ position:absolute; box-sizing: border-box; } rtable .rtable-header.rtable-fixed,[riot-tag="rtable"] .rtable-header.rtable-fixed,[data-is="rtable"] .rtable-header.rtable-fixed{ left:0; top:0; } rtable .rtable-header.rtable-main,[riot-tag="rtable"] .rtable-header.rtable-main,[data-is="rtable"] .rtable-header.rtable-main{ top:0; overflow:hidden; } rtable .rtable-cell,[riot-tag="rtable"] .rtable-cell,[data-is="rtable"] .rtable-cell{ position:absolute; box-sizing: border-box; border-right:1px solid gray; border-bottom:1px solid gray; background-color: white; } rtable .rtable-cell>*,[riot-tag="rtable"] .rtable-cell>*,[data-is="rtable"] .rtable-cell>*{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } rtable .rtable-cell > .rtable-resizer,[riot-tag="rtable"] .rtable-cell > .rtable-resizer,[data-is="rtable"] .rtable-cell > .rtable-resizer{ width:4px; position:absolute; height:100%; cursor: col-resize; top:0px; right:0px; } rtable .rtable-cell.selected,[riot-tag="rtable"] .rtable-cell.selected,[data-is="rtable"] .rtable-cell.selected{ background-color:#ffefd5; } rtable .rtable-cell .rtable-check,[riot-tag="rtable"] .rtable-cell .rtable-check,[data-is="rtable"] .rtable-cell .rtable-check{ vertical-align: text-bottom; margin-top: 5px; } rtable .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-header .rtable-cell,[data-is="rtable"] .rtable-header .rtable-cell{ text-align:center; vertical-align: middle; } rtable .rtable-body,[riot-tag="rtable"] .rtable-body,[data-is="rtable"] .rtable-body{ position:absolute; box-sizing: border-box; } rtable .rtable-body.rtable-fixed,[riot-tag="rtable"] .rtable-body.rtable-fixed,[data-is="rtable"] .rtable-body.rtable-fixed{ left:0; overflow: hidden; } rtable .rtable-body.rtable-main,[riot-tag="rtable"] .rtable-body.rtable-main,[data-is="rtable"] .rtable-body.rtable-main{ overflow: auto; }', '', function(opts) {
+riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:{width}px;height:{height}px"> <div class="rtable-header rtable-fixed" riot-style="width:{fix_width}px;height:{header_height}px"> <div each="{fix_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="raw" content="{title}"></div> <input if="{type==\'check\' && parent.multiSelect}" type="checkbox" onclick="{checkall}" class="rtable-check"></input> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> </div> </div> <div class="rtable-header rtable-main" riot-style="width:{width-fix_width-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;"> <div each="{main_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="raw" content="{title}"></div> <input if="{type==\'check\' && parent.multiSelect}" type="checkbox" onclick="{checkall}" class="rtable-check"></input> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> </div> </div> <div class="rtable-body rtable-fixed" riot-style="width:{fix_width}px;bottom:{scrollbar_width}px;top:{header_height}px;bottom:0px;"> <div class="rtable-content" riot-style="width:{fix_width}px;height:{rows.length*rowHeight}px;"> <div each="{col in visCells.fixed}" no-reorder class="{rtable-cell:true, selected:col.selected}" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;{col.style}"> <div if="{col.type!=\'check\' && !col.buttons}" data-is="raw" content="{col.value}" class="rtable-cell-text" onclick="{parent.click_handler}"></div> <input if="{col.type==\'check\'}" type="checkbox" onclick="{checkcol}" __checked="{col.selected}" class="rtable-check"></input> </div> </div> </div> <div class="rtable-body rtable-main" onscroll="{scrolling}" ontouchmove="{touchmove}" onmousewheel="{mousewheel}" riot-style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:0px;width:{width-fix_width-scrollbar_width}px;"> <div class="rtable-content" riot-style="width:{main_width}px;height:{rows.length*rowHeight}px;"> <div each="{col in visCells.main}" no-reorder class="{rtable-cell:true, selected:col.selected}" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;"> <div if="{col.type!=\'check\' && !col.buttons}" data-is="raw" content="{col.value}" class="rtable-cell-text" onclick="{parent.click_handler}"></div> <input if="{col.type==\'check\'}" type="checkbox" onclick="{checkcol}" __checked="{col.selected}" class="rtable-check"></input> <div if="{col.buttons}" no-reorder each="{btn in col.buttons}"> <i if="{btn.icon}" class="fa fa-{btn.icon} action" title="{btn.title}" onclick="{parent.parent.action_click(parent.col, btn)}"></i> <a if="{btn.label}" class="action" title="{btn.title}" href="{btn.href || \'#\'}" onclick="{parent.parent.action_click(parent.col, btn)}">{btn.label}</a> </div> </div> </div> </div> </div> </div>', 'rtable .action,[riot-tag="rtable"] .action,[data-is="rtable"] .action{cursor:pointer;} rtable .rtable-root,[riot-tag="rtable"] .rtable-root,[data-is="rtable"] .rtable-root{ position:relative; border: 1px solid gray; } rtable .rtable-header,[riot-tag="rtable"] .rtable-header,[data-is="rtable"] .rtable-header{ position:absolute; box-sizing: border-box; } rtable .rtable-header.rtable-fixed,[riot-tag="rtable"] .rtable-header.rtable-fixed,[data-is="rtable"] .rtable-header.rtable-fixed{ left:0; top:0; } rtable .rtable-header.rtable-main,[riot-tag="rtable"] .rtable-header.rtable-main,[data-is="rtable"] .rtable-header.rtable-main{ top:0; overflow:hidden; } rtable .rtable-cell,[riot-tag="rtable"] .rtable-cell,[data-is="rtable"] .rtable-cell{ position:absolute; box-sizing: border-box; border-right:1px solid gray; border-bottom:1px solid gray; background-color: white; } rtable .rtable-cell>*,[riot-tag="rtable"] .rtable-cell>*,[data-is="rtable"] .rtable-cell>*{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } rtable .rtable-cell > .rtable-resizer,[riot-tag="rtable"] .rtable-cell > .rtable-resizer,[data-is="rtable"] .rtable-cell > .rtable-resizer{ width:4px; position:absolute; height:100%; cursor: col-resize; top:0px; right:0px; } rtable .rtable-cell.selected,[riot-tag="rtable"] .rtable-cell.selected,[data-is="rtable"] .rtable-cell.selected{ background-color:#ffefd5; } rtable .rtable-cell .rtable-check,[riot-tag="rtable"] .rtable-cell .rtable-check,[data-is="rtable"] .rtable-cell .rtable-check{ vertical-align: text-bottom; margin-top: 5px; } rtable .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-header .rtable-cell,[data-is="rtable"] .rtable-header .rtable-cell{ text-align:center; vertical-align: middle; } rtable .rtable-body,[riot-tag="rtable"] .rtable-body,[data-is="rtable"] .rtable-body{ position:absolute; box-sizing: border-box; } rtable .rtable-body.rtable-fixed,[riot-tag="rtable"] .rtable-body.rtable-fixed,[data-is="rtable"] .rtable-body.rtable-fixed{ left:0; overflow: hidden; } rtable .rtable-body.rtable-main,[riot-tag="rtable"] .rtable-body.rtable-main,[data-is="rtable"] .rtable-body.rtable-main{ overflow: auto; }', '', function(opts) {
 
   var self = this
   this.nameField = opts.nameField || 'name'
@@ -31,6 +32,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
   this.multiSelect = opts.multiSelect || false
   this.visCells = []
   this.selected_rows = []
+  this.clickSelect = opts.clickSelect || 'row'
   if (opts.data) {
     if (Array.isArray(opts.data)) {
       this.rows = new DataSet()
@@ -70,6 +72,15 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     this.bind(this.rows)
     this.update()
   })
+
+  this.click_handler = function(e) {
+    e.preventDefault()
+    if (self.clickSelect === 'row') {
+      self.toggle_select(e.item.col.row)
+    } else if (self.clickSelect === 'column') {
+
+    }
+  }
 
   this.colresize = function (e) {
     var start = e.clientX
@@ -120,7 +131,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
   })
 
   function _parse_header(cols, max_level, frozen){
-    var columns = [], i, len, j, col,
+    var columns = [], i, len, j, jj, col,
       subs_len,
       path,
       rowspan,
@@ -171,8 +182,10 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
 
         if (columns[j].length > 0)
           left = columns[j][columns[j].length-1]
-        else
+        else {
+
           left = null
+        }
 
         if (j == 0) {
           last_pos = -1
@@ -192,7 +205,12 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
           if (i == 0) {
             new_col.left = 0
           } else {
-            new_col.left = left.left + left.width
+            if (left)
+              new_col.left = left.left + left.width
+            else if (parent)
+              new_col.left = parent.left
+            else
+              new_col.left = 0
           }
         }
         col.left = new_col.left
@@ -227,15 +245,15 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
         },
         width:self.indexColWidth,
         frozen:true,
-        style:'background-color:whitesmoke;text-align:center;'
+        style:'text-align:center;'
       }
       col[this.nameField] = '#'
       col[this.titleField] = '#'
-      this.cols.push(col)
+      this.cols.unshift(col)
     }
 
     for(i=0, len=self.cols.length; i<len; i++){
-      if (self.cols[i].frozen){
+      if (this.cols[i].frozen){
         has_frozen = true
         break
       }
@@ -250,11 +268,14 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
       }
       col[this.nameField] = '_check'
       col[this.titleField] = '_check'
-      this.cols.push(col)
+      if (!opts.indexCol)
+        this.cols.unshift(col)
+      else
+        this.cols.splice(1, 0, col)
     }
 
-    for (i=0, len=self.cols.length; i<len; i++){
-      col = self.cols[i]
+    for (i=0, len=this.cols.length; i<len; i++){
+      col = this.cols[i]
       if (col.hidden)
         continue
       if (col.frozen)
@@ -314,7 +335,13 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
 
   this.calVis = function() {
     var i, j, last, len, len1, r2, cols, row, col, new_row, value, d,
-      visible, visiblefixed, visrows, top, h
+      visible, visiblefixed, visrows, top, h, r1
+
+    r1 = {}
+    r1.top = this.content.scrollTop
+    r1.left = this.content.scrollLeft
+    r1.bottom = r1.top + this.height - this.header_height - this.scrollbar_width
+    r1.right = r1.left + this.main_width - this.fix_width - this.scrollbar_width
 
     first = Math.max(Math.floor(this.content.scrollTop / this.rowHeight), 0)
     last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
@@ -337,8 +364,11 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
         d.value = this.get_col_data(d, row[col.name])
         if (col.frozen)
           visiblefixed.push(d)
-        else
-          visible.push(d)
+        else {
+
+          if (!(d.left > r1.right || d.right < r1.left))
+            visible.push(d)
+        }
       }
     }
     this.visCells = {
@@ -363,9 +393,17 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
 
   this.checkcol = function(e) {
     if (e.target.checked){
-      self.select(e.item.row)
+      self.select(e.item.col.row)
     } else
-      self.deselect(e.item.row)
+      self.deselect(e.item.col.row)
+  }
+
+  this.toggle_select = function (row) {
+    if (this.is_selected(row)) {
+      self.deselect(row)
+    } else {
+      self.select(row)
+    }
   }
 
   this.select = function(rows) {
