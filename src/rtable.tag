@@ -28,7 +28,6 @@
     .rtable-root {
       position:relative;
       border: 1px solid gray;
-      box-sizing: border-box;
     }
     .rtable-header {
       position:absolute;
@@ -42,7 +41,6 @@
     .rtable-header.rtable-main {
       top:0;
       overflow:hidden;
-      border-right:1px solid gray;
     }
     .rtable-cell {
       position:absolute;
@@ -85,7 +83,6 @@
     }
     .rtable-body.rtable-main {
       overflow: auto;
-      border-right: 1px solid gray;
     }
   </style>
 
@@ -121,7 +118,7 @@
         </div>
       </div>
     </div>
-    <div class="rtable-body rtable-main"  onscroll={scrolling}
+    <div class="rtable-body rtable-main"  onscroll={scrolling} ontouchmove={touchmove} onmousewheel={mousewheel}
       style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:0px;width:{width-fix_width-scrollbar_width}px;">
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
@@ -239,7 +236,6 @@
     if (!this.content)
       return
     this.calVis()
-    console.log('update')
   })
 
   function _parse_header(cols, max_level, frozen){
@@ -493,6 +489,21 @@
     return this.update()
   }
 
+  <!-- this.mousewheel = function(e) {
+    //e.preventUpdate = true
+    this.header.scrollLeft = this.content.scrollLeft
+    this.content_fixed.scrollTop = this.content.scrollTop
+    console.log('aaaaaa', this.content.scrollTop)
+    this.update()
+  }
+
+  this.touchmove = function(e) {
+    e.preventUpdate = true
+    this.header.scrollLeft = this.content.scrollLeft
+    this.content_fixed.scrollTop = this.content.scrollTop
+    console.log('bbbbbb')
+  } -->
+
   this.checkall = function(e) {
     if (e.target.checked)
       self.selected_rows = self.rows.getIds()
@@ -558,6 +569,8 @@
     }
   }
 
+  /* test is a row is selected
+  */
   this.is_selected = function (row) {
     var id
     if (!row) return
@@ -567,6 +580,7 @@
   }
   this.root.is_selected = wrap(this.is_selected)
 
+  /* get selected rows */
   this.get_selected = function(){
     return this.rows.get({
       filter:function(item){
