@@ -17,6 +17,7 @@
     checkCol:             Display checkbox column
     multiSelect:          Multi selection, default is false
     clickSelect:          If click can select row, default is 'row', others are: 'column', null
+    remoteSort:           If sort in remote, it'll invoke a callback onSort. Default is false
 
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
@@ -70,6 +71,43 @@
       vertical-align: text-bottom;
       margin-top: 5px;
     }
+    .rtable-cell .rtable-sort:before, .rtable-cell .rtable-sort.desc:before,
+    .rtable-cell .rtable-sort.asc:before {
+      position: absolute;
+      display: block;
+      content: "";
+      background-color: transparent;
+      border-left: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      height: .5rem;
+      width: .5rem;
+      right: 8;
+      top: 6;
+      z-index: 102;
+      cursor: pointer;
+      -webkit-transform: rotate(45deg);
+      -ms-transform: rotate(45deg);
+      -o-transform: rotate(45deg);
+      transform: rotate(45deg);
+    }
+    .rtable-cell .rtable-sort.desc:before{
+      border-left: 1px solid black;
+      border-bottom: 1px solid black;
+      -webkit-transform: rotate(-45deg);
+      -ms-transform: rotate(-45deg);
+      -o-transform: rotate(-45deg);
+      transform: rotate(-45deg);
+      top: 4;
+    }
+    .rtable-cell .rtable-sort.asc:before{
+      border-left: 1px solid black;
+      border-bottom: 1px solid black;
+      -webkit-transform: rotate(135deg);
+      -ms-transform: rotate(135deg);
+      -o-transform: rotate(135deg);
+      transform: rotate(135deg);
+      top:8;
+    }
     .rtable-header .rtable-cell {
       text-align:center;
       vertical-align: middle;
@@ -93,17 +131,21 @@
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title}></div>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:18px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
+        <!-- sortable column -->
+        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'} title={sort} onclick={sort_handler}></div>
       </div>
     </div>
     <div class="rtable-header rtable-main" style="width:{width-fix_width-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title}></div>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:18px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
+        <!-- sortable column -->
+        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'} title={sort} onclick={sort_handler}></div>
       </div>
     </div>
 
@@ -142,32 +184,53 @@
   </div>
 
   var self = this
+  this.root.instance = this
   this.nameField = opts.nameField || 'name'
   this.titleField = opts.titleField || 'title'
   this.onUpdate = opts.onUpdate || function(){}
+  this.onSort = opts.onSort || function(){}
   this.rowHeight = opts.rowHeight || 24
   this.indexColWidth = opts.indexColWidth || 40
   this.multiSelect = opts.multiSelect || false
   this.visCells = []
   this.selected_rows = []
+  this.sort_cols = []
   this.clickSelect = opts.clickSelect || 'row'
   if (opts.data) {
     if (Array.isArray(opts.data)) {
-      this.rows = new DataSet()
-      this.rows.add(opts.data)
+      this._data = new DataSet()
+      this._data.add(opts.data)
     }
     else
-      this.rows = opts.data
+      this._data = opts.data
   } else {
-    this.rows = new DataSet()
+    this._data = new DataSet()
   }
 
-  this.bind = function (dataset) {
+  this.bind = function () {
     // 绑定事件
-    dataset.on('*', function(r, d){
+    this._data.on('*', function(r, d){
         self.onUpdate(dataset, r, d)
+        self.ready_data()
       self.update()
     })
+  }
+
+  this.ready_data = function(){
+    var order = []
+    //create sort object
+    if (!opts.remoteSort && this.sort_cols.length) {
+      for(i=0, len=this.sort_cols.length; i<len; i++) {
+        col = this.sort_cols[i]
+        if (col.direction == 'desc')
+          order.push('-'+col.name)
+        else if (col.direction == 'asc')
+          order.push(col.name)
+      }
+      this.rows = this._data.get({order:order})
+    }
+    else
+      this.rows = this._data.get()
   }
 
   this.on('mount', function() {
@@ -186,8 +249,10 @@
     this.header = this.root.querySelectorAll(".rtable-header.rtable-main")[0]
     this.content_fixed = this.root.querySelectorAll(".rtable-body.rtable-fixed")[0]
 
-    this.calHeader()
-    this.bind(this.rows)
+    this.ready_data() //prepare data
+    this.calHeader()  //calculate header positions
+    this.calData()    //calculate data position
+    this.bind()       //monitor data change
     this.update()
   })
 
@@ -198,6 +263,33 @@
     } else if (self.clickSelect === 'column') {
 
     }
+  }
+
+  this.sort_handler = function(e) {
+    var name, dir, col
+
+    e.preventDefault()
+    name = e.item.name
+    if (self.sort_cols.length == 0)
+      dir = 'asc'
+    else {
+      col = self.sort_cols[0]
+      if (col.direction == 'desc') {
+        dir = false
+      } else if (col.direction == 'asc') {
+        dir = 'desc'
+      } else {
+        dir = 'asc'
+      }
+    }
+    if (dir)
+      self.sort_cols = [{name:name, direction:dir}]
+    else
+      self.sort_cols = []
+    if (self.remoteSort)
+      self.onSort.call(self, self.sort_cols)
+    else
+      self.ready_data()
   }
 
   this.colresize = function (e) {
@@ -247,6 +339,7 @@
     if (!this.content)
       return
     this.calVis()
+    console.log('update')
   })
 
   function _parse_header(cols, max_level, frozen){
@@ -299,6 +392,7 @@
         new_col.fixed = col.fixed
         new_col.style = col.style
         new_col.type = col.type
+        new_col.sort = col.sort
 
         //查找同层最左边的结点，判断是否title和rowspan一致
         //如果一致，进行合并，即colspan +1
@@ -307,15 +401,6 @@
         if (columns[j].length > 0)
           left = columns[j][columns[j].length-1]
         else {
-          <!-- jj = j
-          left = null
-          while (jj>0) {
-            jj--
-            if (columns[jj].length > 0) {
-              left = columns[jj][columns[jj].length-1]
-              break
-            }
-          } -->
           left = null
         }
 
@@ -449,13 +534,7 @@
     this.main_columns = columns
     this.max_level = max_level
 
-    //console.log(fix_columns, columns)
-    this.calPos()
-  }
-
-  /* 计算各种坐标
-  */
-  this.calPos = function() {
+    //cal header relative position
     var fix_width = 0, main_width = 0, col;
     for (var i=0, len=this.cols.length; i<len; i++) {
       col = this.cols[i]
@@ -469,10 +548,14 @@
     this.header_height = this.max_level * this.rowHeight
     this.fix_width = fix_width
     this.main_width = main_width //内容区宽度
-    this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
     this.has_xscroll = this.main_width > (this.width - this.fix_width)
     this.scrollbar_width = getScrollbarWidth()
+  }
 
+  /* Calculate data relative position
+  */
+  this.calData = function() {
+    this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
   }
 
   /* 计算可视单元格 */
@@ -490,7 +573,7 @@
     last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
     var b = new Date().getTime()
 
-    visrows = this.rows.get().slice(first, last)
+    visrows = this.rows.slice(first, last)
     visible = []
     visiblefixed = []
     h = this.rowHeight
@@ -503,7 +586,7 @@
         col = cols[j]
         d = {top:top, width:col.width, height:h, left: col.left,
           row:row, style:col.style, type:col.type, selected:this.is_selected(row),
-          render:col.render, buttons:col.buttons, index:first+i}
+          render:col.render, buttons:col.buttons, index:first+i, sor:col.sort}
         d.value = this.get_col_data(d, row[col.name])
         if (col.frozen)
           visiblefixed.push(d)
@@ -517,6 +600,16 @@
     this.visCells = {
       fixed: visiblefixed,
       main: visible
+    }
+  }
+
+  this.get_sorted = function(name) {
+    var col
+
+    for(var i=0, len=this.sort_cols.length; i<len; i++) {
+      col = this.sort_cols[i]
+      if (col.name == name && col.direction)
+        return col.direction
     }
   }
 
@@ -544,7 +637,7 @@
 
   this.checkall = function(e) {
     if (e.target.checked)
-      self.selected_rows = self.rows.getIds()
+      self.selected_rows = self._data.getIds()
     else
       self.selected_rows = []
   }
@@ -573,7 +666,7 @@
     if (!opts.multiSelect)
       self.selected_rows = []
 
-    if (!rows) rows = this.rows.get()
+    if (!rows) rows = this._data.get()
     if (!Array.isArray(rows)) {
       rows = [rows]
     }
@@ -629,7 +722,7 @@
 
   /* get selected rows */
   this.get_selected = function(){
-    return this.rows.get({
+    return this._data.get({
       filter:function(item){
         return self.selected_rows.indexOf(item.id) !== -1
       }
@@ -638,17 +731,17 @@
   this.root.get_selected = wrap(this.get_selected)
 
   this.root.load = function(newrows){
-    self.rows.clear()
-    self.rows.add(newrows)
+    self._data.clear()
+    self._data.add(newrows)
   }.bind(this);
 
   this.root.change = function(newrows){
-    self.rows.update(newrows)
+    self._data.update(newrows)
   }.bind(this);
 
   this.root.setData = function(dataset){
-    self.rows = dataset
-    self.bind(self.rows)
+    self._data = dataset
+    self.bind()
   }.bind(this);
 
   this.get_col_data = function(col, value) {
