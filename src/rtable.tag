@@ -131,7 +131,7 @@
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title}></div>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:18px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
@@ -141,7 +141,7 @@
     <div class="rtable-header rtable-main" style="width:{width-fix_width-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title}></div>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:18px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
