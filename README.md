@@ -69,6 +69,7 @@ The features list which already be implemented or will be implemented：
 - [ ] Cell editor
 - [ ] Tree grid support
 - [X] Column sort support, client and remote mode
+- [X] No data display
 
 ## Examples
 

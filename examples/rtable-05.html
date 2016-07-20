@@ -35,7 +35,16 @@
         }
         data.push(d)
       }
-      riot.mount('rtable', {cols:cols, data:data, height:'auto', indexCol:true, checkCol:true, multiSelect:true, clickSelect:null})
+      riot.mount('rtable', {cols:cols,
+        data:data,
+        height:'auto',
+        indexCol:true,
+        checkCol:true,
+        multiSelect:true,
+        clickSelect:null,
+        maxHeight:400,
+        minHeight:200
+      })
 
       var grid = document.getElementById('grid')
       var begin = 100
