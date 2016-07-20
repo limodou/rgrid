@@ -21,6 +21,7 @@
 
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
+    onSort:               When click sort, it'll invoke function(sort_cols) return new data
 */
 <rtable>
 
@@ -289,7 +290,7 @@
     else
       self.sort_cols = []
     if (self.remoteSort)
-      self.onSort.call(self, self.sort_cols)
+      self._data.load(self.onSort.call(self, self.sort_cols))
     else
       self.ready_data()
   }
