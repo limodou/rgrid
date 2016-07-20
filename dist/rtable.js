@@ -9,7 +9,8 @@
                             increase grid height automatically, so there will be no scroll-y at all, default is null
     maxHeight(optional):    Max height, it set height is 'auto', when great than maxHeight, the height will be always maxHeight
     minHeight(optional):    Min height, it set height is 'auto', when less than minHeight, the height will be always minHeight
-    width(Optional):        width of grid, if no provided, it'll use parent width, default is null
+    width(Optional):        Width of grid, if no provided, it'll use parent width, default is null
+    container(Optional):    Used to calculate the width and height, if width or height set to null, default is this.root
     rawHeight(Optional):    single row height. Default is 24
     nameField(Optional):    Which value will be used for name of column, default is 'name'
     titleField(Optional):   Which value will be used for title of column, default is 'title'
@@ -52,6 +53,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
   this.sort_cols = []
   this.clickSelect = opts.clickSelect || 'row'
   this.noData = opts.noData || 'No Data'
+  this.container = opts.container || this.root
   if (opts.data) {
     if (Array.isArray(opts.data)) {
       this._data = new DataSet()
@@ -75,6 +77,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
           }
         }
         self.ready_data()
+        self.calData()
       self.update()
     })
   }
@@ -94,29 +97,20 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     }
     else
       this.rows = this._data.get()
-    this.calData()
   }
 
   this.on('mount', function() {
-    if (opts.width === 'auto' || !opts.width) {
-      this.width = $(this.root).parent().width()
-    } else {
-      this.width = opts.width
-    }
-
-    if (!opts.height) {
-      this.height = $(this.root).parent().height()
-    } else if (opts.height == 'auto'){
-
-    } else {
-      this.height = opts.height
-    }
-
     this.content = this.root.querySelectorAll(".rtable-body.rtable-main")[0]
     this.header = this.root.querySelectorAll(".rtable-header.rtable-main")[0]
     this.content_fixed = this.root.querySelectorAll(".rtable-body.rtable-fixed")[0]
 
+    window.addEventListener('resize', function(){
+      if (opts.width == 'auto' || !opts.width || !opts.height)
+        self.resize()
+    })
+
     this.ready_data()
+    this.calSize()
     this.calHeader()
     this.calData()
     this.bind()
@@ -155,8 +149,10 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
       self.sort_cols = []
     if (self.remoteSort)
       self._data.load(self.onSort.call(self, self.sort_cols))
-    else
+    else {
       self.ready_data()
+      self.calData()
+    }
   }
 
   this.get_sort_top = function (dir) {
@@ -216,8 +212,24 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     if (!this.content)
       return
     this.calVis()
-    console.log('update')
+
   })
+
+  this.calSize = function () {
+    if (opts.width === 'auto' || !opts.width) {
+      this.width = $(this.container).parent().width()
+    } else {
+      this.width = opts.width
+    }
+
+    if (!opts.height) {
+      this.height = $(this.container).parent().height()
+    } else if (opts.height == 'auto'){
+
+    } else {
+      this.height = opts.height
+    }
+  }
 
   function _parse_header(cols, max_level, frozen){
     var columns = [], i, len, j, jj, col,
@@ -557,9 +569,9 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     }
   }
 
-  function wrap(func) {
+  function proxy(funcname) {
     return function f(){
-      return func.apply(self, arguments)
+      return self[funcname].apply(self, arguments)
     }
   }
 
@@ -570,7 +582,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     else id = row
     return self.selected_rows.indexOf(id) !== -1
   }
-  this.root.is_selected = wrap(this.is_selected)
+  this.root.is_selected = proxy('is_selected')
 
   this.get_selected = function(){
     return this._data.get({
@@ -579,7 +591,14 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
       }
     })
   }
-  this.root.get_selected = wrap(this.get_selected)
+  this.root.get_selected = proxy('get_selected')
+
+  this.resize = function () {
+    self.calSize()
+    self.calHeader()
+    self.calData()
+    self.update()
+  }
 
   function data_proxy (funcname) {
     return function() { return self._data[funcname].apply(self._data, arguments)}
@@ -589,15 +608,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
   this.root.update = data_proxy('update')
   this.root.remove = data_proxy('remove')
   this.root.get = data_proxy('get')
-
-  this.root.load = function(newrows){
-    self._data.clear()
-    self._data.add(newrows)
-  }.bind(this);
-
-  this.root.change = function(newrows){
-    self._data.update(newrows)
-  }.bind(this);
+  this.root.load = data_proxy('load')
 
   this.root.setData = function(dataset){
     self._data = dataset
