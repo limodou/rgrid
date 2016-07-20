@@ -21,6 +21,17 @@
 
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
+    onSort:               When click sort, it'll invoke function(sort_cols) return new data
+
+  methods:
+    add:                  Add new records: add(row), add(rows)
+    remove:               Remove records: remove(row), remove(rows)
+    update:               Update records: update(row), update(rows)
+    get:                  Get records: get(), get(id), get(ids), get(row)
+    select:               Select rows: select(row), select(rows)
+    deselect:             Deselect rows: deselect(row), deselect(rows)
+    is_selected:          Test is a row is selected: is_selected(row)
+    get_selected:         Get selected rows: get_selected()
 */
 <rtable>
 
@@ -71,18 +82,18 @@
       vertical-align: text-bottom;
       margin-top: 5px;
     }
-    .rtable-cell .rtable-sort:before, .rtable-cell .rtable-sort.desc:before,
-    .rtable-cell .rtable-sort.asc:before {
+    .rtable-cell .rtable-sort, .rtable-cell .rtable-sort.desc,
+    .rtable-cell .rtable-sort.asc {
       position: absolute;
       display: block;
       content: "";
       background-color: transparent;
       border-left: 1px solid #ccc;
       border-bottom: 1px solid #ccc;
-      height: .5rem;
-      width: .5rem;
-      right: 8;
-      top: 6;
+      height: 8px;
+      width: 8px;
+      right: 6px;
+      top:6px;
       z-index: 102;
       cursor: pointer;
       -webkit-transform: rotate(45deg);
@@ -90,23 +101,21 @@
       -o-transform: rotate(45deg);
       transform: rotate(45deg);
     }
-    .rtable-cell .rtable-sort.desc:before{
+    .rtable-cell .rtable-sort.desc{
       border-left: 1px solid black;
       border-bottom: 1px solid black;
       -webkit-transform: rotate(-45deg);
       -ms-transform: rotate(-45deg);
       -o-transform: rotate(-45deg);
       transform: rotate(-45deg);
-      top: 4;
     }
-    .rtable-cell .rtable-sort.asc:before{
+    .rtable-cell .rtable-sort.asc{
       border-left: 1px solid black;
       border-bottom: 1px solid black;
       -webkit-transform: rotate(135deg);
       -ms-transform: rotate(135deg);
       -o-transform: rotate(135deg);
       transform: rotate(135deg);
-      top:8;
     }
     .rtable-header .rtable-cell {
       text-align:center;
@@ -131,21 +140,25 @@
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:18px':''}"></div>
-        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
+        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
+          class="rtable-check" style="margin-top:{rowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
-        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'} title={sort} onclick={sort_handler}></div>
+        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
+          title={sort} onclick={sort_handler} style="top:{get_sort_top(get_sorted(name))}px"></div>
       </div>
     </div>
     <div class="rtable-header rtable-main" style="width:{width-fix_width-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:18px':''}"></div>
-        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
+        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
+          class="rtable-check" style="margin-top:{rowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
-        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'} title={sort} onclick={sort_handler}></div>
+        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
+          title={sort} onclick={sort_handler} style="top:{get_sort_top(get_sorted(name))}px;"></div>
       </div>
     </div>
 
@@ -209,8 +222,15 @@
 
   this.bind = function () {
     // 绑定事件
-    this._data.on('*', function(r, d){
-        self.onUpdate(dataset, r, d)
+    self._data.on('*', function(r, d){
+        self.onUpdate(self._data, r, d)
+        if (r == 'remove') {
+          var index, items = d.items
+          for(var i=0, len=items.length; i<len; i++){
+            index = self.selected_rows.indexOf(items[i].id)
+            if (index !== -1) self.selected_rows.splice(index, 1)
+          }
+        }
         self.ready_data()
       self.update()
     })
@@ -231,6 +251,7 @@
     }
     else
       this.rows = this._data.get()
+    this.calData()
   }
 
   this.on('mount', function() {
@@ -239,8 +260,13 @@
     } else {
       this.width = opts.width
     }
-    if (opts.height === 'auto' || !opts.height) {
+    // if opts.height is null or undefined, it'll be parent().height
+    // if opts.height is 'auto', the height will be automatically increased according number of rows
+    if (!opts.height) {
       this.height = $(this.root).parent().height()
+    } else if (opts.height == 'auto'){
+      //calculate later
+      //in calHeader, calData
     } else {
       this.height = opts.height
     }
@@ -287,9 +313,20 @@
     else
       self.sort_cols = []
     if (self.remoteSort)
-      self.onSort.call(self, self.sort_cols)
+      self._data.load(self.onSort.call(self, self.sort_cols))
     else
       self.ready_data()
+  }
+
+  this.get_sort_top = function (dir) {
+    var top
+    if (dir == 'asc')
+      top = (self.rowHeight - 16) / 2 + 4
+    else if (dir == 'desc')
+      top = (self.rowHeight - 16) / 2 + 2
+    else
+      top = (self.rowHeight - 16) / 2 + 4
+    return top
   }
 
   this.colresize = function (e) {
@@ -555,7 +592,14 @@
   /* Calculate data relative position
   */
   this.calData = function() {
-    this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
+    //process height if value is 'auto'
+    if (opts.height == 'auto') {
+      //if no data, then the length is 1, used for "no data" display
+      this.height = Math.max(1, this.rows.length) * this.rowHeight + this.header_height
+      this.has_yscroll = 0
+    }
+    else
+      this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
   }
 
   /* 计算可视单元格 */
@@ -729,6 +773,15 @@
     })
   }
   this.root.get_selected = wrap(this.get_selected)
+
+  function data_proxy (funcname) {
+    return function() { return self._data[funcname].apply(self._data, arguments)}
+  }
+
+  this.root.add = data_proxy('add')
+  this.root.update = data_proxy('update')
+  this.root.remove = data_proxy('remove')
+  this.root.get = data_proxy('get')
 
   this.root.load = function(newrows){
     self._data.clear()
