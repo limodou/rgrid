@@ -3,21 +3,24 @@
   author : limodou@gmail.com
 
   options:
-    cols(Must):           column definition
-    data(Optional):       data source, could be DataSet instance, or just array or empty
-    height(Optional):     height of grid, if no provided, it'll use parent height, if the value is 'auto', it'll
-        increase grid     height automatically, so there will be no scroll-y at all
-    width(Optional):      width of grid, if no provided, it'll use parent width
-    rawHeight(Optional):  single row height. Default is 24
-    nameField(Optional):  Which value will be used for name of column, default is 'name'
-    titleField(Optional): Which value will be used for title of column, default is 'title'
-    start:                Starting index value, it'll be used for index column
-    indexCol:             Display index column, starting value will be this.start
-    indexColWidth:        Width of index column, default is 40
-    checkCol:             Display checkbox column
-    multiSelect:          Multi selection, default is false
-    clickSelect:          If click can select row, default is 'row', others are: 'column', null
-    remoteSort:           If sort in remote, it'll invoke a callback onSort. Default is false
+    cols(Must):             column definition
+    data(Optional):         data source, could be DataSet instance, or just array or empty
+    height(Optional):       height of grid, if no provided, it'll use parent height, if the value is 'auto', it'll
+                            increase grid height automatically, so there will be no scroll-y at all, default is null
+    maxHeight(optional):    Max height, it set height is 'auto', when great than maxHeight, the height will be always maxHeight
+    minHeight(optional):    Min height, it set height is 'auto', when less than minHeight, the height will be always minHeight
+    width(Optional):        width of grid, if no provided, it'll use parent width, default is null
+    rawHeight(Optional):    single row height. Default is 24
+    nameField(Optional):    Which value will be used for name of column, default is 'name'
+    titleField(Optional):   Which value will be used for title of column, default is 'title'
+    start(Optional):        Starting index value, it'll be used for index column, default is 0
+    indexCol(Optional):     Display index column, starting value will be this.start
+    indexColWidth(Optional):Width of index column, default is 40
+    checkCol(Optional):     Display checkbox column
+    multiSelect(Optional):  Multi selection, default is false
+    clickSelect(Optional):  If click can select row, default is 'row', others are: 'column', null
+    remoteSort(Optional):   If sort in remote, it'll invoke a callback onSort. Default is false
+    noData(Optional):       If there is no data, show a message, default is 'No Data'
 
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
@@ -132,6 +135,21 @@
     .rtable-body.rtable-main {
       overflow: auto;
     }
+    .rtable-nodata {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+      height: 34px;
+      width: 150px;
+      text-align: center;
+      border:1px solid #ccc;
+      color: #ccc;
+      line-height: 34px;
+      border-radius: 3px;
+    }
   </style>
 
   <yield/>
@@ -193,7 +211,11 @@
           </div>
         </div>
       </div>
+
+      <div if={rows.length==0} data-is="raw" content={noData} class="rtable-nodata"></div>
+
     </div>
+
   </div>
 
   var self = this
@@ -209,6 +231,7 @@
   this.selected_rows = []
   this.sort_cols = []
   this.clickSelect = opts.clickSelect || 'row'
+  this.noData = opts.noData || 'No Data'
   if (opts.data) {
     if (Array.isArray(opts.data)) {
       this._data = new DataSet()
@@ -596,6 +619,10 @@
     if (opts.height == 'auto') {
       //if no data, then the length is 1, used for "no data" display
       this.height = Math.max(1, this.rows.length) * this.rowHeight + this.header_height
+      if (opts.maxHeight)
+        this.height = Math.min(opts.maxHeight, this.height)
+      if (this.rows.length==0 && opts.minHeight)
+        this.height = Math.max(opts.minHeight, this.height)
       this.has_yscroll = 0
     }
     else
