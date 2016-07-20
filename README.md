@@ -68,7 +68,7 @@ The features list which already be implemented or will be implemented：
 - [X] Selected row support, include: single selection, multi selection, also support checkbox selection, click select row
 - [ ] Cell editor
 - [ ] Tree grid support
-- [ ] Column sort support
+- [X] Column sort support, client and remote mode
 
 ## Examples
 
