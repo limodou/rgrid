@@ -22,6 +22,16 @@
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
     onSort:               When click sort, it'll invoke function(sort_cols) return new data
+
+  methods:
+    add:                  Add new records: add(row), add(rows)
+    remove:               Remove records: remove(row), remove(rows)
+    update:               Update records: update(row), update(rows)
+    get:                  Get records: get(), get(id), get(ids), get(row)
+    select:               Select rows: select(row), select(rows)
+    deselect:             Deselect rows: deselect(row), deselect(rows)
+    is_selected:          Test is a row is selected: is_selected(row)
+    get_selected:         Get selected rows: get_selected()
 */
 <rtable>
 
@@ -132,7 +142,7 @@
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
-          class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
+          class="rtable-check" style="margin-top:{rowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
         <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
@@ -144,7 +154,7 @@
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
-          class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
+          class="rtable-check" style="margin-top:{rowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
         <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
@@ -212,8 +222,15 @@
 
   this.bind = function () {
     // 绑定事件
-    this._data.on('*', function(r, d){
-        self.onUpdate(dataset, r, d)
+    self._data.on('*', function(r, d){
+        self.onUpdate(self._data, r, d)
+        if (r == 'remove') {
+          var index, items = d.items
+          for(var i=0, len=items.length; i<len; i++){
+            index = self.selected_rows.indexOf(items[i].id)
+            if (index !== -1) self.selected_rows.splice(index, 1)
+          }
+        }
         self.ready_data()
       self.update()
     })
@@ -234,6 +251,7 @@
     }
     else
       this.rows = this._data.get()
+    this.calData()
   }
 
   this.on('mount', function() {
@@ -242,8 +260,13 @@
     } else {
       this.width = opts.width
     }
-    if (opts.height === 'auto' || !opts.height) {
+    // if opts.height is null or undefined, it'll be parent().height
+    // if opts.height is 'auto', the height will be automatically increased according number of rows
+    if (!opts.height) {
       this.height = $(this.root).parent().height()
+    } else if (opts.height == 'auto'){
+      //calculate later
+      //in calHeader, calData
     } else {
       this.height = opts.height
     }
@@ -569,7 +592,14 @@
   /* Calculate data relative position
   */
   this.calData = function() {
-    this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
+    //process height if value is 'auto'
+    if (opts.height == 'auto') {
+      //if no data, then the length is 1, used for "no data" display
+      this.height = Math.max(1, this.rows.length) * this.rowHeight + this.header_height
+      this.has_yscroll = 0
+    }
+    else
+      this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
   }
 
   /* 计算可视单元格 */
@@ -743,6 +773,15 @@
     })
   }
   this.root.get_selected = wrap(this.get_selected)
+
+  function data_proxy (funcname) {
+    return function() { return self._data[funcname].apply(self._data, arguments)}
+  }
+
+  this.root.add = data_proxy('add')
+  this.root.update = data_proxy('update')
+  this.root.remove = data_proxy('remove')
+  this.root.get = data_proxy('get')
 
   this.root.load = function(newrows){
     self._data.clear()
