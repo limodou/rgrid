@@ -71,18 +71,18 @@
       vertical-align: text-bottom;
       margin-top: 5px;
     }
-    .rtable-cell .rtable-sort:before, .rtable-cell .rtable-sort.desc:before,
-    .rtable-cell .rtable-sort.asc:before {
+    .rtable-cell .rtable-sort, .rtable-cell .rtable-sort.desc,
+    .rtable-cell .rtable-sort.asc {
       position: absolute;
       display: block;
       content: "";
       background-color: transparent;
       border-left: 1px solid #ccc;
       border-bottom: 1px solid #ccc;
-      height: .5rem;
-      width: .5rem;
-      right: 8;
-      top: 6;
+      height: 8px;
+      width: 8px;
+      right: 6px;
+      top:6px;
       z-index: 102;
       cursor: pointer;
       -webkit-transform: rotate(45deg);
@@ -90,23 +90,21 @@
       -o-transform: rotate(45deg);
       transform: rotate(45deg);
     }
-    .rtable-cell .rtable-sort.desc:before{
+    .rtable-cell .rtable-sort.desc{
       border-left: 1px solid black;
       border-bottom: 1px solid black;
       -webkit-transform: rotate(-45deg);
       -ms-transform: rotate(-45deg);
       -o-transform: rotate(-45deg);
       transform: rotate(-45deg);
-      top: 4;
     }
-    .rtable-cell .rtable-sort.asc:before{
+    .rtable-cell .rtable-sort.asc{
       border-left: 1px solid black;
       border-bottom: 1px solid black;
       -webkit-transform: rotate(135deg);
       -ms-transform: rotate(135deg);
       -o-transform: rotate(135deg);
       transform: rotate(135deg);
-      top:8;
     }
     .rtable-header .rtable-cell {
       text-align:center;
@@ -131,21 +129,25 @@
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title}></div>
-        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
+        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
+          class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
-        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'} title={sort} onclick={sort_handler}></div>
+        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
+          title={sort} onclick={sort_handler} style="top:{get_sort_top(get_sorted(name))}px"></div>
       </div>
     </div>
     <div class="rtable-header rtable-main" style="width:{width-fix_width-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title}></div>
-        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall} class="rtable-check"></input>
+        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
+        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
+          class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
-        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'} title={sort} onclick={sort_handler}></div>
+        <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
+          title={sort} onclick={sort_handler} style="top:{get_sort_top(get_sorted(name))}px;"></div>
       </div>
     </div>
 
@@ -290,6 +292,17 @@
       self.onSort.call(self, self.sort_cols)
     else
       self.ready_data()
+  }
+
+  this.get_sort_top = function (dir) {
+    var top
+    if (dir == 'asc')
+      top = (self.rowHeight - 16) / 2 + 4
+    else if (dir == 'desc')
+      top = (self.rowHeight - 16) / 2 + 2
+    else
+      top = (self.rowHeight - 16) / 2 + 4
+    return top
   }
 
   this.colresize = function (e) {
