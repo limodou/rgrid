@@ -18,10 +18,10 @@
         {name:'name2', title:'B', width: 120, fixed:true},
         {name:'name3', title:'This is a very long column name', sort:'desc', width:100},
         {name:'name4', title:'D', sort:'asc'},
-        {name:'name5', title:'E', render: function(row, col, value){
+        {name:'name5', title:'E', width:100, render: function(row, col, value){
           return '<a href="#">' + value + '</a>'
         }},
-        {name:'name6', title:'F'}
+        {name:'name6', width:120, title:'F'}
       ]
       var data = [], size=100, c=6, d
       for(var i=0; i<size; i++) {
@@ -31,7 +31,8 @@
         }
         data.push(d)
       }
-      riot.mount('rtable', {cols:cols, data:data, height:400, indexCol:true, checkCol:true, multiSelect:true, rowHeight:24})
+      riot.mount('rtable', {cols:cols, data:data, height:300,
+        indexCol:true, checkCol:true, multiSelect:true, rowHeight:24})
 
     </script>
 </html>

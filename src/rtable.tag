@@ -23,6 +23,8 @@
     remoteSort(Optional):   If sort in remote, it'll invoke a callback onSort. Default is false
     noData(Optional):       If there is no data, show a message, default is 'No Data'
 
+    options(Optional):      Used to set above options easily via plain object
+
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
     onSort:               When click sort, it'll invoke function(sort_cols) return new data
@@ -45,6 +47,7 @@
     .rtable-root {
       position:relative;
       border: 1px solid gray;
+      overflow:hidden;
     }
     .rtable-header {
       position:absolute;
@@ -65,6 +68,11 @@
       border-right:1px solid gray;
       border-bottom:1px solid gray;
       background-color: white;
+      padding-left:4px;
+      padding-right:4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .rtable-cell>* {
       white-space: nowrap;
@@ -155,7 +163,7 @@
 
   <yield/>
 
-  <div class="rtable-root" style="width:{width}px;height:{height}px">
+  <div class="rtable-root" style="width:{width-1}px;height:{height-1}px">
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
@@ -168,7 +176,7 @@
           title={sort} onclick={sort_handler} style="top:{get_sort_top(get_sorted(name))}px"></div>
       </div>
     </div>
-    <div class="rtable-header rtable-main" style="width:{width-fix_width-scrollbar_width}px;height:{header_height}px;left:{fix_width}px;">
+    <div class="rtable-header rtable-main" style="width:{width-fix_width-xscroll_width}px;right:0px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
@@ -182,7 +190,7 @@
     </div>
 
     <div class="rtable-body rtable-fixed"
-      style="width:{fix_width}px;bottom:{scrollbar_width}px;top:{header_height}px;bottom:0px;">
+      style="width:{fix_width}px;bottom:{xscroll_width}px;top:{header_height}px;height:{height-header_height-xscroll_width}px;">
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
         <div each={col in visCells.fixed} no-reorder class={rtable-cell:true, selected:col.selected}
@@ -193,8 +201,9 @@
         </div>
       </div>
     </div>
-    <div class="rtable-body rtable-main"  onscroll={scrolling} ontouchmove={touchmove} onmousewheel={mousewheel}
-      style="left:{fix_width}px;top:{header_height}px;right:0px;bottom:0px;width:{width-fix_width-scrollbar_width}px;">
+    <div class="rtable-body rtable-main" onscroll={scrolling}
+      style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+yscroll_fix}px;height:{height-header_height+xscroll_fix}px;">
+      <!-- width:{width-fix_width}px;height:{height-header_height}px; -->
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
         <div each={col in visCells.main} no-reorder class={rtable-cell:true, selected:col.selected}
@@ -202,13 +211,13 @@
             <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
             <!-- display checkbox -->
             <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected} class="rtable-check"></input>
-            <div if={col.buttons} no-reorder each={btn in col.buttons}>
+            <virtual if={col.buttons} no-reorder each={btn in col.buttons}>
               <i if={ btn.icon } class="fa fa-{btn.icon} action" title={ btn.title }
                 onclick={parent.parent.action_click(parent.col, btn)}></i>
               <a if={ btn.label } class="action" title={ btn.title }
                 href={ btn.href || '#' }
                 onclick={parent.parent.action_click(parent.col, btn)}>{ btn.label }</a>
-            </div>
+            </virtual>
           </div>
         </div>
       </div>
@@ -221,6 +230,13 @@
 
   var self = this
   this.root.instance = this
+
+  if(opts.options) {
+    for (var k in opts.options) {
+      opts[k] = opts.options[k]
+    }
+  }
+
   this.nameField = opts.nameField || 'name'
   this.titleField = opts.titleField || 'title'
   this.onUpdate = opts.onUpdate || function(){}
@@ -233,7 +249,7 @@
   this.sort_cols = []
   this.clickSelect = opts.clickSelect || 'row'
   this.noData = opts.noData || 'No Data'
-  this.container = opts.container || this.root
+  this.container = opts.container || $(this.root).parent()
   if (opts.data) {
     if (Array.isArray(opts.data)) {
       this._data = new DataSet()
@@ -244,6 +260,7 @@
   } else {
     this._data = new DataSet()
   }
+
 
   this.bind = function () {
     // 绑定事件
@@ -279,22 +296,52 @@
       this.rows = this._data.get()
   }
 
+  function test_browser () {
+    var Sys = {};
+    var ua = navigator.userAgent.toLowerCase();
+    var s;
+    (s = ua.match(/rv:([\d.]+)\) like gecko/)) ? Sys.ie = s[1] :
+    (s = ua.match(/msie ([\d.]+)/)) ? Sys.ie = s[1] :
+    (s = ua.match(/firefox\/([\d.]+)/)) ? Sys.firefox = s[1] :
+    (s = ua.match(/chrome\/([\d.]+)/)) ? Sys.chrome = s[1] :
+    (s = ua.match(/opera.([\d.]+)/)) ? Sys.opera = s[1] :
+    (s = ua.match(/version\/([\d.]+).*safari/)) ? Sys.safari = s[1] : 0;
+    return Sys
+  }
+
   this.on('mount', function() {
     this.content = this.root.querySelectorAll(".rtable-body.rtable-main")[0]
     this.header = this.root.querySelectorAll(".rtable-header.rtable-main")[0]
     this.content_fixed = this.root.querySelectorAll(".rtable-body.rtable-fixed")[0]
 
+    this.browser = test_browser()
+
+    this._updated = false
     window.addEventListener('resize', function(){
       if (opts.width == 'auto' || !opts.width || !opts.height)
         self.resize()
+    })
+
+
+
+    this.content.addEventListener('mousewheel', function(e){
+      self.mousewheel(e)
     })
 
     this.ready_data() //prepare data
     this.calSize()
     this.calHeader()  //calculate header positions
     this.calData()    //calculate data position
+    this.calScrollbar()
     this.bind()       //monitor data change
     this.update()
+  })
+
+  this.on('updated', function(){
+    if (!this._updated) {
+      this._updated = true
+      this.resize()
+    }
   })
 
   this.click_handler = function(e) {
@@ -364,8 +411,7 @@
     root.on('mousemove', function(e){
       d = Math.max(width + e.clientX - start, 5)
       col.real_col.width = d
-      self.calHeader()
-      self.update()
+      self.resize()
     }).on('mouseup', function(e){
         document.body.onselectstart = function(){
             return true;//开启文字选择
@@ -395,24 +441,6 @@
     this.calVis()
     // console.log('update')
   })
-
-  this.calSize = function () {
-    if (opts.width === 'auto' || !opts.width) {
-      this.width = $(this.container).parent().width()
-    } else {
-      this.width = opts.width
-    }
-    // if opts.height is null or undefined, it'll be parent().height
-    // if opts.height is 'auto', the height will be automatically increased according number of rows
-    if (!opts.height) {
-      this.height = $(this.container).parent().height()
-    } else if (opts.height == 'auto'){
-      //calculate later
-      //in calHeader, calData
-    } else {
-      this.height = opts.height
-    }
-  }
 
   function _parse_header(cols, max_level, frozen){
     var columns = [], i, len, j, jj, col,
@@ -620,8 +648,35 @@
     this.header_height = this.max_level * this.rowHeight
     this.fix_width = fix_width
     this.main_width = main_width //内容区宽度
-    this.has_xscroll = this.main_width > (this.width - this.fix_width)
+  }
+
+  /* calculate width and height */
+  this.calSize = function () {
+    if (opts.width === 'auto' || !opts.width) {
+      this.width = $(this.container).width()
+    } else {
+      this.width = opts.width
+    }
+    // if opts.height is null or undefined, it'll be parent().height
+    // if opts.height is 'auto', the height will be automatically increased according number of rows
+    if (!opts.height) {
+      this.height = $(this.container).height()
+    } else if (opts.height == 'auto'){
+      //calculate later
+      //in calHeader, calData
+    } else {
+      this.height = opts.height
+    }
+  }
+
+  this.calScrollbar = function () {
     this.scrollbar_width = getScrollbarWidth()
+    this.has_yscroll = this.content.scrollHeight > this.content.clientHeight || (this.rows.length * this.rowHeight > (this.height - this.header_height))
+    this.has_xscroll = this.content.scrollWidth > this.content.clientWidth || this.main_width > (this.width - this.fix_width)
+    this.xscroll_width = this.has_xscroll ? this.scrollbar_width : 0
+    this.yscroll_width = this.has_yscroll ? this.scrollbar_width : 0
+    this.xscroll_fix = this.browser.ie && this.has_xscroll ? this.xscroll_width : 0
+    this.yscroll_fix = this.browser.ie && this.has_yscroll ? this.yscroll_width : 0
   }
 
   /* Calculate data relative position
@@ -635,10 +690,7 @@
         this.height = Math.min(opts.maxHeight, this.height)
       if (this.rows.length==0 && opts.minHeight)
         this.height = Math.max(opts.minHeight, this.height)
-      this.has_yscroll = 0
     }
-    else
-      this.has_yscroll = this.rows.length * this.rowHeight > (this.height - this.header_height)
   }
 
   /* 计算可视单元格 */
@@ -703,12 +755,80 @@
     return this.update()
   }
 
-  <!-- this.mousewheel = function(e) { -->
-    <!-- e.preventDefault() -->
-    <!-- this.header.scrollLeft = this.content.scrollLeft -->
-    <!-- this.content_fixed.scrollTop = this.content.scrollTop -->
-    <!-- this.update() -->
-  <!-- } -->
+  var normalizeWheel = function (event) {
+      var PIXEL_STEP = 10;
+      var LINE_HEIGHT = 40;
+      var PAGE_HEIGHT = 800;
+      // spinX, spinY
+      var sX = 0;
+      var sY = 0;
+      // pixelX, pixelY
+      var pX = 0;
+      var pY = 0;
+      // Legacy
+      if ('detail' in event) {
+          sY = event.detail;
+      }
+      if ('wheelDelta' in event) {
+          sY = -event.wheelDelta / 120;
+      }
+      if ('wheelDeltaY' in event) {
+          sY = -event.wheelDeltaY / 120;
+      }
+      if ('wheelDeltaX' in event) {
+          sX = -event.wheelDeltaX / 120;
+      }
+      // side scrolling on FF with DOMMouseScroll
+      if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
+          sX = sY;
+          sY = 0;
+      }
+      pX = sX * PIXEL_STEP;
+      pY = sY * PIXEL_STEP;
+      if ('deltaY' in event) {
+          pY = event.deltaY;
+      }
+      if ('deltaX' in event) {
+          pX = event.deltaX;
+      }
+      if ((pX || pY) && event.deltaMode) {
+          if (event.deltaMode == 1) {
+              pX *= LINE_HEIGHT;
+              pY *= LINE_HEIGHT;
+          }
+          else {
+              pX *= PAGE_HEIGHT;
+              pY *= PAGE_HEIGHT;
+          }
+      }
+      // Fall-back if spin cannot be determined
+      if (pX && !sX) {
+          sX = (pX < 1) ? -1 : 1;
+      }
+      if (pY && !sY) {
+          sY = (pY < 1) ? -1 : 1;
+      }
+      return { spinX: sX,
+          spinY: sY,
+          pixelX: pX,
+          pixelY: pY };
+  };
+
+  this.mousewheel = function(e) {
+    e.preventDefault()
+    var wheelEvent = normalizeWheel(event);
+    // we need to detect in which direction scroll is happening to allow trackpads scroll horizontally
+    // horizontal scroll
+    if (Math.abs(wheelEvent.pixelX) > Math.abs(wheelEvent.pixelY)) {
+        this.header.scrollLeft = this.header.scrollLeft + wheelEvent.pixelX
+        this.content.scrollLeft = this.content.scrollLeft + wheelEvent.pixelX
+    }
+    else {
+        this.header.scrollTop = this.header.scrollTop + wheelEvent.pixelY
+        this.content.scrollTop = this.content.scrollTop + wheelEvent.pixelY
+    }
+    return false;
+  }
 
   <!--
   this.touchmove = function(e) {
@@ -817,6 +937,9 @@
     self.calSize()
     self.calHeader()  //calculate header positions
     self.calData()    //calculate data position
+    self.calScrollbar()
+    self.header.scrollLeft = self.content.scrollLeft
+    self.content_fixed.scrollTop = self.content.scrollTop
     self.update()
   }
 
