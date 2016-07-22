@@ -241,6 +241,7 @@
   this.titleField = opts.titleField || 'title'
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
+  this.cols = opts.cols.slice()
   this.rowHeight = opts.rowHeight || 24
   this.indexColWidth = opts.indexColWidth || 40
   this.multiSelect = opts.multiSelect || false
@@ -558,10 +559,17 @@
 
     max_level = 0
 
-    this.cols = opts.cols.slice()
+    function has_col(name) {
+      for (var x=0, _len=self.cols.length; x<_len; x++) {
+        if(self.cols[x][self.nameField] == name)
+          return true
+      }
+    }
 
+    // this.cols = opts.cols.slice()
+    //
     //process indexCol, will add a column to fix_cols
-    if (opts.indexCol) {
+    if (opts.indexCol && !has_col('__index_col__')) {
       col = {
         render:function(row, col, value){
           return col.index + 1
@@ -570,7 +578,7 @@
         frozen:true,
         style:'text-align:center;'
       }
-      col[this.nameField] = '#'
+      col[this.nameField] = '__index_col__'
       col[this.titleField] = '#'
       this.cols.unshift(col)
     }
@@ -582,14 +590,14 @@
       }
     }
 
-    if (opts.checkCol) {
+    if (opts.checkCol && !has_col('__check_col__')) {
       col = {
         type:'check',
         width:30,
         style:'text-align:center;',
         frozen:has_frozen
       }
-      col[this.nameField] = '_check'
+      col[this.nameField] = '__check_col__'
       col[this.titleField] = '_check'
       if (!opts.indexCol)
         this.cols.unshift(col)
