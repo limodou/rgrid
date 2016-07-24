@@ -194,7 +194,7 @@
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
         <div each={col in visCells.fixed} no-reorder class={rtable-cell:true, selected:col.selected}
-          style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;{col.style}">
+          style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
           <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
           <!-- display checkbox -->
           <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected} class="rtable-check"></input>
@@ -207,7 +207,7 @@
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
         <div each={col in visCells.main} no-reorder class={rtable-cell:true, selected:col.selected}
-            style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;">
+            style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
             <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
             <!-- display checkbox -->
             <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected} class="rtable-check"></input>
@@ -494,6 +494,7 @@
         new_col.style = col.style
         new_col.type = col.type
         new_col.sort = col.sort
+        new_col.align = col.align || 'left'
 
         //查找同层最左边的结点，判断是否title和rowspan一致
         //如果一致，进行合并，即colspan +1
@@ -727,9 +728,21 @@
       top = h*(first+i)
       for (j=0, len1=cols.length; j<len1; j++) {
         col = cols[j]
-        d = {top:top, width:col.width, height:h, left: col.left,
-          row:row, style:col.style, type:col.type, selected:this.is_selected(row),
-          render:col.render, buttons:col.buttons, index:first+i, sor:col.sort}
+        d = {
+          top:top,
+          width:col.width,
+          height:h,
+          left: col.left,
+          row:row,
+          style:col.style,
+          type:col.type,
+          selected:this.is_selected(row),
+          render:col.render,
+          buttons:col.buttons,
+          index:first+i,
+          sor:col.sort,
+          align:col.align
+        }
         d.value = this.get_col_data(d, row[col.name])
         if (col.frozen)
           visiblefixed.push(d)
