@@ -197,7 +197,8 @@
           style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
           <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
           <!-- display checkbox -->
-          <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected} class="rtable-check"></input>
+          <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
+            class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
         </div>
       </div>
     </div>
@@ -210,7 +211,8 @@
             style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
             <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
             <!-- display checkbox -->
-            <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected} class="rtable-check"></input>
+            <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
+                class="rtable-check" style="margin-top:{rowHeight/2-7}px;"></input>
             <virtual if={col.buttons} no-reorder each={btn in col.buttons}>
               <i if={ btn.icon } class="fa fa-{btn.icon} action" title={ btn.title }
                 onclick={parent.parent.action_click(parent.col, btn)}></i>
@@ -556,28 +558,31 @@
       cols = [],
       cal_cols=[],
       width = 0,
-      has_frozen;
+      has_frozen,
+      has_col, has_check;
 
     max_level = 0
 
-    function has_col(name) {
-      for (var x=0, _len=self.cols.length; x<_len; x++) {
-        if(self.cols[x][self.nameField] == name)
-          return true
+    for (var x=0, _len=self.cols.length; x<_len; x++) {
+      if(self.cols[x][self.nameField] == '__index_col__'){
+        has_col = true
+      } else if (self.cols[x][self.nameField] == '__check_col__'){
+        has_check = true
       }
+      if (has_col && has_check) break
     }
 
     // this.cols = opts.cols.slice()
     //
     //process indexCol, will add a column to fix_cols
-    if (opts.indexCol && !has_col('__index_col__')) {
+    if (opts.indexCol && !has_col) {
       col = {
         render:function(row, col, value){
           return col.index + 1
         },
         width:self.indexColWidth,
         frozen:true,
-        style:'text-align:center;'
+        align:'center'
       }
       col[this.nameField] = '__index_col__'
       col[this.titleField] = '#'
@@ -591,11 +596,11 @@
       }
     }
 
-    if (opts.checkCol && !has_col('__check_col__')) {
+    if (opts.checkCol && !has_check) {
       col = {
         type:'check',
         width:30,
-        style:'text-align:center;',
+        align:'center',
         frozen:has_frozen
       }
       col[this.nameField] = '__check_col__'
