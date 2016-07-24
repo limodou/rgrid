@@ -11,7 +11,7 @@
     minHeight(optional):    Min height, it set height is 'auto', when less than minHeight, the height will be always minHeight
     width(Optional):        Width of grid, if no provided, it'll use parent width, default is null
     container(Optional):    Used to calculate the width and height, if width or height set to null, default is this.root
-    rawHeight(Optional):    single row height. Default is 24
+    rawHeight(Optional):    single row height. Default is 34
     nameField(Optional):    Which value will be used for name of column, default is 'name'
     titleField(Optional):   Which value will be used for title of column, default is 'title'
     start(Optional):        Starting index value, it'll be used for index column, default is 0
@@ -242,7 +242,7 @@
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
   this.cols = opts.cols.slice()
-  this.rowHeight = opts.rowHeight || 24
+  this.rowHeight = opts.rowHeight || 34
   this.indexColWidth = opts.indexColWidth || 40
   this.multiSelect = opts.multiSelect || false
   this.visCells = []
