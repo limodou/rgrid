@@ -43,7 +43,7 @@ project_url = './index.html'
 copyright = u'2016, Limodou'
 description = u'''rGrid is a riot grid component.
 '''
-download_url = ''
+download_url = 'https://github.com/limodou/rgrid/archive/master.zip'
 
 # You can add custom css files, just like
 # custom_css = ['/static/custom.css']
