@@ -32,7 +32,7 @@ tag_class = {
 
 # pre code theme css only : sons-of-obsidian, sunburst
 # can be found in static/asset directory
-pre_css = 'sons-of-obsidian'
+pre_css = 'light'
 
 # The short X.Y version.
 version = '1.0'
