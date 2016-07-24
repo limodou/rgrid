@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+
+<link rel="stylesheet" href="./static/bootstrap/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="./static/font-awesome/css/font-awesome.min.css"/>
+<link rel="stylesheet" href="./static/asset/prettify.css">
+<link rel="stylesheet" href="./static/toc/toc.css">
+<link rel="stylesheet" href="./static/asset/sons-of-obsidian.css"/>
+<link rel="stylesheet" href="./static/ui.totop.css"/>
+<link rel="stylesheet" href="./static/custom.css"/>
+
+
+
+
+
+<script>
+var relpath = '.';
+</script>
+
+<script src="./static/jquery.min.js"></script>
+<script src="./static/bootstrap/js/bootstrap.min.js"></script>
+<script src="./static/asset/prettify.js"></script>
+<script src="./static/toc/toc.js"></script>
+<script src="./static/jquery.ui.totop.js"></script>
+<script src="./static/jquery.hotkeys.js"></script>
+<script src="./static/jquery.sticky-kit.min.js"></script>
+<script src="./static/docs.js"></script>
+<script src="./static/comment.js"></script>
+<script src="./static/riot/riot.min.js"></script>
+<script src="./static/dataset.js"></script>
+<script src="./static/rtable.js"></script>
+
+
+
+
+    <script type="text/javascript">
+   /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+   var disqus_shortname = 'rgrid'; // required: replace example with your forum shortname
+
+   /* * * DON'T EDIT BELOW THIS LINE * * */
+   (function () {
+       var s = document.createElement('script'); s.async = true;
+       s.type = 'text/javascript';
+       s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+       (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+   }());
+   </script>
+
+
+
+
+    
+<script type="text/javascript">
+$(function(){
+    var form = $('#searchform');
+    form.submit(function(e){
+        e.preventDefault();
+        var wq=$('input[name="q"]').val();
+        var link="http://www.google.com/search?q=site:limodou.github.io/rgrid "+wq;
+        window.open(link);
+
+    });
+});
+</script>
+
+
+
+<title>rGrid - rGrid</title>
+</head>
+<body>
+
+
+
+<div class="navbar navbar-default" role="navigation">
+  <div class="container">
+
+    <!-- Collapsed navigation -->
+    <div class="navbar-header">
+
+      <!-- Expander button -->
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+      <!-- Main title -->
+      <a class="navbar-brand" href="index.html">rGrid</a>
+    </div>
+
+    <!-- Expanded navigation -->
+    <div class="navbar-collapse collapse">
+
+      <!-- Main navigation -->
+      <ul class="nav navbar-nav">
+      
+        <li class="active"><a href="./index.html">Home</a></li><li><a href="./examples.html">Examples</a></li><li><a href="./documents.html">Documents</a></li>
+      
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a href="https://github.com/limodou/rgrid">
+            <i class="fa fa-github"></i>
+            rGrid
+          </a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<div class="jumbotron bs-docs-header">
+  <div class="container text-center">
+    <h1>rGrid</h1>
+    <p class="lead">rGrid is a riot grid component.
+</p>
+    <a class="btn btn-outline-inverse btn-lg" href="" role="button">
+      <i class="fa fa-download"></i> Download (1.0)
+    </a>
+  </div>
+</div>
+
+<div class="container" id="markdown-content">
+    <h1 id="title_1">rGrid<a class="anchor" href="#title_1">&para;</a></h1>
+<p>Used to implement common data grid widget based on Riot. It includes:</p>
+<ul>
+<li>rtable Core widget, used for data grid display</li>
+<li>pagination</li>
+<li>query_config Query condition widget</li>
+<li>dataset Data source API</li>
+<li>rGrid Data grid which combined above components.</li>
+</ul>
+<h2 id="title_1-1">Install<a class="anchor" href="#title_1-1">&para;</a></h2>
+<p>rGrid depends on Riot, jQuery mainly. They are not included in this project, so you can install them via bower:</p>
+<pre class="prettyprint "><code>bower install jquery riot</code></pre>
+<p>Examples think these packages should be installed in <code>bower_components</code> of rGrid project directory.</p>
+<p>Source tags are exists in src directory, it should be compiled via Riot. You can install Riot via npm(It's not the same as bower). The compiled .js files are already placed in dist directory, you can use the directly.</p>
+<p>For example:</p>
+<pre class="prettyprint "><code>npm install riot</code></pre>
+<p>then compile <code>rtable.tag</code> or other tag files like:</p>
+<pre class="prettyprint "><code>riot -w rtable.tag ../dist</code></pre>
+<h2 id="title_1-2">Development description<a class="anchor" href="#title_1-2">&para;</a></h2>
+<p>For now, the functionalities is simple, and the performance is not so good I think, but I hope I can improve it continuously, and also hope you can help this project with me.</p>
+<h2 id="title_1-3">rtable<a class="anchor" href="#title_1-3">&para;</a></h2>
+<p>rtable is inspired by several grid or table project, especially <a class="outter" href="https://github.com/crisward/riot-grid2">https://github.com/crisward/riot-grid2</a> about large data display and fixed left columns and header.</p>
+<p>The features list which already be implemented or will be implemented：</p>
+<ul>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Large data support. Only display necessary data to increase display speed</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Data source based. So <code>dataset.js</code> is introduced, and I bowered it from vis project, and I add tree and multiple column support</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Multi header, and the definition may be as simple as possible</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Support frozen columns and will be display in left pane</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Header can be float and could be scrolled at horizontal level</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Column width width is resizable</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Auto fit grid width, if there are some columns which have not width given, they'll be set with reset width</li>
+<li><i class="fa fa-square-o" style="color:gray;"\></i> Column could be visible toggled dynamically</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Index of row display support, just like '#'</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Custom defined buttons</li>
+<li><i class="fa fa-square-o" style="color:gray;"\></i> Resize width and height of grid</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Checkbox column support</li>
+<li><i class="fa fa-square-o" style="color:gray;"\></i> Context menu</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Custom render for data cell</li>
+<li><i class="fa fa-square-o" style="color:gray;"\></i> Custom style for row or column or cell</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Selected row support, include: single selection, multi selection, also support checkbox selection, click select row</li>
+<li><i class="fa fa-square-o" style="color:gray;"\></i> Cell editor</li>
+<li><i class="fa fa-square-o" style="color:gray;"\></i> Tree grid support</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> Column sort support, client and remote mode</li>
+<li><i class="fa fa-check-square-o" style="color:gray;"\></i> No data display</li>
+</ul>
+<h2 id="title_1-4">Examples<a class="anchor" href="#title_1-4">&para;</a></h2>
+<p>In <code>examples</code> directory</p>
+
+    
+</div>
+
+<div class="footer" id="footer">
+  <div class="container text-center">
+    
+<p>Designed by Limodou, Copyright 2016, Limodou</p>
+<p>CSS framework <a href="https://github.com/twitter/bootstrap">Bootstrap</a>, Markdown parser lib <a href="https://github.com/limodou/par">Par</a> and this page is created by <a href="https://github.com/limodou/parm">Parm</a> tool.</p>
+
+  </div>
+</div>
+
+
+
+
+</body>
+</html>
