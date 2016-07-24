@@ -334,3 +334,6 @@ border-top:1px solid white;
 #markdown-content .tab-pane {
 padding:15px;
 }
+.navbar {
+    margin-bottom: 0px;
+}
