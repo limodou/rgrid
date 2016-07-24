@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="./static/font-awesome/css/font-awesome.min.css"/>
 <link rel="stylesheet" href="./static/asset/prettify.css">
 <link rel="stylesheet" href="./static/toc/toc.css">
-<link rel="stylesheet" href="./static/asset/sons-of-obsidian.css"/>
+<link rel="stylesheet" href="./static/asset/light.css"/>
 <link rel="stylesheet" href="./static/ui.totop.css"/>
 <link rel="stylesheet" href="./static/custom.css"/>
 
@@ -142,11 +142,27 @@ $(function(){
 <div class="tab-content">
 <div class="tab-pane active" id="tab_item_1_1">
 
+<p>An simple rtable could be created by</p>
+<pre class="prettyprint "><code>riot.mount('rtable#ex01', {cols:cols, data:data, height:200})</code></pre>
+<p><code>cols</code> should be columns definition, it should be defined as an array, like:</p>
+<pre class="prettyprint "><code>{
+    name: 'column name',
+    title: 'column title',
+    frozen: 'left frozen pane',
+    align: 'center' | 'left' | 'right',
+    width: 'width' (optional),
+    render: custom render function, just like function(row, col, value)
+    fixed: 'the column width could not be resized'
+}</code></pre>
+<p>If the width of column is not given, it'll be calculted automatically to fit the width of the grid.</p>
+<p><code>data</code> is an array or <code>dataset</code> object. Each element is a plain object, and the key should be matched with name of a column.</p>
+<p><code>height</code> is the height of the grid.</p>
+<p><code>width</code> is the wdith of the grid. If no given, it'll be the parent's width.</p>
 <rtable id="ex01"></rtable>
 <script>
   var cols = [
-    {name:'id', title:'ID'},
-    {name:'name', title:'Name'}
+    {name:'id', title:'ID', width:300},
+    {name:'name', title:'Name', width:200}
   ]
   var data = [], size=100
   for(var i=0; i<size; i++)
@@ -158,18 +174,79 @@ $(function(){
 <div class="tab-pane" id="tab_item_1_2">
 
 <pre class="prettyprint "><code>var cols = [
-{name:'id', title:'ID'},
-{name:'name', title:'Name'}
+  {name:'id', title:'ID', width:300},
+  {name:'name', title:'Name', width:200}
 ]
 var data = [], size=100
 for(var i=0; i&lt;size; i++)
-data.push({id:i+1, name:'Name'+(i+1)})
+  data.push({id:i+1, name:'Name'+(i+1)})
 riot.mount('rtable#ex01', {cols:cols, data:data, height:200})</code></pre>
 
 </div>
 <div class="tab-pane" id="tab_item_1_3">
 
-<pre class="prettyprint "><code>&lt;rtable&gt;&lt;/rtable&gt;</code></pre>
+<pre class="prettyprint "><code>&lt;rtable id="ex01"&gt;&lt;/rtable&gt;</code></pre>
+
+</div>
+</div>
+</div>
+<h3 id="title_1-1-2">Multi Header<a class="anchor" href="#title_1-1-2">&para;</a></h3>
+<div class="tabbable">
+<ul class="nav nav-tabs">
+<li class="active"><a href="#tab_item_2_4" data-toggle="tab">Result</a></li>
+<li><a href="#tab_item_2_5" data-toggle="tab">Javascript</a></li>
+<li><a href="#tab_item_2_6" data-toggle="tab">HTML</a></li>
+</ul>
+<div class="tab-content">
+<div class="tab-pane active" id="tab_item_2_4">
+
+<p>rtable support multi header.</p>
+<rtable id="ex02"></rtable>
+<script>
+  var cols = [
+    {name:'name1', title:'A/B', width:60},
+    {name:'name2', title:'A/C', width:200},
+    {name:'name3', title:'C/E/F', width:200},
+    {name:'name4', title:'C/E/H', width:200},
+    {name:'name5', title:'C/F/G', width:300},
+    {name:'name6', title:'C/F/I', width:200}
+  ]
+  var data = [], size=100, c=6, d
+  for(var i=0; i<size; i++) {
+    d = {id:i+1}
+    for(var j=0; j<c; j++){
+      d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
+    }
+    data.push(d)
+  }
+  riot.mount('rtable#ex02', {cols:cols, data:data, height:200})
+</script>
+
+</div>
+<div class="tab-pane" id="tab_item_2_5">
+
+<pre class="prettyprint "><code>var cols = [
+  {name:'name1', title:'A/B', width:60},
+  {name:'name2', title:'A/C', width:200},
+  {name:'name3', title:'C/E/F', width:200},
+  {name:'name4', title:'C/E/H', width:200},
+  {name:'name5', title:'C/F/G', width:300},
+  {name:'name6', title:'C/F/I', width:200}
+]
+var data = [], size=100, c=6, d
+for(var i=0; i&lt;size; i++) {
+  d = {id:i+1}
+  for(var j=0; j&lt;c; j++){
+    d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
+  }
+  data.push(d)
+}
+riot.mount('rtable#ex02', {cols:cols, data:data, height:200})</code></pre>
+
+</div>
+<div class="tab-pane" id="tab_item_2_6">
+
+<pre class="prettyprint "><code>&lt;rtable id="ex02"&gt;&lt;/rtable&gt;</code></pre>
 
 </div>
 </div>
