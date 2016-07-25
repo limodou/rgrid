@@ -256,7 +256,7 @@
   this.visCells = []
   this.selected_rows = []
   this.sort_cols = []
-  this.clickSelect = opts.clickSelect || 'row'
+  this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
   this.container = opts.container || $(this.root).parent()
   if (opts.data) {
@@ -1013,7 +1013,7 @@
     return function (e) {
       if (btn.onclick && typeof btn.onclick === 'function') {
         //绑定this为e.target，即当前dom元素
-        btn.onclick.call(e.target, col.row, self)
+        btn.onclick.call(e.target, col.row, self.root)
       }
     }
   }

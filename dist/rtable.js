@@ -63,7 +63,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
   this.visCells = []
   this.selected_rows = []
   this.sort_cols = []
-  this.clickSelect = opts.clickSelect || 'row'
+  this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
   this.container = opts.container || $(this.root).parent()
   if (opts.data) {
@@ -775,7 +775,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root" riot-style="width:
     return function (e) {
       if (btn.onclick && typeof btn.onclick === 'function') {
 
-        btn.onclick.call(e.target, col.row, self)
+        btn.onclick.call(e.target, col.row, self.root)
       }
     }
   }
