@@ -2,3 +2,5 @@ node_modules
 doc/html
 *.pyc
 .idea
+bower_components/jquery/src
+bower_components/bootstrap/less
