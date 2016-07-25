@@ -11,9 +11,9 @@
 <link rel="stylesheet" href="{{=relpath}}/static/bootstrap/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="{{=relpath}}/static/font-awesome/css/font-awesome.min.css"/>
 <link rel="stylesheet" href="{{=relpath}}/static/asset/prettify.css">
-<link rel="stylesheet" href="{{=relpath}}/static/toc/toc.css">
 <link rel="stylesheet" href="{{=relpath}}/static/asset/{{=pre_css}}.css"/>
 <link rel="stylesheet" href="{{=relpath}}/static/ui.totop.css"/>
+<link rel="stylesheet" href="{{=relpath}}/static/docs.css"/>
 <link rel="stylesheet" href="{{=relpath}}/static/custom.css"/>
 
 {{if 'mermaid' in conf.plugins:}}
@@ -31,7 +31,6 @@ var relpath = '{{=relpath}}';
 <script src="{{=relpath}}/static/jquery.min.js"></script>
 <script src="{{=relpath}}/static/bootstrap/js/bootstrap.min.js"></script>
 <script src="{{=relpath}}/static/asset/prettify.js"></script>
-<script src="{{=relpath}}/static/toc/toc.js"></script>
 <script src="{{=relpath}}/static/jquery.ui.totop.js"></script>
 <script src="{{=relpath}}/static/jquery.hotkeys.js"></script>
 <script src="{{=relpath}}/static/jquery.sticky-kit.min.js"></script>
@@ -97,7 +96,7 @@ pass
       <!-- Main navigation -->
       <ul class="nav navbar-nav">
       {{block menu}}
-        {{menu('home')}}
+        {{menu('examples')}}
       {{end}}
       </ul>
 
@@ -154,7 +153,12 @@ pass
 </div>
 {{end}}
 
+<script>
+  $(function(){
+  })
 
+
+</script>
 
 </body>
 </html>
