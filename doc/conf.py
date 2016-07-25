@@ -21,7 +21,10 @@ source_suffix = ['.md', '.markdown']
 
 #template setttings
 template_dirs = "templates"
-templates = {'index':'index.html', '*':'default.html'}
+templates = {'index':'index.html',
+             'examples':'examples.html',
+             '*':'default.html',
+             'documents':'documents.html'}
 
 tag_class = {
     
