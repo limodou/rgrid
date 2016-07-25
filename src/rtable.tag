@@ -28,6 +28,7 @@
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
     onSort:               When click sort, it'll invoke function(sort_cols) return new data
+    onRowClass:           Return row class
 
   methods:
     add:                  Add new records: add(row), add(rows)
@@ -193,12 +194,14 @@
       style="width:{fix_width}px;bottom:{xscroll_width}px;top:{header_height}px;height:{height-header_height-xscroll_width}px;">
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
-        <div each={col in visCells.fixed} no-reorder class={rtable-cell:true, selected:col.selected}
-          style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
-          <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
-          <!-- display checkbox -->
-          <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
-            class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
+        <div each={row in visCells.fixed} no-reorder class={get_row_class(row.row, row.line)}>
+          <div each={col in row.cols} no-reorder class={get_cell_class(col)}
+            style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
+            <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
+            <!-- display checkbox -->
+            <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
+              class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
+          </div>
         </div>
       </div>
     </div>
@@ -207,19 +210,21 @@
       <!-- width:{width-fix_width}px;height:{height-header_height}px; -->
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
-        <div each={col in visCells.main} no-reorder class={rtable-cell:true, selected:col.selected}
-            style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
-            <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
-            <!-- display checkbox -->
-            <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
-                class="rtable-check" style="margin-top:{rowHeight/2-7}px;"></input>
-            <virtual if={col.buttons} no-reorder each={btn in col.buttons}>
-              <i if={ btn.icon } class="fa fa-{btn.icon} action" title={ btn.title }
-                onclick={parent.parent.action_click(parent.col, btn)}></i>
-              <a if={ btn.label } class="action" title={ btn.title }
-                href={ btn.href || '#' }
-                onclick={parent.parent.action_click(parent.col, btn)}>{ btn.label }</a>
-            </virtual>
+        <div each={row in visCells.main} no-reorder class={get_row_class(row.row, row.line)}>
+          <div each={col in row.cols} no-reorder class={get_cell_class(col)}
+              style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
+              <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
+              <!-- display checkbox -->
+              <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
+                  class="rtable-check" style="margin-top:{rowHeight/2-7}px;"></input>
+              <virtual if={col.buttons} no-reorder each={btn in col.buttons}>
+                <i if={ btn.icon } class="fa fa-{btn.icon} action" title={ btn.title }
+                  onclick={parent.parent.action_click(parent.col, btn)}></i>
+                <a if={ btn.label } class="action" title={ btn.title }
+                  href={ btn.href || '#' }
+                  onclick={parent.parent.action_click(parent.col, btn)}>{ btn.label }</a>
+              </virtual>
+            </div>
           </div>
         </div>
       </div>
@@ -243,6 +248,7 @@
   this.titleField = opts.titleField || 'title'
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
+  this.onRowClass = opts.onRowClass || function(){}
   this.cols = opts.cols.slice()
   this.rowHeight = opts.rowHeight || 34
   this.indexColWidth = opts.indexColWidth || 40
@@ -497,6 +503,7 @@
         new_col.type = col.type
         new_col.sort = col.sort
         new_col.align = col.align || 'left'
+        new_col['class'] = col['class']
 
         //查找同层最左边的结点，判断是否title和rowspan一致
         //如果一致，进行合并，即colspan +1
@@ -710,7 +717,7 @@
   /* 计算可视单元格 */
   this.calVis = function() {
     var i, j, last, len, len1, r2, cols, row, col, new_row, value, d,
-      visible, visiblefixed, visrows, top, h, r1
+      visrows, top, h, r1, vis_rows, vis_fixed_rows, v_row, vf_row
 
     r1 = {}
     r1.top = this.content.scrollTop
@@ -723,13 +730,17 @@
     var b = new Date().getTime()
 
     visrows = this.rows.slice(first, last)
-    visible = []
-    visiblefixed = []
+    vis_rows = []
+    vis_fixed_rows = []
     h = this.rowHeight
-    <!-- cols = this.fix_cols.concat(this.main_cols) -->
     cols = this.fix_columns.concat(this.main_columns)
     for (i = 0, len = visrows.length; i < len; i++) {
-      row = visrows[i];
+      row = visrows[i]
+      v_row = {row:row, cols:[], line:first+i}
+      vf_row = {row:row, cols:[], line:first+i}
+      vis_rows.push(v_row)
+      vis_fixed_rows.push(vf_row)
+
       top = h*(first+i)
       for (j=0, len1=cols.length; j<len1; j++) {
         col = cols[j]
@@ -746,21 +757,23 @@
           buttons:col.buttons,
           index:first+i,
           sor:col.sort,
-          align:col.align
+          align:col.align,
+          class:col.class
         }
         d.value = this.get_col_data(d, row[col.name])
-        if (col.frozen)
-          visiblefixed.push(d)
+        if (col.frozen) {
+          vf_row.cols.push(d)
+        }
         else {
           //test column
           if (!(d.left > r1.right || d.right < r1.left))
-            visible.push(d)
+            v_row.cols.push(d)
         }
       }
     }
     this.visCells = {
-      fixed: visiblefixed,
-      main: visible
+      fixed: vis_fixed_rows,
+      main: vis_rows
     }
   }
 
@@ -1003,6 +1016,42 @@
         btn.onclick.call(e.target, col.row, self)
       }
     }
+  }
+
+  this.get_cell_class = function (col) {
+    var klass = []
+    klass.push('rtable-cell')
+    if (col.selected) klass.push('selected')
+    if (col['class']) klass.push(col['class'])
+    return klass.join(' ')
+  }
+
+  this.get_row_class = function (row, index) {
+    var klass = [], cls
+    klass.push('rtable-row')
+    if (index % 2 == 1) klass.push('odd')
+    else klass.push('even')
+    cls = this.onRowClass(row, index)
+    if (cls)
+      klass.push(cls)
+    return klass.join(' ')
+  }
+
+  this.addClass = function(cls, add) {
+    var clss = this[cls].split(/\s+/)
+    if(clss.indexOf(add) < 0) clss.push(add)
+    this[cls] = clss.join(' ')
+  }
+
+  this.removeClass = function(cls, rem) {
+    if(!this.hasClass(cls, rem)) return;
+    var clss = this[cls].split(/\s+/)
+    clss.splice(clss.indexOf(rem), 1)
+    this[cls] = clss.join(' ')
+  }
+
+  this.hasClass = function(haystack, needle) {
+    return this[haystack].split(/\s+/).indexOf(needle) > -1
   }
 
 </rtable>
