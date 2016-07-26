@@ -24,6 +24,7 @@
     noData(Optional):       If there is no data, show a message, default is 'No Data'
 
     options(Optional):      Used to set above options easily via plain object
+    theme(Optional):        Theme of grid
 
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
@@ -160,11 +161,28 @@
       line-height: 34px;
       border-radius: 3px;
     }
+
+    /* theme */
+    .rtable-root.zebra .rtable-row.even .rtable-cell {
+      background-color: #f2f2f2;
+      border-bottom:none;
+      border-right:1px dotted gray;
+    }
+    .rtable-root.zebra .rtable-row.odd .rtable-cell {
+      border-bottom:none;
+      border-right:1px dotted gray;
+    }
+    .rtable-root.zebra .rtable-row.even .rtable-cell.selected {
+      background-color: #ffefd5;
+    }
+    .rtable-root.zebra .rtable-header .rtable-cell {
+      background-color: #f2f2f2;
+    }
   </style>
 
   <yield/>
 
-  <div class="rtable-root" style="width:{width-1}px;height:{height-1}px">
+  <div class={rtable-root:true, zebra:opts.theme=='zebra'} style="width:{width-1}px;height:{height-1}px">
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
@@ -1029,8 +1047,8 @@
   this.get_row_class = function (row, index) {
     var klass = [], cls
     klass.push('rtable-row')
-    if (index % 2 == 1) klass.push('odd')
-    else klass.push('even')
+    if (index % 2 == 1) klass.push('even')
+    else klass.push('odd')
     cls = this.onRowClass(row, index)
     if (cls)
       klass.push(cls)

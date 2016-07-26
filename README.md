@@ -64,12 +64,13 @@ The features list which already be implemented or will be implemented：
 - [X] Checkbox column support
 - [ ] Context menu
 - [X] Custom render for data cell
-- [ ] Custom style for row or column or cell
+- [X] Custom style for row or column or cell
 - [X] Selected row support, include: single selection, multi selection, also support checkbox selection, click select row
 - [ ] Cell editor
 - [ ] Tree grid support
 - [X] Column sort support, client and remote mode
 - [X] No data display
+- [X] Simple theme support, for now: zebra and default
 
 ## Examples
 
