@@ -161,6 +161,12 @@
       line-height: 34px;
       border-radius: 3px;
     }
+    .rtable-expander {
+      position:absolute;
+      top:0px;
+      cursor:pointer;
+      font-size:14px;
+    }
 
     /* theme */
     .rtable-root.zebra .rtable-row.even .rtable-cell {
@@ -215,7 +221,16 @@
         <div each={row in visCells.fixed} no-reorder class={get_row_class(row.row, row.line)}>
           <div each={col in row.cols} no-reorder class={get_cell_class(col)}
             style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
-            <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
+
+            <!-- cell content -->
+            <div if={col.type!='check' && !col.buttons} data-is="raw"
+              content={col.value} class="rtable-cell-text"
+              onclick={parent.click_handler} style={col.indent}></div>
+
+            <!-- expander -->
+            <span if={col.expander} data-is='raw' content={col.expander} class="rtable-expander"
+              style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
+
             <!-- display checkbox -->
             <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
               class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
@@ -225,16 +240,24 @@
     </div>
     <div class="rtable-body rtable-main" onscroll={scrolling}
       style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+yscroll_fix}px;height:{height-header_height+xscroll_fix}px;">
-      <!-- width:{width-fix_width}px;height:{height-header_height}px; -->
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.main} no-reorder class={get_row_class(row.row, row.line)}>
           <div each={col in row.cols} no-reorder class={get_cell_class(col)}
               style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
-              <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value} class="rtable-cell-text" onclick={parent.click_handler}></div>
+
+              <!-- cell content -->
+              <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value}
+                class="rtable-cell-text" onclick={parent.click_handler} style={col.indentWidth}>></div>
+
+              <!-- expander -->
+              <span if={col.expander} data-is='raw' content={col.expander} class="rtable-expander"
+                style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
+
               <!-- display checkbox -->
               <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
                   class="rtable-check" style="margin-top:{rowHeight/2-7}px;"></input>
+
               <virtual if={col.buttons} no-reorder each={btn in col.buttons}>
                 <i if={ btn.icon } class="fa fa-{btn.icon} action" title={ btn.title }
                   onclick={parent.parent.action_click(parent.col, btn)}></i>
@@ -277,10 +300,33 @@
   this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
   this.container = opts.container || $(this.root).parent()
+
+  //tree options
+  this.tree = opts.tree
+  this.showIcon = opts.showIcon === undefined ? true : opts.showIcon //if display icon by default
+  if (opts.useFontAwesome) {
+    this.openIcon = '<i class="fa fa-minus-square-o"></i>'
+    this.closeIcon = '<i class="fa fa-plus-square-o"></i>'
+  } else {
+    this.openIcon = opts.openIcon || '-'
+    this.closeIcon = opts.closeIcon || '+'
+  }
+  this.iconInden = 16
+  this.expanded = opts.expanded === undefined ? false: opts.expanded
+  this.parents_expand_status = {}
+  this.parentField = opts.parentField
+  this.orderField = opts.orderField
+  this.levelField = opts.levelField
+  this.indentWidth = 22
+
   if (opts.data) {
     if (Array.isArray(opts.data)) {
       this._data = new DataSet()
-      this._data.add(opts.data)
+      if (opts.tree)
+        this._data.load_tree(opts.data, {parentField:opts.parentField,
+          orderField:opts.orderField, levelField:opts.levelField, plain:true})
+      else
+        this._data.load(opts.data)
     }
     else
       this._data = opts.data
@@ -309,7 +355,7 @@
   this.ready_data = function(){
     var order = []
     //create sort object
-    if (!opts.remoteSort && this.sort_cols.length) {
+    if (!opts.tree && !opts.remoteSort && this.sort_cols.length) {
       for(i=0, len=this.sort_cols.length; i<len; i++) {
         col = this.sort_cols[i]
         if (col.direction == 'desc')
@@ -732,10 +778,38 @@
     }
   }
 
+
   /* 计算可视单元格 */
   this.calVis = function() {
-    var i, j, last, len, len1, r2, cols, row, col, new_row, value, d,
-      visrows, top, h, r1, vis_rows, vis_fixed_rows, v_row, vf_row
+    var i, j, last, len, len1, r2, cols, row, col, new_row, value, d, index,
+      visrows, top, h, r1, vis_rows, vis_fixed_rows, v_row, vf_row, indent,
+      hidden_nodes = {} //remember the hidden status about parent id
+
+      function is_hidden (data, row) {
+        if (!self.tree) return false
+        var parent, stack=[], i, len
+        parent = row[self.parentField]
+        if (!parent) return false
+        while (parent) {
+          if (hidden_nodes.hasOwnProperty(parent))
+            return hidden_nodes[parent]
+          else {
+            if (self.opened(parent)) { //if expand, still need to check grantparent
+              stack.push(parent)
+              parent = self._data.get(parent)[self.parentField]
+            } else {
+              hidden_nodes[parent] = true
+              for(i=0, len=stack.length; i<len; i++) {
+                hidden_nodes[stack[i]] = true
+              }
+              return true
+            }
+          }
+        }
+        for(i=0, len=stack.length; i<len; i++) {
+          hidden_nodes[stack[i]] = false
+        }
+      }
 
     r1 = {}
     r1.top = this.content.scrollTop
@@ -747,19 +821,26 @@
     last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
     var b = new Date().getTime()
 
-    visrows = this.rows.slice(first, last)
+    len = last - first
     vis_rows = []
     vis_fixed_rows = []
     h = this.rowHeight
     cols = this.fix_columns.concat(this.main_columns)
-    for (i = 0, len = visrows.length; i < len; i++) {
-      row = visrows[i]
-      v_row = {row:row, cols:[], line:first+i}
-      vf_row = {row:row, cols:[], line:first+i}
+    i = 0
+    index = 0
+    while (i<len && first+i<this.rows.length) {
+      row = this.rows[first+i]
+      //hidden support
+      if (is_hidden(this.rows, row)) {
+        i++
+        continue
+      }
+      v_row = {row:row, cols:[], line:first+index}
+      vf_row = {row:row, cols:[], line:first+index}
       vis_rows.push(v_row)
       vis_fixed_rows.push(vf_row)
 
-      top = h*(first+i)
+      top = h*(first+index)
       for (j=0, len1=cols.length; j<len1; j++) {
         col = cols[j]
         d = {
@@ -778,6 +859,18 @@
           align:col.align,
           class:col.class
         }
+        if (opts.treeField == col.name && opts.tree) {
+          indent = row.level || 0
+          if (row.has_children) {
+            if (self.opened(row))
+              d.expander = self.openIcon
+            else
+              d.expander = self.closeIcon
+          }
+          indent ++
+          d.indent = indent*self.indentWidth
+          d.indentWidth = 'padding-left:' + d.indent + 'px'
+        }
         d.value = this.get_col_data(d, row[col.name])
         if (col.frozen) {
           vf_row.cols.push(d)
@@ -788,6 +881,9 @@
             v_row.cols.push(d)
         }
       }
+
+      i++
+      index++
     }
     this.visCells = {
       fixed: vis_fixed_rows,
@@ -803,6 +899,26 @@
       if (col.name == name && col.direction)
         return col.direction
     }
+  }
+
+  this.toggle_expand = function(e) {
+    var id = e.item.col.row.id, status = this.parents_expand_status[id]
+    if (status === undefined) status = this.expanded
+    this.parents_expand_status[id] = !status
+    this.update()
+  }
+
+  this.opened = function(row) {
+      var id , status
+      if (row instanceof Object){
+        id = row.id
+      } else
+        id = row
+      status = this.parents_expand_status[id]
+      if (status === true) return true
+      else if (status === false) return false
+      this.parents_expand_status[id] = this.expanded
+      return this.expanded
   }
 
   this.scrolling = function(e) {
