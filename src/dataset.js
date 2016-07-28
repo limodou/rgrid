@@ -3,7 +3,7 @@
  *
  * Usage:
  *     var dataSet = new DataSet({
- *         fieldId: '_id',
+ *         idField: '_id',
  *         type: {
  *             // ...
  *         }
@@ -28,7 +28,7 @@
  *
  * @param {Array} [data]    Optional array with initial data
  * @param {Object} [options]   Available options:
- *                             {String} fieldId Field name of the id in the
+ *                             {String} idField Field name of the id in the
  *                                              items, 'id' by default.
  *                             {Object.<String, String} type
  *                                              A map with field names as key,
@@ -51,10 +51,12 @@ function DataSet(data, options) {
   this._data = []; // map with data indexed by id
   this._ids = {};
   this.length = 0; // number of items in the DataSet
-  this._fieldId = this._options.fieldId || 'id'; // name of the field containing id
-  this._parentFieldId = this._options.parentFieldId || '_parent'; //name of the parent field containing id
-  this._childFieldId = this._options.childFieldId || 'nodes';
-  this._orderFieldId = this._options.orderFieldId || 'order';
+  this._idField = this._options.idField || 'id'; // name of the field containing id
+  this._parentField = this._options.parentField || '_parent'; //name of the parent field containing id
+  this._childField = this._options.childField || 'nodes';
+  this._orderField = this._options.orderField || 'order';
+  this._levelField = this._options.levelField || 'level';
+  this._hasChildrenField = this._options.hasChildrenField || 'has_children';
   this._type = {}; // internal field types (NOTE: this can differ from this._options.type)
 
   // all variants of a Date are internally stored as Date, so we can convert
@@ -189,16 +191,16 @@ DataSet.prototype.add = function (data, parentId) {
     for (var i = 0, len = data.length; i < len; i++) {
       id = me._addItem(data[i], parentId);
       addedIds.push(id);
-      if (data[i][me._childFieldId] && data[i][me._childFieldId].length > 0) {
-        addedIds.concat(me.add(data[i][me._childFieldId], data[i][me._fieldId]))
+      if (data[i][me._childField] && data[i][me._childField].length > 0) {
+        addedIds.concat(me.add(data[i][me._childField], data[i][me._idField]))
       }
     }
   } else if (data instanceof Object) {
     // Single item
     id = me._addItem(data, parentId);
     addedIds.push(id);
-    if (data[me._childFieldId] && data[me._childFieldId].length > 0) {
-      addedIds.concat(me.add(data[me._childFieldId], data[me._fieldId]))
+    if (data[me._childField] && data[me._childField].length > 0) {
+      addedIds.concat(me.add(data[me._childField], data[me._idField]))
     }
   } else {
     throw new Error('Unknown dataType');
@@ -232,6 +234,33 @@ DataSet.prototype.load = function (url, callback) {
   }
 }
 
+DataSet.prototype.load_tree = function (url, callback) {
+  var self = this, opts = {}
+  this._data = [];
+  this._ids = {};
+  this.length = 0;
+  if (typeof url === 'string') {
+    return $.getJSON(url || this._options.url).done(function(r) {
+        if (callback) self.add(callback(r))
+        else self.add(r)
+      })
+  } else {
+    if (typeof callback == 'function')
+      self.add(callback(url))
+    else self.add(url)
+  }
+  if (callback instanceof Object) {
+    opts = callback
+  }
+  opts.plain = true
+
+  var d = self.tree(opts)
+  this._data = [];
+  this._ids = {};
+  this.length = 0;
+  self.add(d);
+}
+
 /**
  * Update existing items. When an item does not exist, it will be created
  * @param {Object | Array} data
@@ -243,10 +272,10 @@ DataSet.prototype.update = function (data, senderId) {
   var updatedIds = [];
   var updatedData = [];
   var me = this;
-  var fieldId = me._fieldId;
+  var idField = me._idField;
 
   var addOrUpdate = function addOrUpdate(item) {
-    var id = item[fieldId];
+    var id = item[idField];
     if (me._ids.hasOwnProperty(id)) {
       // update item
       id = me._updateItem(item);
@@ -310,6 +339,9 @@ DataSet.prototype.update = function (data, senderId) {
  */
 DataSet.prototype.get = function (args) {
   var me = this;
+
+  if (!args)
+    return me._data
 
   // parse the arguments
   var id, ids, options;
@@ -414,29 +446,74 @@ DataSet.prototype.tree = function (options) {
   var me = this;
 
   // parse the arguments
-  var id, item, itemx, ids={}, data=[], parentId, parent;
-  var items = this.get({order:[me._parentFieldId, me._orderFieldId]})
+  var id, item, itemx, ids={}, data=[], parentField, childrenField,
+    parent, order = [], options = options || {};
+
+  parentField = options.parentField || me._parentField
+  childrenField = options.childrenField || me._childField
+  idField = options.idField || me._idField
+  orderField = options.orderField || me._orderField
+
+  order.push(options.parentField || me._parentField)
+  order.push(orderField)
+
+  var items = this.get({order:order})
   for (var i=0, len=items.length; i<len; i++) {
     item = {}
     itemx = items[i]
     for (k in itemx) {
       item[k] = itemx[k]
     }
-    id = item[me._fieldId]
-    parentId = item[me._parentFieldId] || 0
+    id = item[idField]
+    parentId = item[parentField] || 0
     if (parentId) {
       parent = ids[parentId]
-      if (parent.hasOwnProperty(me._childFieldId)) {
-        parent[me._childFieldId].push(item)
+      if (parent.hasOwnProperty(childrenField)) {
+        parent[childrenField].push(item)
       } else {
-        parent[me._childFieldId] = [item]
+        parent[childrenField] = [item]
       }
     } else {
       data.push(item)
     }
     ids[id] = item
   }
-  return data
+  if (options.plain) {
+    var s = [], has_children,
+      levelField = options.levelField || me._levelField,
+      hasChildrenField = options.hasChildrenField || me._hasChildrenField,
+      order = options.order
+
+    function iter(d, level) {
+      var x, b, _o, last_order=1
+      for(var i=0, len=d.length; i<len; i++) {
+        x = d[i]
+        x[levelField] = x[levelField] || level
+        if (x[orderField]){
+          if (last_order < x[orderField])
+            last_order = x[orderField]
+          else if (last_order == x[orderField])
+            x[orderField]++
+          else {
+            x[orderField] = last_order
+          }
+        } else {
+          x[orderField] = last_order
+        }
+        last_order ++
+        s.push(x)
+        b = x[childrenField]
+        if (b && b.length > 0) {
+          x[hasChildrenField] = true
+          delete x[childrenField]
+          iter(b, level+1)
+        }
+      }
+    }
+    iter(data, 0, 1)
+    return s
+  } else
+    return data
 }
 
 /**
@@ -476,7 +553,7 @@ DataSet.prototype.getIds = function (options) {
       this._sort(items, order);
 
       for (i = 0, len = items.length; i < len; i++) {
-        ids[i] = items[i][this._fieldId];
+        ids[i] = items[i][this._idField];
       }
     } else {
       // create unordered list
@@ -484,7 +561,7 @@ DataSet.prototype.getIds = function (options) {
         if (data.hasOwnProperty(id)) {
           item = this._getItem(id, type);
           if (filter(item)) {
-            ids.push(item[this._fieldId]);
+            ids.push(item[this._idField]);
           }
         }
       }
@@ -503,14 +580,14 @@ DataSet.prototype.getIds = function (options) {
       this._sort(items, order);
 
       for (i = 0, len = items.length; i < len; i++) {
-        ids[i] = items[i][this._fieldId];
+        ids[i] = items[i][this._idField];
       }
     } else {
       // create unordered list
       for (id in data) {
         if (data.hasOwnProperty(id)) {
           item = data[id];
-          ids.push(item[this._fieldId]);
+          ids.push(item[this._idField]);
         }
       }
     }
@@ -658,6 +735,72 @@ DataSet.prototype._by = function (name, desc, minor) {
       }
   }
 }
+
+var mergesort = function (array, /* optional */ cmp) {
+    /*
+        Merge sort.
+        On average, two orders of magnitude faster than Array.prototype.sort() for
+        large arrays, with potentially many equal elements.
+        Note that the default comparison function does not coerce its arguments to strings.
+    */
+
+    if (cmp === undefined) {
+        // Note: This is not the same as the default behavior for Array.prototype.sort(),
+        // which coerces elements to strings before comparing them.
+        cmp = function (a, b) {
+            'use asm';
+            return a < b ? -1 : a === b ? 0 : 1;
+        };
+    }
+
+    function merge (begin, begin_right, end) {
+        'use asm';
+        // Create a copy of the left and right halves.
+        var left_size = begin_right - begin, right_size = end - begin_right;
+        var left = array.slice(begin, begin_right), right = array.slice(begin_right, end);
+        // Merge left and right halves back into original array.
+        var i = begin, j = 0, k = 0;
+        while (j < left_size && k < right_size)
+            if (cmp(left[j], right[k]) <= 0)
+                array[i++] = left[j++];
+            else
+                array[i++] = right[k++];
+        // At this point, at least one of the two halves is finished.
+        // Copy any remaining elements from left array back to original array.
+        while (j < left_size) array[i++] = left[j++];
+        // Copy any remaining elements from right array back to original array.
+        while (k < right_size) array[i++] = right[k++];
+        return;
+    }
+
+    function msort (begin, end) {
+        'use asm';
+        var size = end - begin;
+        if (size <= 8) {
+            // By experimentation, the sort is fastest when using native sort for
+            // arrays with a maximum size somewhere between 4 and 16.
+            // This decreases the depth of the recursion for an array size where
+            // O(n^2) sorting algorithms are acceptable.
+            var sub_array = array.slice(begin, end);
+            sub_array.sort(cmp);
+            // Copy the sorted array back to the original array.
+            for (var i = 0; i < size; ++i)
+                array[begin + i] = sub_array[i];
+            return;
+        }
+
+        var begin_right = begin + Math.floor(size/2);
+
+        msort(begin, begin_right);
+        msort(begin_right, end);
+        merge(begin, begin_right, end);
+    }
+
+    msort(0, array.length);
+
+    return array;
+};
+
 /**
  * Sort the provided array with items
  * @param {Object[]} items
@@ -686,10 +829,10 @@ DataSet.prototype._sort = function (items, order) {
             f = self._by(key, desc);
         last = f;
     }
-    return items.sort(f);
+    return mergesort(items, f);
   } else if (typeof order === 'function') {
     // order by sort function
-    return items.sort(order);
+    return mergesort(items, order);
   }
   // TODO: extend order by an Object {field:String, direction:String}
   //       where direction can be 'asc' or 'desc'
@@ -744,7 +887,7 @@ DataSet.prototype._remove = function (id) {
   if (util.isNumber(id) || util.isString(id)) {
     itemId = id;
   }else if (id instanceof Object) {
-    itemId = id[this._fieldId];
+    itemId = id[this._idField];
   }
   if(itemId) {
     index = this._ids[itemId]
@@ -753,7 +896,7 @@ DataSet.prototype._remove = function (id) {
       this.length--;
       this._ids = {}
       for(var i=0, len=this.length; i<len; i++) {
-        this._ids[this._data[i][this._fieldId]] = i
+        this._ids[this._data[i][this._idField]] = i
       }
       return id;
     }
@@ -785,7 +928,7 @@ DataSet.prototype.clear = function (senderId) {
  * @private
  */
 DataSet.prototype._addItem = function (item, parentId) {
-  var id = item[this._fieldId];
+  var id = item[this._idField];
 
   if (id != undefined) {
     // check whether this id is already taken
@@ -796,7 +939,7 @@ DataSet.prototype._addItem = function (item, parentId) {
   } else {
     // generate an id
     id = util.uuid.v4();
-    item[this._fieldId] = id;
+    item[this._idField] = id;
   }
 
   var d = {};
@@ -807,7 +950,7 @@ DataSet.prototype._addItem = function (item, parentId) {
     }
   }
   if (parentId)
-    d[this._parentFieldId] = parentId
+    d[this._parentField] = parentId
   this._data.push(d);
   this.length++;
   this._ids[id] = this.length-1;
@@ -820,7 +963,7 @@ DataSet.prototype.index = function (id) {
   if (util.isNumber(id) || util.isString(id)) {
     itemId = id;
   }else if (id instanceof Object) {
-    itemId = id[this._fieldId];
+    itemId = id[this._idField];
   }
 
   return this._ids[itemId];
@@ -873,7 +1016,7 @@ DataSet.prototype._getItem = function (id, types) {
  * @private
  */
 DataSet.prototype._updateItem = function (item) {
-  var id = item[this._fieldId];
+  var id = item[this._idField];
   if (id == undefined) {
     throw new Error('Cannot update item: item has no id (item: ' + JSON.stringify(item) + ')');
   }

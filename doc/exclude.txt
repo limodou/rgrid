@@ -7,3 +7,5 @@ _svn
 *.bak
 *.txt
 html
+.DS_Store
+make.sh

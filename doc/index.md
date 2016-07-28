@@ -57,21 +57,21 @@ The features list which already be implemented or will be implemented：
 - [X] Header can be float and could be scrolled at horizontal level
 - [X] Column width width is resizable
 - [X] Auto fit grid width, if there are some columns which have not width given, they'll be set with reset width
-- [ ] Column could be visible toggled dynamically
 - [X] Index of row display support, just like '#'
 - [X] Custom defined buttons
-- [ ] Resize width and height of grid
 - [X] Checkbox column support
-- [ ] Context menu
 - [X] Custom render for data cell
-- [ ] Custom style for row or column or cell
+- [X] Custom style for row or column or cell
 - [X] Selected row support, include: single selection, multi selection, also support checkbox selection, click select row
-- [ ] Cell editor
-- [ ] Tree grid support
+- [X] Tree grid support
 - [X] Column sort support, client and remote mode
 - [X] No data display
+- [X] Simple theme support, for now: zebra and default
+- [ ] Column could be visible toggled dynamically
+- [ ] Resize width and height of grid
+- [ ] Context menu
+- [ ] Cell editor
 
 ## Examples
 
 In `examples` directory
-
