@@ -9,12 +9,15 @@
     <div style="padding:5px 0px;">
       <button onclick="Add()">Add</button>
       <button onclick="Remove()">Remove</button>
+      <button onclick="InsertBefore()">Insert Before</button>
+      <button onclick="InsertAfter()">Insert After</button>
+      <button onclick="Update()">Update</button>
     </div>
     <rtable id="grid"></rtable>
 
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
     <script src="../bower_components/riot/riot.min.js"></script>
-    <script src="../dist/dataset.js"></script>
+    <script src="../src/dataset.js"></script>
     <script src="../dist/rtable.js"></script>
     <style>
       .rtable-cell.myclass {background-color: red;}
@@ -26,7 +29,7 @@
         {name:'name3', title:'This is a very long column name', sort:'desc', width:100},
         {name:'name4', title:'D', sort:'asc', align:'center', class:'myclass'},
         {name:'name5', title:'E', render: function(row, col, value){
-          return '<a href="#">' + value + '</a>'
+          return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
         }},
         {name:'name6', title:'F'}
       ]
@@ -44,25 +47,55 @@
         indexCol:true,
         checkCol:true,
         multiSelect:true,
-        clickSelect:null,
+        // clickSelect:null,
         maxHeight:400,
         minHeight:200
       })
 
       var grid = document.getElementById('grid')
       var begin = 100
-      function Add (e) {
+      function make_item () {
         var d = {}
         for(var j=0; j<c; j++){
           d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
         }
         begin ++
-        grid.add(d)
+        return d
+      }
+      function Add (e) {
+        grid.add(make_item())
       }
 
       function Remove (e) {
         var rows = grid.get_selected()
         grid.remove(rows)
       }
+
+      function InsertBefore(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.insertBefore(make_item(), row)
+        }
+      }
+
+      function InsertAfter(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.insertAfter(make_item(), row)
+        }
+      }
+
+      function Update(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          var d = make_item()
+          d.id = row.id
+          grid.update(d)
+        }
+      }
+
     </script>
 </html>

@@ -420,12 +420,13 @@
   })
 
   this.click_handler = function(e) {
-    e.preventDefault()
+    if ($(e.target).hasClass('rtable-cell-text')) {
+      e.preventDefault()
+      if (self.clickSelect === 'row') {
+        self.toggle_select(e.item.col.row)
+      } else if (self.clickSelect === 'column') {
 
-    if (self.clickSelect === 'row') {
-      self.toggle_select(e.item.col.row)
-    } else if (self.clickSelect === 'column') {
-
+      }
     }
   }
 
@@ -1133,6 +1134,8 @@
   this.root.remove = data_proxy('remove')
   this.root.get = data_proxy('get')
   this.root.load = data_proxy('load')
+  this.root.insertBefore = data_proxy('insertBefore')
+  this.root.insertAfter = data_proxy('insertAfter')
 
   <!-- this.root.load = function(newrows){
     self._data.clear()
@@ -1146,9 +1149,9 @@
 
   this.get_col_data = function(col, value) {
     if (col.render && typeof col.render === 'function') {
-      return col.render(col.row, col, value)
+      value = col.render(col.row, col, value)
     }
-    return value
+    return value || ''
   }
 
   this.action_click = function (col, btn) {

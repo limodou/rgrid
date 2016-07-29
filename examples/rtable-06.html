@@ -16,7 +16,7 @@
 
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
     <script src="../bower_components/riot/riot.min.js"></script>
-    <script src="../dist/dataset.js"></script>
+    <script src="../src/dataset.js"></script>
     <script src="../dist/rtable.js"></script>
     <style>
       .rtable-cell.myclass {background-color: red;}
@@ -29,14 +29,14 @@
         {name:'name3', title:'This is a very long column name', width:100},
         {name:'name4', title:'D', align:'center', class:'myclass'},
         {name:'name5', title:'E', render: function(row, col, value){
-          return '<a href="#">' + value + '</a>'
+          return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
         }},
         {name:'name6', title:'F'}
       ]
       var data = [], size=20, c=6, d
       for(var i=0; i<size; i++) {
         d = {id:i+1}
-        for(var j=0; j<c; j++){
+        for(var j=0; j<5; j++){
           d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
         }
         data.push(d)
@@ -50,7 +50,7 @@
         indexCol:true,
         checkCol:true,
         multiSelect:true,
-        clickSelect:null,
+        // clickSelect:null,
         maxHeight:400,
         minHeight:200,
 

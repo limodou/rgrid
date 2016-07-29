@@ -57,6 +57,7 @@ function DataSet(data, options) {
   this._orderField = this._options.orderField || 'order';
   this._levelField = this._options.levelField || 'level';
   this._hasChildrenField = this._options.hasChildrenField || 'has_children';
+  this._isTree = this._options.tree || false;
   this._type = {}; // internal field types (NOTE: this can differ from this._options.type)
 
   // all variants of a Date are internally stored as Date, so we can convert
@@ -148,6 +149,19 @@ DataSet.prototype._trigger = function (event, params, senderId) {
   }
 };
 
+/**
+ * Get an item id
+ * @param {Object | Number | String} item
+ * @private
+ */
+DataSet.prototype.getId = function (item) {
+    if (item instanceof Object)
+      return item[this._idField]
+    else {
+      return item
+    }
+};
+
 DataSet.prototype.async_call = function (f) {
   var self = this
   var _f = function (id, url) {
@@ -212,6 +226,127 @@ DataSet.prototype.add = function (data, parentId) {
 
   return addedIds;
 };
+
+DataSet.prototype.insertBefore = function (data, index, parentId) {
+  return this._insert(data, index, 'before', parentId)
+}
+
+DataSet.prototype.insertAfter = function (data, index, parentId) {
+  return this._insert(data, index, 'after', parentId)
+}
+
+/**
+ * Insert data.
+ * Inserting an item will fail when there already is an item with the same id.
+ * @param {Object | Array} data
+ * @param {String} [parentId] Optional parent id
+ * @return {Array} addedIds      Array with the ids of the added items
+ */
+DataSet.prototype._insert = function (data, index, position, parentId) {
+  var addedIds = [],
+      id,
+      me = this;
+
+  index = this.index(index);
+
+  if (Array.isArray(data)) {
+    // Array
+    for (var i = 0, len = data.length; i < len; i++) {
+      if (position == 'before')
+        id = me._insertItem(data[i], index+i, 'before', parentId);
+      else {
+        id = me._insertItem(data[i], index, 'after', parentId);
+        index = id.index
+      }
+      addedIds.push(id.id);
+    }
+  } else if (data instanceof Object) {
+    // Single item
+    if (position == 'before')
+      id = me._insertItem(data, index, 'before', parentId);
+    else {
+      id = me._insertItem(data, index, 'after', parentId);
+    }
+    addedIds.push(id.id);
+  } else {
+    throw new Error('Unknown dataType');
+  }
+  this._resetIds(index)
+
+  if (addedIds.length) {
+    this._trigger('add', { items: addedIds });
+  }
+
+  return addedIds;
+};
+
+
+/**
+ * Insert a single item before index. Will fail when an item with the same id already exists.
+ * @param {Object} item
+ * @param {Number} index
+ * @param {Number | String | Object} Parent id
+ * @return {String} id
+ * @private
+ */
+DataSet.prototype._insertItem = function (item, index, position, parentId) {
+  var id = item[this._idField];
+
+  if (id != undefined) {
+    // check whether this id is already taken
+    if (this._ids.hasOwnProperty(id)) {
+      // item already exists
+      throw new Error('Cannot add item: item with id ' + id + ' already exists');
+    }
+  } else {
+    // generate an id
+    id = util.uuid.v4();
+    item[this._idField] = id;
+  }
+
+  var d = {};
+  for (var field in item) {
+    if (item.hasOwnProperty(field)) {
+      var fieldType = this._type[field]; // type may be undefined
+      d[field] = util.convert(item[field], fieldType);
+    }
+  }
+  if (parentId)
+    d[this._parentField] = this.getId(parentId)
+  if (position == 'before')
+    this._data.splice(index, 0, d);
+  else {
+    index = this._findNext(index)
+    if (index == -1) {
+      this._data.push(d)
+      index = this.length
+    }
+    else {
+      this._data.splice(index, 0, d)
+    }
+  }
+  this.length++;
+
+  return {id:id, index:index};
+};
+
+DataSet.prototype._findNext = function (index) {
+  var n = index + 1
+
+  if (n >= this.length) return -1
+  if (this.isTree) {
+    var level, v, parent = this._data[index], i, len
+
+    level = parent[this._levelField]
+    for (i=n, len=this.length; i<len; i++) {
+      v = this._data[i][this._levelField]
+      if (v>level) continue
+      else break
+    }
+    if (i >= this.length) return -1
+    return i
+  } else return n
+}
 
 /**
  * Update existing items via ajax request or just plain data
@@ -853,21 +988,25 @@ remove = function (id) {
   var removedIds = [],
       i,
       len,
-      removedId;
+      removedId, minIndex=0;
 
   if (Array.isArray(id)) {
     for (i = 0, len = id.length; i < len; i++) {
       removedId = this._remove(id[i]);
       if (removedId != null) {
-        removedIds.push(removedId);
+        minIndex = Math.min(removedId.index-1, minIndex)
+        removedIds.push(removedId.id);
       }
     }
   } else {
     removedId = this._remove(id);
     if (removedId != null) {
-      removedIds.push(removedId);
+      minIndex = Math.min(removedId.index-1, minIndex)
+      removedIds.push(removedId.id);
     }
   }
+
+  this._resetIds(minIndex)
 
   if (removedIds.length) {
     this._trigger('remove', { items: removedIds });
@@ -894,14 +1033,28 @@ DataSet.prototype._remove = function (id) {
     if (index !== -1) {
       this._data.splice(index, 1);
       this.length--;
-      this._ids = {}
-      for(var i=0, len=this.length; i<len; i++) {
-        this._ids[this._data[i][this._idField]] = i
-      }
-      return id;
+      return {index:index, id:id};
     }
   }
   return null;
+};
+
+/**
+ * Reset ids
+ * @param {Number | Object} begin   begin index, if undefined, process whole array
+ * @returns null
+ * @private
+ */
+DataSet.prototype._resetIds = function (begin) {
+  if (begin instanceof Object) {
+    begin = begin[this._idField];
+  }
+  if (!begin)
+    begin = 0
+  this._ids = {}
+  for(var i=begin, len=this.length; i<len; i++) {
+    this._ids[this._data[i][this._idField]] = i
+  }
 };
 
 /**
