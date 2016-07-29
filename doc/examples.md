@@ -340,14 +340,14 @@ Tree grid.
 
 ```
 var cols = [
-  {name:'name1', title:'A/B', width:60},
-  {name:'name2', title:'A/C', width:200},
-  {name:'name3', title:'C/E/F', width:200},
-  {name:'name4', title:'C/E/H', width:200},
-  {name:'name5', title:'C/F/G', width:300},
-  {name:'name6', title:'C/F/I', width:200}
+  {name:'name1', title:'This is a long title', width:40},
+  {name:'name2', title:'B', width: 120},
+  {name:'name3', title:'This is a very long column name'},
+  {name:'name4', title:'D'},
+  {name:'name5', title:'E'},
+  {name:'name6', title:'F'}
 ]
-var data = [], size=100, c=6, d
+var data = [], size=5, c=6, d
 for(var i=0; i<size; i++) {
   d = {id:i+1}
   for(var j=0; j<c; j++){
@@ -355,7 +355,42 @@ for(var i=0; i<size; i++) {
   }
   data.push(d)
 }
-riot.mount('rtable#ex02', {cols:cols, data:data, height:200})
+data[1].parent = data[0].id
+data[3].parent = data[2].id
+data[4].parent = data[3].id
+
+riot.mount('rtable#ex04', {
+  cols:cols,
+  data:data,
+  indexCol:true,
+  checkCol:true,
+  multiSelect:true,
+  height:200,
+
+  tree:true,
+  expanded:true,
+  parentField:'parent',
+  orderField:'order',
+  levelField:'level',
+  treeField:'name2',
+  useFontAwesome:true
+})
+
+var ex04 = document.getElementById('ex04')
+var begin = 100
+function Add (e) {
+  var d = {}
+  for(var j=0; j<c; j++){
+    d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
+  }
+  begin ++
+  ex04.add(d)
+}
+
+function Remove (e) {
+  var rows = ex04.get_selected()
+  ex04.remove(rows)
+}
 ```
 
 -- HTML --

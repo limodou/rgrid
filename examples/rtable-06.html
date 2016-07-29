@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>rtable Example 06 - Tree</title>
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
+  </head>
+  <body>
+    <h1>Tree</h1>
+
+    <div style="padding:5px 0px;">
+      <button onclick="Add()">Add</button>
+      <button onclick="Remove()">Remove</button>
+    </div>
+    <rtable id="grid"></rtable>
+
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/riot/riot.min.js"></script>
+    <script src="../dist/dataset.js"></script>
+    <script src="../dist/rtable.js"></script>
+    <style>
+      .rtable-cell.myclass {background-color: red;}
+    </style>
+    <script>
+      var cols = [
+        {name:'id', title:'ID', width:40},
+        {name:'name1', title:'This is a long title', width:80},
+        {name:'name2', title:'B', width: 200},
+        {name:'name3', title:'This is a very long column name', width:100},
+        {name:'name4', title:'D', align:'center', class:'myclass'},
+        {name:'name5', title:'E', render: function(row, col, value){
+          return '<a href="#">' + value + '</a>'
+        }},
+        {name:'name6', title:'F'}
+      ]
+      var data = [], size=20, c=6, d
+      for(var i=0; i<size; i++) {
+        d = {id:i+1}
+        for(var j=0; j<c; j++){
+          d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
+        }
+        data.push(d)
+      }
+      data[1].parent = data[0].id
+      data[3].parent = data[2].id
+      data[4].parent = data[3].id
+      riot.mount('rtable', {cols:cols,
+        data:data,
+        height:'auto',
+        indexCol:true,
+        checkCol:true,
+        multiSelect:true,
+        clickSelect:null,
+        maxHeight:400,
+        minHeight:200,
+
+        tree:true,
+        expanded:true,
+        parentField:'parent',
+        orderField:'order',
+        levelField:'level',
+        treeField:'name2',
+        useFontAwesome:true
+      })
+
+      var grid = document.getElementById('grid')
+      var begin = 100
+      function Add (e) {
+        var d = {}
+        for(var j=0; j<c; j++){
+          d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
+        }
+        begin ++
+        grid.add(d)
+      }
+
+      function Remove (e) {
+        var rows = grid.get_selected()
+        grid.remove(rows)
+      }
+    </script>
+  </body>
+</html>

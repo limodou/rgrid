@@ -225,7 +225,8 @@
             <!-- cell content -->
             <div if={col.type!='check' && !col.buttons} data-is="raw"
               content={col.value} class="rtable-cell-text"
-              onclick={parent.click_handler} style={col.indent}></div>
+              onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
+              style={col.indentWidth}></div>
 
             <!-- expander -->
             <span if={col.expander} data-is='raw' content={col.expander} class="rtable-expander"
@@ -248,7 +249,8 @@
 
               <!-- cell content -->
               <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value}
-                class="rtable-cell-text" onclick={parent.click_handler} style={col.indentWidth}>></div>
+                class="rtable-cell-text" onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
+                style={col.indentWidth}></div>
 
               <!-- expander -->
               <span if={col.expander} data-is='raw' content={col.expander} class="rtable-expander"
@@ -419,11 +421,17 @@
 
   this.click_handler = function(e) {
     e.preventDefault()
+
     if (self.clickSelect === 'row') {
       self.toggle_select(e.item.col.row)
     } else if (self.clickSelect === 'column') {
 
     }
+  }
+
+  this.dbclick_handler = function(e) {
+    e.preventDefault()
+    //console.log('aaaaa', e.item.col)
   }
 
   this.sort_handler = function(e) {
