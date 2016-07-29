@@ -156,8 +156,11 @@ Modify grid, such as: add, remote.
 
 {% include-code %}
 <div style="padding:5px 0px;">
-  <button onclick="Add()">Add</button>
-  <button onclick="Remove()">Remove</button>
+  <button onclick="Add03()">Add</button>
+  <button onclick="Remove03()">Remove</button>
+  <button onclick="InsertBefore03()">Insert Before</button>
+  <button onclick="InsertAfter03()">Insert After</button>
+  <button onclick="Update03()">Update</button>
 </div>
 <rtable id="ex03"></rtable>
 
@@ -189,19 +192,49 @@ Modify grid, such as: add, remote.
 
   var ex03 = document.getElementById('ex03')
   var begin = 100
-  function Add (e) {
+  function make_item () {
     var d = {}
     for(var j=0; j<c; j++){
       d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
     }
     begin ++
-    ex03.add(d)
+    return d
+  }
+  function Add03 (e) {
+    ex03.add(make_item())
   }
 
-  function Remove (e) {
+  function Remove03 (e) {
     var rows = ex03.get_selected()
     ex03.remove(rows)
   }
+
+  function InsertBefore03 (e) {
+    var rows = ex03.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex03.insertBefore(make_item(), row)
+    }
+  }
+
+  function InsertAfter03 (e) {
+    var rows = ex03.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex03.insertAfter(make_item(), row)
+    }
+  }
+
+  function Update03 (e) {
+    var rows = ex03.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      var d = make_item()
+      d.id = row.id
+      ex03.update(d)
+    }
+  }
+
 </script>
 {% endinclude-code %}
 
@@ -209,14 +242,14 @@ Modify grid, such as: add, remote.
 
 ```
 var cols = [
-  {name:'name1', title:'A/B', width:60},
-  {name:'name2', title:'A/C', width:200},
-  {name:'name3', title:'C/E/F', width:200},
-  {name:'name4', title:'C/E/H', width:200},
-  {name:'name5', title:'C/F/G', width:300},
-  {name:'name6', title:'C/F/I', width:200}
+  {name:'name1', title:'This is a long title', width:40},
+  {name:'name2', title:'B', width: 120},
+  {name:'name3', title:'This is a very long column name'},
+  {name:'name4', title:'D'},
+  {name:'name5', title:'E'},
+  {name:'name6', title:'F'}
 ]
-var data = [], size=100, c=6, d
+var data = [], size=5, c=6, d
 for(var i=0; i<size; i++) {
   d = {id:i+1}
   for(var j=0; j<c; j++){
@@ -235,18 +268,47 @@ riot.mount('rtable#ex03', {
 
 var ex03 = document.getElementById('ex03')
 var begin = 100
-function Add (e) {
+function make_item () {
   var d = {}
   for(var j=0; j<c; j++){
     d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
   }
   begin ++
-  ex03.add(d)
+  return d
+}
+function Add03 (e) {
+  ex03.add(make_item())
 }
 
-function Remove (e) {
+function Remove03 (e) {
   var rows = ex03.get_selected()
   ex03.remove(rows)
+}
+
+function InsertBefore03 (e) {
+  var rows = ex03.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex03.insertBefore(make_item(), row)
+  }
+}
+
+function InsertAfter03 (e) {
+  var rows = ex03.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex03.insertAfter(make_item(), row)
+  }
+}
+
+function Update03 (e) {
+  var rows = ex03.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    var d = make_item()
+    d.id = row.id
+    ex03.update(d)
+  }
 }
 ```
 
@@ -254,10 +316,12 @@ function Remove (e) {
 
 ```
 <div style="padding:5px 0px;">
-  <button onclick="Add()">Add</button>
-  <button onclick="Remove()">Remove</button>
+  <button onclick="Add03()">Add</button>
+  <button onclick="Remove03()">Remove</button>
+  <button onclick="InsertBefore03()">Insert Before</button>
+  <button onclick="InsertAfter03()">Insert After</button>
+  <button onclick="Update03()">Update</button>
 </div>
-
 <rtable id="ex03"></rtable>
 ```
 
@@ -275,8 +339,11 @@ Tree grid.
 
 {% include-code %}
 <div style="padding:5px 0px;">
-  <button onclick="Add()">Add</button>
-  <button onclick="Remove()">Remove</button>
+  <button onclick="Add04()">Add</button>
+  <button onclick="Remove04()">Remove</button>
+  <button onclick="InsertBefore04()">Insert Before</button>
+  <button onclick="InsertAfter04()">Insert After</button>
+  <button onclick="Update04()">Update</button>
 </div>
 <rtable id="ex04"></rtable>
 
@@ -320,19 +387,49 @@ Tree grid.
 
   var ex04 = document.getElementById('ex04')
   var begin = 100
-  function Add (e) {
+  function make_item () {
     var d = {}
     for(var j=0; j<c; j++){
       d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
     }
     begin ++
-    ex04.add(d)
+    return d
+  }
+  function Add04 (e) {
+    ex04.add(make_item())
   }
 
-  function Remove (e) {
+  function Remove04 (e) {
     var rows = ex04.get_selected()
     ex04.remove(rows)
   }
+
+  function InsertBefore04(e) {
+    var rows = ex04.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex04.insertBefore(make_item(), row)
+    }
+  }
+
+  function InsertAfter04(e) {
+    var rows = ex04.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex04.insertAfter(make_item(), row)
+    }
+  }
+
+  function Update04(e) {
+    var rows = ex04.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      var d = make_item()
+      d.id = row.id
+      ex04.update(d)
+    }
+  }
+
 </script>
 {% endinclude-code %}
 
@@ -378,18 +475,47 @@ riot.mount('rtable#ex04', {
 
 var ex04 = document.getElementById('ex04')
 var begin = 100
-function Add (e) {
+function make_item () {
   var d = {}
   for(var j=0; j<c; j++){
     d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
   }
   begin ++
-  ex04.add(d)
+  return d
+}
+function Add04 (e) {
+  ex04.add(make_item())
 }
 
-function Remove (e) {
+function Remove04 (e) {
   var rows = ex04.get_selected()
   ex04.remove(rows)
+}
+
+function InsertBefore04(e) {
+  var rows = ex04.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex04.insertBefore(make_item(), row)
+  }
+}
+
+function InsertAfter04(e) {
+  var rows = ex04.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex04.insertAfter(make_item(), row)
+  }
+}
+
+function Update04(e) {
+  var rows = ex04.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    var d = make_item()
+    d.id = row.id
+    ex04.update(d)
+  }
 }
 ```
 
@@ -397,10 +523,12 @@ function Remove (e) {
 
 ```
 <div style="padding:5px 0px;">
-  <button onclick="Add()">Add</button>
-  <button onclick="Remove()">Remove</button>
+  <button onclick="Add04()">Add</button>
+  <button onclick="Remove04()">Remove</button>
+  <button onclick="InsertBefore04()">Insert Before</button>
+  <button onclick="InsertAfter04()">Insert After</button>
+  <button onclick="Update04()">Update</button>
 </div>
-
 <rtable id="ex04"></rtable>
 ```
 

@@ -323,7 +323,7 @@
 
   if (opts.data) {
     if (Array.isArray(opts.data)) {
-      this._data = new DataSet()
+      this._data = new DataSet({tree:opts.tree})
       if (opts.tree)
         this._data.load_tree(opts.data, {parentField:opts.parentField,
           orderField:opts.orderField, levelField:opts.levelField, plain:true})
@@ -333,7 +333,7 @@
     else
       this._data = opts.data
   } else {
-    this._data = new DataSet()
+    this._data = new DataSet({tree:opts.tree})
   }
 
 

@@ -227,12 +227,12 @@ DataSet.prototype.add = function (data, parentId) {
   return addedIds;
 };
 
-DataSet.prototype.insertBefore = function (data, index, parentId) {
-  return this._insert(data, index, 'before', parentId)
+DataSet.prototype.insertBefore = function (data, index) {
+  return this._insert(data, index, 'before')
 }
 
-DataSet.prototype.insertAfter = function (data, index, parentId) {
-  return this._insert(data, index, 'after', parentId)
+DataSet.prototype.insertAfter = function (data, index) {
+  return this._insert(data, index, 'after')
 }
 
 /**
@@ -242,7 +242,7 @@ DataSet.prototype.insertAfter = function (data, index, parentId) {
  * @param {String} [parentId] Optional parent id
  * @return {Array} addedIds      Array with the ids of the added items
  */
-DataSet.prototype._insert = function (data, index, position, parentId) {
+DataSet.prototype._insert = function (data, index, position) {
   var addedIds = [],
       id,
       me = this;
@@ -253,9 +253,9 @@ DataSet.prototype._insert = function (data, index, position, parentId) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
       if (position == 'before')
-        id = me._insertItem(data[i], index+i, 'before', parentId);
+        id = me._insertItem(data[i], index+i, 'before');
       else {
-        id = me._insertItem(data[i], index, 'after', parentId);
+        id = me._insertItem(data[i], index, 'after');
         index = id.index
       }
       addedIds.push(id.id);
@@ -263,9 +263,9 @@ DataSet.prototype._insert = function (data, index, position, parentId) {
   } else if (data instanceof Object) {
     // Single item
     if (position == 'before')
-      id = me._insertItem(data, index, 'before', parentId);
+      id = me._insertItem(data, index, 'before');
     else {
-      id = me._insertItem(data, index, 'after', parentId);
+      id = me._insertItem(data, index, 'after');
     }
     addedIds.push(id.id);
   } else {
@@ -289,8 +289,8 @@ DataSet.prototype._insert = function (data, index, position, parentId) {
  * @return {String} id
  * @private
  */
-DataSet.prototype._insertItem = function (item, index, position, parentId) {
-  var id = item[this._idField];
+DataSet.prototype._insertItem = function (item, index, position) {
+  var id = item[this._idField], node = this._data[index];
 
   if (id != undefined) {
     // check whether this id is already taken
@@ -311,8 +311,7 @@ DataSet.prototype._insertItem = function (item, index, position, parentId) {
       d[field] = util.convert(item[field], fieldType);
     }
   }
-  if (parentId)
-    d[this._parentField] = this.getId(parentId)
+
   if (position == 'before')
     this._data.splice(index, 0, d);
   else {
@@ -325,16 +324,49 @@ DataSet.prototype._insertItem = function (item, index, position, parentId) {
       this._data.splice(index, 0, d)
     }
   }
+  var last_order, level, x, parent
+  if (this._isTree) {
+    d[this._parentField] = node[this._parentField]
+    d[this._levelField] = node[this._levelField]
+    if (position == 'after')
+      d[this._orderField] = node[this._orderField] + 1
+    else
+      d[this._orderField] = node[this._orderField]
+
+    level = node[this._levelField]
+    parent = node[this._parentField]
+    last_order = d[this._orderField]
+
+    this._reOrder(index+1, level, last_order)
+
+  }
   this.length++;
 
   return {id:id, index:index};
 };
 
+DataSet.prototype._reOrder = function (index, level, last_order) {
+  var i, len, item, _l;
+  for(i=index, len=this.length; i<len; i++) {
+    item = this._data[i]
+    _l = item[this._levelField]
+    if (_l>level) continue
+    else if (_l==level) {
+      if(item[this._orderField]<=last_order) {
+        last_order ++
+        item[this._orderField] = last_order
+      }
+    } else {
+      break
+    }
+  }
+}
+
 DataSet.prototype._findNext = function (index) {
   var n = index + 1
 
   if (n >= this.length) return -1
-  if (this.isTree) {
+  if (this._isTree) {
     var level, v, parent = this._data[index], i, len
 
     level = parent[this._levelField]
@@ -988,22 +1020,52 @@ remove = function (id) {
   var removedIds = [],
       i,
       len,
-      removedId, minIndex=0;
+      removedId, minIndex=0, me=this;
+
+      var _remove = function (id) {
+        var index, itemId, v, item, level, n;
+
+        if (!id)
+          return
+        if (typeof id === 'string' || typeof id === 'number')
+          item = me.get(id)
+        else {
+          item = id
+        }
+        if (!item)
+          return
+        id = item[me._idField]
+        if (removedIds.indexOf(id) !== -1)
+          return
+
+        index = me.index(id)
+        level = item[me._levelField]
+
+        removedIds.push(id)
+        me._data.splice(index, 1);
+        me.length--;
+
+        if (me._isTree) {
+          for(var i=index, len=me.length; i<len; i++){
+            n = me._data[index]
+            if (n[me._levelField] > level) {
+              removedIds.push(n[me._idField])
+              me._data.splice(index, 1);
+              me.length--;
+            } else {
+              break
+            }
+          }
+        }
+      };
+
 
   if (Array.isArray(id)) {
     for (i = 0, len = id.length; i < len; i++) {
-      removedId = this._remove(id[i]);
-      if (removedId != null) {
-        minIndex = Math.min(removedId.index-1, minIndex)
-        removedIds.push(removedId.id);
-      }
+      removedId = _remove(id[i]);
     }
   } else {
-    removedId = this._remove(id);
-    if (removedId != null) {
-      minIndex = Math.min(removedId.index-1, minIndex)
-      removedIds.push(removedId.id);
-    }
+    removedId = _remove(id);
   }
 
   this._resetIds(minIndex)
@@ -1013,30 +1075,6 @@ remove = function (id) {
   }
   return removedIds;
 
-};
-
-/**
- * Remove an item by its id
- * @param {Number | String | Object} id   id or item
- * @returns {Number | String | null} id
- * @private
- */
-DataSet.prototype._remove = function (id) {
-  var index, itemId, v;
-  if (util.isNumber(id) || util.isString(id)) {
-    itemId = id;
-  }else if (id instanceof Object) {
-    itemId = id[this._idField];
-  }
-  if(itemId) {
-    index = this._ids[itemId]
-    if (index !== -1) {
-      this._data.splice(index, 1);
-      this.length--;
-      return {index:index, id:id};
-    }
-  }
-  return null;
 };
 
 /**
@@ -1052,7 +1090,7 @@ DataSet.prototype._resetIds = function (begin) {
   if (!begin)
     begin = 0
   this._ids = {}
-  for(var i=begin, len=this.length; i<len; i++) {
+  for(var i=0, len=this.length; i<len; i++) {
     this._ids[this._data[i][this._idField]] = i
   }
 };
