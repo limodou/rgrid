@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+  <meta charset="utf-8">
+  <head>
+    <title>Test Dataset</title>
+  </head>
+  <body>
+    <h1>Test Dataset</h1>
+    <test></test>
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/riot/riot+compiler.min.js"></script>
+    <script src="../src/dataset.js"></script>
+    <script type="riot/tag">
+      <test>
+        <style scoped>
+          .success {color:green;}
+          .fail {color:red;}
+        </style>
+        <table border=1>
+          <tr>
+            <th>测试名称</th>
+            <th>测试结果</th>
+            <th>执行结果</th>
+          </tr>
+          <tr each={item in opts.data}>
+            <td>{item.message}</td>
+            <td><raw content={item.result?
+                '<span class="success">通过</span>':
+                '<span class="fail">失败</span>'}></row></td>
+            <td><raw content={item.value}</raw></td>
+          </tr>
+        </table>
+      </test>
+
+      <raw>
+        <span></span>
+        this.root.innerHTML = opts.content
+      </raw>
+    </script>
+    <script>
+      var test_data = [{message:'aaaa', result:true, value:111}]
+      var test = function(message, value1, value2) {
+        var result = JSON.stringify(value1) === JSON.stringify(value2)
+        test_data.push({message:message, result:result, value:JSON.stringify(value1, null, 2)})
+      }
+      var data = new DataSet()
+      test('1: data.add({id:1, name:"f3", age:5})',
+        data.add({id:1, name:'f3', age:5}), [1])
+      test('1.1: data.get()',
+        data.get(), [{id:1, name:'f3', age:5}])
+      test('1.2: data._ids',
+        data._ids, {1:0})
+
+      test('2: date.get(1)', data.get(1), {id: 1, name: "f3", age: 5})
+
+      test('3: date.update({id:1, name:"f4"})', data.update({id:1, name:'f4'}), [1])
+
+      test('4: data.get(1)', data.get(1), {id: 1, name: "f4", age: 5})
+
+      test('5: date.get()', data.get(), [{id: 1, name: "f4", age: 5}])
+
+      test('6: data.add(array)', data.add([
+        {id:2, name:'f1', age:10},
+        {id:3, name:'f2', age:20}
+      ]), [2,3])
+      test('6.1: data._ids',
+        data._ids, {1:0, 2:1, 3:2})
+
+      test('7: data.get()', data.get(), [{id: 1, name: "f4", age: 5},
+        {id:2, name:'f1', age:10},
+        {id:3, name:'f2', age:20}
+      ])
+      test('8: data.remove(2)', data.remove(2), [2])
+      test('9: date.get()', data.get(), [
+        {id:1, name:'f4', age:5},
+        {id:3, name:'f2', age:20}
+      ])
+      test('9.1: data._ids',
+        data._ids, {1:0, 3:1})
+      test('10: date.index(3)', data.index(3), 1)
+      test('11: date.get({order:"name"})', data.get({order:'name'}), [
+        {id:3, name:'f2', age:20},
+        {id:1, name:'f4', age:5}
+      ])
+      test('12: date.get({order:"age"})', data.get({order:'age'}), [
+        {id:1, name:'f4', age:5},
+        {id:3, name:'f2', age:20}
+      ])
+      test('13: data.add(array)', data.add([
+        {id:4, name:'f9', age:5},
+        {id:5, name:'f6', age:20},
+        {id:6, name:'f5', age:5},
+        {id:7, name:'f7', age:10}
+      ]), [4,5,6,7])
+      test('14: date.get({order:["age", "name"]})', data.get({order:['age', 'name']}), [
+        {id:1, name:'f4', age:5},
+        {id:6, name:'f5', age:5},
+        {id:4, name:'f9', age:5},
+        {id:7, name:'f7', age:10},
+        {id:3, name:'f2', age:20},
+        {id:5, name:'f6', age:20},
+      ])
+      test('15: date.get({order:["age", "-name"]})', data.get({order:['age', '-name']}), [
+        {id:4, name:'f9', age:5},
+        {id:6, name:'f5', age:5},
+        {id:1, name:'f4', age:5},
+        {id:7, name:'f7', age:10},
+        {id:5, name:'f6', age:20},
+        {id:3, name:'f2', age:20},
+      ])
+      test('16: date.get({order:["-age", "-name"]})', data.get({order:['-age', '-name']}), [
+        {id:5, name:'f6', age:20},
+        {id:3, name:'f2', age:20},
+        {id:7, name:'f7', age:10},
+        {id:4, name:'f9', age:5},
+        {id:6, name:'f5', age:5},
+        {id:1, name:'f4', age:5},
+      ])
+      test('17: data.update(array)', data.update([
+          {id:1, name:'f1-1', age:11},
+          {id:3, name:'f2-1', age:33}
+        ]
+      ), [1,3])
+
+      test('18: data.get()', data.get(), [
+        {id:1, name:'f1-1', age:11},
+        {id:3, name:'f2-1', age:33},
+        {id:4, name:'f9', age:5},
+        {id:5, name:'f6', age:20},
+        {id:6, name:'f5', age:5},
+        {id:7, name:'f7', age:10},
+      ])
+
+      console.log(data._data, data.get())
+
+      //Test tree1
+      data = new DataSet()
+      var d = [
+        {id:1, name:'F1', _parent:0},
+        {id:2, name:'F2', _parent:1, order:5},
+        {id:3, name:'F3', _parent:2, order:2},
+        {id:4, name:'F4', _parent:1, order:1},
+        {id:5, name:'F5', _parent:2, order:4},
+        {id:6, name:'F6', _parent:5},
+      ]
+      data.add(d)
+      test('19: data.tree()', data.tree(), [
+        {id:1, name:'F1', _parent:0, nodes:[
+          {id:4, name:'F4', _parent:1, order:1},
+          {id:2, name:'F2', _parent:1, order:5, nodes:[
+            {id:3, name:'F3', _parent:2, order:2},
+            {id:5, name:'F5', _parent:2, order:4, nodes:[
+              {id:6, name:'F6', _parent:5},
+            ]},
+          ]},
+      ]}])
+
+      //Test tree2
+      data = new DataSet()
+      var d = [
+        {id:1, name:'F1', _parent:0},
+        {id:2, name:'F2', _parent:1, order:5},
+        {id:3, name:'F3', _parent:2, order:2},
+        {id:4, name:'F4', _parent:1, order:1},
+        {id:5, name:'F5', _parent:2, order:4},
+        {id:6, name:'F6', _parent:5},
+      ]
+      data.add(d)
+      test("20: data.tree({parentField:'_parent', orderField:'order'})",
+        data.tree({parentField:'_parent', orderField:'order'}),
+        [{id:1, name:'F1', _parent:0, nodes:[
+          {id:4, name:'F4', _parent:1, order:1},
+          {id:2, name:'F2', _parent:1, order:5, nodes:[
+            {id:3, name:'F3', _parent:2, order:2},
+            {id:5, name:'F5', _parent:2, order:4, nodes:[
+              {id:6, name:'F6', _parent:5},
+            ]},
+          ]},
+      ]}])
+
+      //Test tree
+      data = new DataSet()
+      var d = [
+        {id:1, name:'F1', _parent:0},
+        {id:2, name:'F2', _parent:1, order:5},
+        {id:3, name:'F3', _parent:2, order:2},
+        {id:4, name:'F4', _parent:1, order:1},
+        {id:5, name:'F5', _parent:2, order:4},
+        {id:6, name:'F6', _parent:5},
+      ]
+      data.add(d)
+      test("21: data.tree({parentField:'_parent', orderField:'order', plain:true})",
+        data.tree({parentField:'_parent', orderField:'order', plain:true}),
+        [
+          {id:1, name:'F1', _parent:0, level:0, order:1, has_children:true},
+          {id:4, name:'F4', _parent:1, order:2, level:1},
+          {id:2, name:'F2', _parent:1, order:5, level:1, has_children:true},
+          {id:3, name:'F3', _parent:2, order:2, level:2},
+          {id:5, name:'F5', _parent:2, order:4, level:2, has_children:true},
+          {id:6, name:'F6', _parent:5, level:3, order:1},
+        ])
+
+        data = new DataSet()
+        var d = [
+          {id:1, name:'F1', _parent:0},
+          {id:2, name:'F2', _parent:1, order:5},
+          {id:3, name:'F3', _parent:2, order:2},
+          {id:4, name:'F4', _parent:1, order:1},
+          {id:5, name:'F5', _parent:2, order:4},
+          {id:6, name:'F6', _parent:5},
+        ]
+        data.load_tree(d)
+        test("22: data.load_tree(d)",
+          data.get(),
+          [
+            {id:1, name:'F1', _parent:0, level:0, order:1, has_children:true},
+            {id:4, name:'F4', _parent:1, order:2, level:1},
+            {id:2, name:'F2', _parent:1, order:5, level:1, has_children:true},
+            {id:3, name:'F3', _parent:2, order:2, level:2},
+            {id:5, name:'F5', _parent:2, order:4, level:2, has_children:true},
+            {id:6, name:'F6', _parent:5, level:3, order:1},
+          ])
+
+        data = new DataSet()
+        var d = [
+          {id:1, name:'F1', _parent:0},
+          {id:2, name:'F2', _parent:1, order:5},
+          {id:3, name:'F3', _parent:2, order:2},
+          {id:4, name:'F4', _parent:1, order:1},
+          {id:5, name:'F5', _parent:2, order:4},
+          {id:6, name:'F6', _parent:5},
+        ]
+        data.load(d)
+        data.insertBefore({id:7, name:'F7', _parent:0}, 0)
+        test("23: data.insertBefore({id:7, name:'F7', _parent:0}, 0)",
+          data.get(), [
+            {id:7, name:'F7', _parent:0},
+            {id:1, name:'F1', _parent:0},
+            {id:2, name:'F2', _parent:1, order:5},
+            {id:3, name:'F3', _parent:2, order:2},
+            {id:4, name:'F4', _parent:1, order:1},
+            {id:5, name:'F5', _parent:2, order:4},
+            {id:6, name:'F6', _parent:5},
+          ])
+        test("23.1 data._ids", data._ids, {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 0 })
+
+      //Test load
+      // data = new DataSet()
+      // data.load('dataset.json').done(function(r){
+      //   test('data.load()', data.get(), [
+      //     {id:2, name:'f1', age:10},
+      //     {id:3, name:'f2', age:20}
+      //   ])
+      //   riot.update()
+      // }).fail(function(r){
+      //   test('data.load()', data.get(), [
+      //     {id:2, name:'f1', age:10},
+      //     {id:3, name:'f2', age:20}
+      //   ])
+      //   riot.update()
+      // })
+
+      riot.mount('test', {data:test_data})
+    </script>
+</html>

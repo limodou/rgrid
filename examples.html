@@ -262,8 +262,11 @@ riot.mount('rtable#ex02', {cols:cols, data:data, height:200})</code></pre>
 
 <p>Modify grid, such as: add, remote.</p>
 <div style="padding:5px 0px;">
-  <button onclick="Add()">Add</button>
-  <button onclick="Remove()">Remove</button>
+  <button onclick="Add03()">Add</button>
+  <button onclick="Remove03()">Remove</button>
+  <button onclick="InsertBefore03()">Insert Before</button>
+  <button onclick="InsertAfter03()">Insert After</button>
+  <button onclick="Update03()">Update</button>
 </div>
 <rtable id="ex03"></rtable>
 
@@ -295,33 +298,63 @@ riot.mount('rtable#ex02', {cols:cols, data:data, height:200})</code></pre>
 
   var ex03 = document.getElementById('ex03')
   var begin = 100
-  function Add (e) {
+  function make_item () {
     var d = {}
     for(var j=0; j<c; j++){
       d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
     }
     begin ++
-    ex03.add(d)
+    return d
+  }
+  function Add03 (e) {
+    ex03.add(make_item())
   }
 
-  function Remove (e) {
+  function Remove03 (e) {
     var rows = ex03.get_selected()
     ex03.remove(rows)
   }
+
+  function InsertBefore03 (e) {
+    var rows = ex03.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex03.insertBefore(make_item(), row)
+    }
+  }
+
+  function InsertAfter03 (e) {
+    var rows = ex03.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex03.insertAfter(make_item(), row)
+    }
+  }
+
+  function Update03 (e) {
+    var rows = ex03.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      var d = make_item()
+      d.id = row.id
+      ex03.update(d)
+    }
+  }
+
 </script>
 
 </div>
 <div class="tab-pane" id="tab_item_3_8">
 
 <pre class="prettyprint "><code>var cols = [
-  {name:'name1', title:'A/B', width:60},
-  {name:'name2', title:'A/C', width:200},
-  {name:'name3', title:'C/E/F', width:200},
-  {name:'name4', title:'C/E/H', width:200},
-  {name:'name5', title:'C/F/G', width:300},
-  {name:'name6', title:'C/F/I', width:200}
+  {name:'name1', title:'This is a long title', width:40},
+  {name:'name2', title:'B', width: 120},
+  {name:'name3', title:'This is a very long column name'},
+  {name:'name4', title:'D'},
+  {name:'name5', title:'E'},
+  {name:'name6', title:'F'}
 ]
-var data = [], size=100, c=6, d
+var data = [], size=5, c=6, d
 for(var i=0; i&lt;size; i++) {
   d = {id:i+1}
   for(var j=0; j&lt;c; j++){
@@ -340,28 +373,59 @@ riot.mount('rtable#ex03', {
 
 var ex03 = document.getElementById('ex03')
 var begin = 100
-function Add (e) {
+function make_item () {
   var d = {}
   for(var j=0; j&lt;c; j++){
     d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
   }
   begin ++
-  ex03.add(d)
+  return d
+}
+function Add03 (e) {
+  ex03.add(make_item())
 }
 
-function Remove (e) {
+function Remove03 (e) {
   var rows = ex03.get_selected()
   ex03.remove(rows)
+}
+
+function InsertBefore03 (e) {
+  var rows = ex03.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex03.insertBefore(make_item(), row)
+  }
+}
+
+function InsertAfter03 (e) {
+  var rows = ex03.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex03.insertAfter(make_item(), row)
+  }
+}
+
+function Update03 (e) {
+  var rows = ex03.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    var d = make_item()
+    d.id = row.id
+    ex03.update(d)
+  }
 }</code></pre>
 
 </div>
 <div class="tab-pane" id="tab_item_3_9">
 
 <pre class="prettyprint "><code>&lt;div style="padding:5px 0px;"&gt;
-  &lt;button onclick="Add()"&gt;Add&lt;/button&gt;
-  &lt;button onclick="Remove()"&gt;Remove&lt;/button&gt;
+  &lt;button onclick="Add03()"&gt;Add&lt;/button&gt;
+  &lt;button onclick="Remove03()"&gt;Remove&lt;/button&gt;
+  &lt;button onclick="InsertBefore03()"&gt;Insert Before&lt;/button&gt;
+  &lt;button onclick="InsertAfter03()"&gt;Insert After&lt;/button&gt;
+  &lt;button onclick="Update03()"&gt;Update&lt;/button&gt;
 &lt;/div&gt;
-
 &lt;rtable id="ex03"&gt;&lt;/rtable&gt;</code></pre>
 
 </div>
@@ -379,8 +443,11 @@ function Remove (e) {
 
 <p>Tree grid.</p>
 <div style="padding:5px 0px;">
-  <button onclick="Add()">Add</button>
-  <button onclick="Remove()">Remove</button>
+  <button onclick="Add04()">Add</button>
+  <button onclick="Remove04()">Remove</button>
+  <button onclick="InsertBefore04()">Insert Before</button>
+  <button onclick="InsertAfter04()">Insert After</button>
+  <button onclick="Update04()">Update</button>
 </div>
 <rtable id="ex04"></rtable>
 
@@ -424,33 +491,63 @@ function Remove (e) {
 
   var ex04 = document.getElementById('ex04')
   var begin = 100
-  function Add (e) {
+  function make_item () {
     var d = {}
     for(var j=0; j<c; j++){
       d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
     }
     begin ++
-    ex04.add(d)
+    return d
+  }
+  function Add04 (e) {
+    ex04.add(make_item())
   }
 
-  function Remove (e) {
+  function Remove04 (e) {
     var rows = ex04.get_selected()
     ex04.remove(rows)
   }
+
+  function InsertBefore04(e) {
+    var rows = ex04.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex04.insertBefore(make_item(), row)
+    }
+  }
+
+  function InsertAfter04(e) {
+    var rows = ex04.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      ex04.insertAfter(make_item(), row)
+    }
+  }
+
+  function Update04(e) {
+    var rows = ex04.get_selected(), row
+    if (rows) {
+      row = rows[0]
+      var d = make_item()
+      d.id = row.id
+      ex04.update(d)
+    }
+  }
+
 </script>
 
 </div>
 <div class="tab-pane" id="tab_item_4_11">
 
 <pre class="prettyprint "><code>var cols = [
-  {name:'name1', title:'A/B', width:60},
-  {name:'name2', title:'A/C', width:200},
-  {name:'name3', title:'C/E/F', width:200},
-  {name:'name4', title:'C/E/H', width:200},
-  {name:'name5', title:'C/F/G', width:300},
-  {name:'name6', title:'C/F/I', width:200}
+  {name:'name1', title:'This is a long title', width:40},
+  {name:'name2', title:'B', width: 120},
+  {name:'name3', title:'This is a very long column name'},
+  {name:'name4', title:'D'},
+  {name:'name5', title:'E'},
+  {name:'name6', title:'F'}
 ]
-var data = [], size=100, c=6, d
+var data = [], size=5, c=6, d
 for(var i=0; i&lt;size; i++) {
   d = {id:i+1}
   for(var j=0; j&lt;c; j++){
@@ -458,16 +555,82 @@ for(var i=0; i&lt;size; i++) {
   }
   data.push(d)
 }
-riot.mount('rtable#ex02', {cols:cols, data:data, height:200})</code></pre>
+data[1].parent = data[0].id
+data[3].parent = data[2].id
+data[4].parent = data[3].id
+
+riot.mount('rtable#ex04', {
+  cols:cols,
+  data:data,
+  indexCol:true,
+  checkCol:true,
+  multiSelect:true,
+  height:200,
+
+  tree:true,
+  expanded:true,
+  parentField:'parent',
+  orderField:'order',
+  levelField:'level',
+  treeField:'name2',
+  useFontAwesome:true
+})
+
+var ex04 = document.getElementById('ex04')
+var begin = 100
+function make_item () {
+  var d = {}
+  for(var j=0; j&lt;c; j++){
+    d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
+  }
+  begin ++
+  return d
+}
+function Add04 (e) {
+  ex04.add(make_item())
+}
+
+function Remove04 (e) {
+  var rows = ex04.get_selected()
+  ex04.remove(rows)
+}
+
+function InsertBefore04(e) {
+  var rows = ex04.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex04.insertBefore(make_item(), row)
+  }
+}
+
+function InsertAfter04(e) {
+  var rows = ex04.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    ex04.insertAfter(make_item(), row)
+  }
+}
+
+function Update04(e) {
+  var rows = ex04.get_selected(), row
+  if (rows) {
+    row = rows[0]
+    var d = make_item()
+    d.id = row.id
+    ex04.update(d)
+  }
+}</code></pre>
 
 </div>
 <div class="tab-pane" id="tab_item_4_12">
 
 <pre class="prettyprint "><code>&lt;div style="padding:5px 0px;"&gt;
-  &lt;button onclick="Add()"&gt;Add&lt;/button&gt;
-  &lt;button onclick="Remove()"&gt;Remove&lt;/button&gt;
+  &lt;button onclick="Add04()"&gt;Add&lt;/button&gt;
+  &lt;button onclick="Remove04()"&gt;Remove&lt;/button&gt;
+  &lt;button onclick="InsertBefore04()"&gt;Insert Before&lt;/button&gt;
+  &lt;button onclick="InsertAfter04()"&gt;Insert After&lt;/button&gt;
+  &lt;button onclick="Update04()"&gt;Update&lt;/button&gt;
 &lt;/div&gt;
-
 &lt;rtable id="ex04"&gt;&lt;/rtable&gt;</code></pre>
 
 </div>

@@ -225,7 +225,8 @@
             <!-- cell content -->
             <div if={col.type!='check' && !col.buttons} data-is="raw"
               content={col.value} class="rtable-cell-text"
-              onclick={parent.click_handler} style={col.indent}></div>
+              onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
+              style={col.indentWidth}></div>
 
             <!-- expander -->
             <span if={col.expander} data-is='raw' content={col.expander} class="rtable-expander"
@@ -248,7 +249,8 @@
 
               <!-- cell content -->
               <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value}
-                class="rtable-cell-text" onclick={parent.click_handler} style={col.indentWidth}>></div>
+                class="rtable-cell-text" onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
+                style={col.indentWidth}></div>
 
               <!-- expander -->
               <span if={col.expander} data-is='raw' content={col.expander} class="rtable-expander"
@@ -321,7 +323,7 @@
 
   if (opts.data) {
     if (Array.isArray(opts.data)) {
-      this._data = new DataSet()
+      this._data = new DataSet({tree:opts.tree})
       if (opts.tree)
         this._data.load_tree(opts.data, {parentField:opts.parentField,
           orderField:opts.orderField, levelField:opts.levelField, plain:true})
@@ -331,7 +333,7 @@
     else
       this._data = opts.data
   } else {
-    this._data = new DataSet()
+    this._data = new DataSet({tree:opts.tree})
   }
 
 
@@ -418,12 +420,19 @@
   })
 
   this.click_handler = function(e) {
-    e.preventDefault()
-    if (self.clickSelect === 'row') {
-      self.toggle_select(e.item.col.row)
-    } else if (self.clickSelect === 'column') {
+    if ($(e.target).hasClass('rtable-cell-text')) {
+      e.preventDefault()
+      if (self.clickSelect === 'row') {
+        self.toggle_select(e.item.col.row)
+      } else if (self.clickSelect === 'column') {
 
+      }
     }
+  }
+
+  this.dbclick_handler = function(e) {
+    e.preventDefault()
+    //console.log('aaaaa', e.item.col)
   }
 
   this.sort_handler = function(e) {
@@ -1125,6 +1134,8 @@
   this.root.remove = data_proxy('remove')
   this.root.get = data_proxy('get')
   this.root.load = data_proxy('load')
+  this.root.insertBefore = data_proxy('insertBefore')
+  this.root.insertAfter = data_proxy('insertAfter')
 
   <!-- this.root.load = function(newrows){
     self._data.clear()
@@ -1138,9 +1149,9 @@
 
   this.get_col_data = function(col, value) {
     if (col.render && typeof col.render === 'function') {
-      return col.render(col.row, col, value)
+      value = col.render(col.row, col, value)
     }
-    return value
+    return value || ''
   }
 
   this.action_click = function (col, btn) {
