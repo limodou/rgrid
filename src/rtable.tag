@@ -313,21 +313,25 @@
   this.parentField = opts.parentField
   this.orderField = opts.orderField
   this.levelField = opts.levelField
-  this.indentWidth = 22
+  this.hasChildrenField = opts.hasChildrenField
+  this.indentWidth = 16
 
+  var _opts = {tree:opts.tree, parentField:opts.parentField,
+    levelField:opts.levelField, orderField:opts.orderField, hasChildrenField:opts.hasChildrenField}
   if (opts.data) {
     if (Array.isArray(opts.data)) {
-      this._data = new DataSet({tree:opts.tree})
+      this._data = new DataSet(_opts)
       if (opts.tree)
         this._data.load_tree(opts.data, {parentField:opts.parentField,
-          orderField:opts.orderField, levelField:opts.levelField, plain:true})
+          orderField:opts.orderField, levelField:opts.levelField,
+          hasChildrenField:opts.hasChildrenField, plain:true})
       else
         this._data.load(opts.data)
     }
     else
       this._data = opts.data
   } else {
-    this._data = new DataSet({tree:opts.tree})
+    this._data = new DataSet(_opts)
   }
 
 
@@ -1124,6 +1128,7 @@
   }
 
   this.root.add = data_proxy('add')
+  this.root.addFirstChild = data_proxy('addFirstChild')
   this.root.update = data_proxy('update')
   this.root.remove = data_proxy('remove')
   this.root.get = data_proxy('get')

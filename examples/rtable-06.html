@@ -10,6 +10,8 @@
 
     <div style="padding:5px 0px;">
       <button onclick="Add()">Add</button>
+      <button onclick="AddFirstChild()">Add Frist Child</button>
+      <button onclick="AddLastChild()">Add Last Child</button>
       <button onclick="Remove()">Remove</button>
       <button onclick="InsertBefore()">Insert Before</button>
       <button onclick="InsertAfter()">Insert After</button>
@@ -78,6 +80,22 @@
       }
       function Add (e) {
         grid.add(make_item())
+      }
+
+      function AddFirstChild (e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.addFirstChild(make_item(), row)
+        }
+      }
+
+      function AddLastChild (e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.add(make_item(), row)
+        }
       }
 
       function Remove (e) {
