@@ -147,19 +147,12 @@
       overflow: auto;
     }
     .rtable-nodata {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      position:relative;
       margin: auto;
       height: 34px;
-      width: 150px;
       text-align: center;
-      border:1px solid #ccc;
       color: #ccc;
       line-height: 34px;
-      border-radius: 3px;
     }
     .rtable-expander {
       position:absolute;
@@ -272,7 +265,8 @@
         </div>
       </div>
 
-      <div if={rows.length==0} data-is="raw" content={noData} class="rtable-nodata"></div>
+      <div if={rows.length==0} data-is="raw" content={noData} class="rtable-nodata"
+        style="top:{height/2-header_height/2+rowHeight/2}px;"></div>
 
     </div>
 

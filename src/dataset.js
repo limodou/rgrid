@@ -1044,6 +1044,7 @@ remove = function (id) {
         removedIds.push(id)
         me._data.splice(index, 1);
         me.length--;
+        me._resetIds(minIndex)
 
         if (me._isTree) {
           for(var i=index, len=me.length; i<len; i++){
