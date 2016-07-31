@@ -29,9 +29,9 @@ var string_editor = function (parent, row, col) {
       input.destory()
     }
   })
-  // input.on('blur', function(e){
-  //   input.destory()
-  // })
+  input.on('blur', function(e){
+    input.destory()
+  })
   input.destory = function () {
     input.remove()
   }
