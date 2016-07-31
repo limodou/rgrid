@@ -76,7 +76,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .rtable-cell>* {
+    .rtable-cell-text {
+      position:relative;
+    }
+    .rtable-cell-text, .rtable-cell-text>* {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -185,9 +188,9 @@
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
+        <div if={type!='check'} data-is="raw" class="rtable-cell-text" value={title} style="{sort?'padding-right:22px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
-          class="rtable-check" style="margin-top:{rowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
+          class="rtable-check" style="margin-top:{headerRowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
         <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
@@ -197,9 +200,9 @@
     <div class="rtable-header rtable-main" style="width:{width-fix_width-xscroll_width}px;right:0px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
-        <div if={type!='check'} data-is="raw" content={title} style="{sort?'padding-right:22px':''}"></div>
+        <div if={type!='check'} data-is="raw" class="rtable-cell-text" value={title} style="{sort?'padding-right:22px':''}"></div>
         <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
-          class="rtable-check" style="margin-top:{rowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
+          class="rtable-check" style="margin-top:{headerRowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
         <div if={sort} class={rtable-sort:true, desc:get_sorted(name)=='desc', asc:get_sorted(name)=='asc'}
@@ -216,8 +219,8 @@
             style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
             <!-- cell content -->
-            <div if={col.type!='check' && !col.buttons} data-is="raw"
-              content={col.value} class="rtable-cell-text"
+            <div data-is="rtable-cell" if={col.type!='check' && !col.buttons} tag={col.tag}
+              value={col.value} row={col.row} col={col}
               onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
               style={col.indentWidth}></div>
 
@@ -241,12 +244,13 @@
               style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
               <!-- cell content -->
-              <div if={col.type!='check' && !col.buttons} data-is="raw" content={col.value}
-                class="rtable-cell-text" onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
+              <div data-is="rtable-cell" if={col.type!='check' && !col.buttons} tag={col.tag}
+                value={col.value} row={col.row} col={col}
+                onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
                 style={col.indentWidth}></div>
 
               <!-- expander -->
-              <span if={col.expander} data-is='raw' content={col.expander} class="rtable-expander"
+              <span if={col.expander} data-is='raw' value={col.expander} class="rtable-expander"
                 style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
 
               <!-- display checkbox -->
@@ -265,7 +269,7 @@
         </div>
       </div>
 
-      <div if={rows.length==0} data-is="raw" content={noData} class="rtable-nodata"
+      <div if={rows.length==0} data-is="raw" value={noData} class="rtable-nodata"
         style="top:{height/2-header_height/2+rowHeight/2}px;"></div>
 
     </div>
@@ -287,6 +291,7 @@
   this.onSort = opts.onSort || function(){}
   this.onRowClass = opts.onRowClass || function(){}
   this.cols = opts.cols.slice()
+  this.headerRowHeight = opts.headerRowHeight || 34
   this.rowHeight = opts.rowHeight || 34
   this.indexColWidth = opts.indexColWidth || 40
   this.multiSelect = opts.multiSelect || false
@@ -465,11 +470,11 @@
   this.get_sort_top = function (dir) {
     var top
     if (dir == 'asc')
-      top = (self.rowHeight - 16) / 2 + 4
+      top = (self.headerRowHeight - 16) / 2 + 4
     else if (dir == 'desc')
-      top = (self.rowHeight - 16) / 2 + 2
+      top = (self.headerRowHeight - 16) / 2 + 2
     else
-      top = (self.rowHeight - 16) / 2 + 4
+      top = (self.headerRowHeight - 16) / 2 + 4
     return top
   }
 
@@ -562,7 +567,7 @@
         new_col.level = j
         new_col.col = i
         new_col.width = col.width
-        new_col.height = new_col.rowspan * self.rowHeight
+        new_col.height = new_col.rowspan * self.headerRowHeight
         new_col.top = (self.rowHeight) * j
         new_col.frozen = frozen
         new_col.buttons = col.buttons
@@ -574,7 +579,8 @@
         new_col.type = col.type
         new_col.sort = col.sort
         new_col.align = col.align || 'left'
-        new_col['class'] = col['class']
+        new_col.class = col.class
+        new_col.tag = col.tag || 'raw'
 
         //查找同层最左边的结点，判断是否title和rowspan一致
         //如果一致，进行合并，即colspan +1
@@ -737,7 +743,7 @@
       else
         main_width += col.width
     }
-    this.header_height = this.max_level * this.rowHeight
+    this.header_height = this.max_level * this.headerRowHeight
     this.fix_width = fix_width
     this.main_width = main_width //内容区宽度
   }
@@ -864,7 +870,8 @@
           index:first+i,
           sor:col.sort,
           align:col.align,
-          class:col.class
+          class:col.class,
+          tag:col.tag
         }
         if (opts.treeField == col.name && opts.tree) {
           indent = row.level || 0
@@ -1200,12 +1207,45 @@
 
 </rtable>
 
+<rtable-cell>
+  <div class="rtable-cell-text">
+    <yield></yield>
+  </div>
+
+  this.prevtag = null
+
+  this.on('mount', function() {
+    if (!opts.tag) {
+      return
+    }
+    this.prevtag = opts.tag
+    return this.mountedTag = riot.mount(this.root.querySelector('div'), opts.tag, opts)[0]
+  });
+
+  this.on('update', function() {
+    if (this.prevtag && this.prevtag !== opts.tag) {
+      this.prevtag = opts.tag
+      this.mountedTag.unmount(true)
+      return this.mountedTag = riot.mount(this.root.querySelector('div'), opts.tag, opts)[0]
+    } else if (this.mountedTag) {
+      this.mountedTag.opts = opts
+      return this.mountedTag.update()
+    }
+  });
+
+  this.on('unmount', function() {
+    if (this.mountedTag) {
+      return this.mountedTag.unmount(true)
+    }
+  })
+</rtable-cell>
+
 <raw>
   <span></span>
   this.on('mount', function(){
-    this.root.innerHTML = opts.content
+    this.root.innerHTML = opts.value
   })
   this.on('update', function () {
-    this.root.innerHTML = opts.content
+    this.root.innerHTML = opts.value
   })
 </raw>

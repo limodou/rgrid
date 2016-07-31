@@ -20,30 +20,46 @@
     <rtable id="grid"></rtable>
 
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="../bower_components/riot/riot.min.js"></script>
+    <script src="../bower_components/riot/riot+compiler.min.js"></script>
     <script src="../src/dataset.js"></script>
     <script src="../dist/rtable.js"></script>
     <style>
       .rtable-cell.myclass {background-color: red;}
     </style>
+    <script type="riot/tag">
+      <image>
+        <img src="{opts.value}" style="margin:-10px -5px" />
+      </image>
+    </script>
+    <script type="riot/tag">
+      <progress>
+        <div style="border:1px solid #ccc;margin:10px auto;top:0px;bottom:0px;background-color:white;width:90%;height:10px;">
+          <div style="height:10px;background:#4d4;width:{opts.value}%"></div>
+        </div>
+      </progress>
+    </script>
     <script>
       var cols = [
         {name:'id', title:'ID', width:40},
         {name:'name1', title:'This is a long title', width:80},
         {name:'name2', title:'B', width: 200},
-        {name:'name3', title:'This is a very long column name', width:100},
+        {name:'name3', title:'This is a very long column name', width:100, tag:'image'},
         {name:'name4', title:'D', align:'center', class:'myclass'},
         {name:'name5', title:'E', render: function(row, col, value){
           return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
         }},
-        {name:'name6', title:'F'}
+        {name:'name6', title:'F', tag:'progress'}
       ]
-      var data = [], size=20, c=6, d
+      var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+      var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
+      var data = [], size=10000, c=6, d
       for(var i=0; i<size; i++) {
         d = {id:i+1}
         for(var j=0; j<5; j++){
           d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
         }
+        d['name6'] = randAge()
+        d['name3'] = randImage()
         data.push(d)
       }
       data[1].parent = data[0].id
@@ -55,6 +71,7 @@
         indexCol:true,
         checkCol:true,
         multiSelect:false,
+        rowHeight: 50,
         // clickSelect:null,
         maxHeight:400,
         minHeight:200,
