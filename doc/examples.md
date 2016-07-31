@@ -558,20 +558,20 @@ function Update04(e) {
         var names = ["Chloe", "Emily", "Megan", "Charlotte", "Jessica", "Lauren", "Sophie", "Olivia", "Hannah", "Lucy", "Georgia", "Rebecca", "Bethany", "Amy", "Ellie", "Katie", "Emma", "Abigail", "Molly", "Grace", "Courtney", "Shannon", "Caitlin", "Eleanor", "Jade", "Ella", "Leah", "Alice", "Holly", "Laura", "Anna", "Jasmine", "Sarah", "Elizabeth", "Amelia", "Rachel", "Amber", "Phoebe", "Natasha", "Niamh", "Zoe", "Paige", "Nicole", "Abbie", "Mia", "Imogen", "Lily", "Alexandra", "Chelsea", "Daisy", "Jack", "Thomas", "James", "Joshua", "Daniel", "Harry", "Samuel", "Joseph", "Matthew", "Callum", "Luke", "William", "Lewis", "Oliver", "Ryan", "Benjamin", "George", "Liam", "Jordan", "Adam", "Alexander", "Jake", "Connor", "Cameron", "Nathan", "Kieran", "Mohammed", "Jamie", "Jacob", "Michael", "Ben", "Ethan", "Charlie", "Bradley", "Brandon", "Aaron", "Max", "Dylan", "Kyle", "Robert", "Christopher", "David", "Edward", "Charles", "Owen", "Louis", "Alex", "Joe", "Rhyce"];
         return names[Math.round(Math.random() * (names.length - 1))];
       };
-  var data = [], size=100, c=6, d
+  var data05 = [], size=100, c=6, d
   for(var i=0; i<size; i++) {
     d = {}
     d.id = i+1
     d.image = randImage()
     d.name = randFirstname()
     d.progress = randAge()
-    data.push(d)
+    data05.push(d)
   }
 
   $(function(){
     riot.mount('rtable#ex05', {
       cols:cols05,
-      data:data,
+      data:data05,
       indexCol:true,
       height:200,
       rowHeight: 50
@@ -595,20 +595,20 @@ var randFirstname = function() {
       var names = ["Chloe", "Emily", "Megan", "Charlotte", "Jessica", "Lauren", "Sophie", "Olivia", "Hannah", "Lucy", "Georgia", "Rebecca", "Bethany", "Amy", "Ellie", "Katie", "Emma", "Abigail", "Molly", "Grace", "Courtney", "Shannon", "Caitlin", "Eleanor", "Jade", "Ella", "Leah", "Alice", "Holly", "Laura", "Anna", "Jasmine", "Sarah", "Elizabeth", "Amelia", "Rachel", "Amber", "Phoebe", "Natasha", "Niamh", "Zoe", "Paige", "Nicole", "Abbie", "Mia", "Imogen", "Lily", "Alexandra", "Chelsea", "Daisy", "Jack", "Thomas", "James", "Joshua", "Daniel", "Harry", "Samuel", "Joseph", "Matthew", "Callum", "Luke", "William", "Lewis", "Oliver", "Ryan", "Benjamin", "George", "Liam", "Jordan", "Adam", "Alexander", "Jake", "Connor", "Cameron", "Nathan", "Kieran", "Mohammed", "Jamie", "Jacob", "Michael", "Ben", "Ethan", "Charlie", "Bradley", "Brandon", "Aaron", "Max", "Dylan", "Kyle", "Robert", "Christopher", "David", "Edward", "Charles", "Owen", "Louis", "Alex", "Joe", "Rhyce"];
       return names[Math.round(Math.random() * (names.length - 1))];
     };
-var data = [], size=100, c=6, d
+var data05 = [], size=100, c=6, d
 for(var i=0; i<size; i++) {
   d = {}
   d.id = i+1
   d.image = randImage()
   d.name = randFirstname()
   d.progress = randAge()
-  data.push(d)
+  data05.push(d)
 }
 
 $(function(){
   riot.mount('rtable#ex05', {
     cols:cols05,
-    data:data,
+    data:data05,
     indexCol:true,
     height:200,
     rowHeight: 50
@@ -675,7 +675,7 @@ You can double click to edit a cell.
     var names = ['1', '2', '3']
     return names[Math.round(Math.random() * (names.length - 1))]
   }
-  var data = [], size=100, d
+  var data06 = [], size=100, d
   for(var i=0; i<size; i++) {
     d = {}
     d.id = i+1
@@ -685,13 +685,13 @@ You can double click to edit a cell.
     d.name4 = 'Name2-'+i+'4'
     d.name5 = randValue()
     d.name6 = randAge()
-    data.push(d)
+    data06.push(d)
   }
 
   $(function(){
     riot.mount('rtable#ex06', {
       cols:cols06,
-      data:data,
+      data:data06,
       indexCol:true,
       height:200,
       rowHeight: 34,
@@ -728,7 +728,7 @@ var randValue = function () {
   var names = ['1', '2', '3']
   return names[Math.round(Math.random() * (names.length - 1))]
 }
-var data = [], size=100, d
+var data06 = [], size=100, d
 for(var i=0; i<size; i++) {
   d = {}
   d.id = i+1
@@ -738,13 +738,13 @@ for(var i=0; i<size; i++) {
   d.name4 = 'Name2-'+i+'4'
   d.name5 = randValue()
   d.name6 = randAge()
-  data.push(d)
+  data06.push(d)
 }
 
 $(function(){
   riot.mount('rtable#ex06', {
     cols:cols06,
-    data:data,
+    data:data06,
     indexCol:true,
     height:200,
     rowHeight: 34,
