@@ -82,7 +82,15 @@
         orderField:'order',
         levelField:'level',
         treeField:'name2',
-        useFontAwesome:true
+        useFontAwesome:true,
+        onDbclick: function(row, col) {
+          console.log('dbclick', row, col)
+          return false
+        },
+        onClick: function(row, col) {
+          console.log('click', row, col)
+          return false
+        }
       })
 
       var grid = document.getElementById('grid')

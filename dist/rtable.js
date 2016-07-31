@@ -186,7 +186,11 @@ riot.tag2('rtable', '<yield></yield> <div class="{rtable-root:true, zebra:opts.t
   })
 
   this.click_handler = function(e) {
-    if ($(e.target).hasClass('rtable-cell-text')) {
+    var ret
+    if (opts.onClick) {
+      ret = opts.onClick(e.item.col.row, e.item.col)
+    }
+    if (!ret && $(e.target).hasClass('rtable-cell-text')) {
       e.preventDefault()
       if (self.clickSelect === 'row') {
         self.toggle_select(e.item.col.row)
@@ -197,8 +201,12 @@ riot.tag2('rtable', '<yield></yield> <div class="{rtable-root:true, zebra:opts.t
   }
 
   this.dbclick_handler = function(e) {
-    e.preventDefault()
-
+    var ret
+    if (opts.onDbclick)
+      ret = opts.onDbclick(e.item.col.row, e.item.col)
+    if (!ret) {
+      e.preventDefault()
+    }
   }
 
   this.sort_handler = function(e) {
