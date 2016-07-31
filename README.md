@@ -67,6 +67,7 @@ The features list which already be implemented or will be implemented：
 - [X] Column sort support, client and remote mode
 - [X] No data display
 - [X] Simple theme support, for now: zebra and default
+- [X] Custom column tag
 - [ ] Column could be visible toggled dynamically
 - [ ] Resize width and height of grid
 - [ ] Context menu

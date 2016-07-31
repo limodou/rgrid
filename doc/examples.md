@@ -533,3 +533,107 @@ function Update04(e) {
 ```
 
 {% endtabs %}
+
+
+
+
+### Custom Tag
+
+{% tabs %}
+
+-- Result --
+
+{% include-code %}
+<script src="./static/tags/ex05.js"></script>
+<rtable id="ex05"></rtable>
+
+<script>
+  var cols = [
+    {name:'image', title:'Image', tag:'image', width:90, align:'center'},
+    {name:'name', title:'Name', width: 120, align:'center'},
+    {name:'progress', title:'progress', tag:'progress'}
+  ]
+  var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+  var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
+  var randFirstname = function() {
+        var names = ["Chloe", "Emily", "Megan", "Charlotte", "Jessica", "Lauren", "Sophie", "Olivia", "Hannah", "Lucy", "Georgia", "Rebecca", "Bethany", "Amy", "Ellie", "Katie", "Emma", "Abigail", "Molly", "Grace", "Courtney", "Shannon", "Caitlin", "Eleanor", "Jade", "Ella", "Leah", "Alice", "Holly", "Laura", "Anna", "Jasmine", "Sarah", "Elizabeth", "Amelia", "Rachel", "Amber", "Phoebe", "Natasha", "Niamh", "Zoe", "Paige", "Nicole", "Abbie", "Mia", "Imogen", "Lily", "Alexandra", "Chelsea", "Daisy", "Jack", "Thomas", "James", "Joshua", "Daniel", "Harry", "Samuel", "Joseph", "Matthew", "Callum", "Luke", "William", "Lewis", "Oliver", "Ryan", "Benjamin", "George", "Liam", "Jordan", "Adam", "Alexander", "Jake", "Connor", "Cameron", "Nathan", "Kieran", "Mohammed", "Jamie", "Jacob", "Michael", "Ben", "Ethan", "Charlie", "Bradley", "Brandon", "Aaron", "Max", "Dylan", "Kyle", "Robert", "Christopher", "David", "Edward", "Charles", "Owen", "Louis", "Alex", "Joe", "Rhyce"];
+        return names[Math.round(Math.random() * (names.length - 1))];
+      };
+  var data = [], size=100, c=6, d
+  for(var i=0; i<size; i++) {
+    d = {}
+    d.id = i+1
+    d.image = randImage()
+    d.name = randFirstname()
+    d.progress = randAge()
+    data.push(d)
+  }
+
+  $(function(){
+    riot.mount('rtable#ex05', {
+      cols:cols,
+      data:data,
+      indexCol:true,
+      height:200,
+      rowHeight: 50
+    })    
+  })
+
+</script>
+{% endinclude-code %}
+
+-- Javascript --
+
+```
+<script type="riot/tag">
+  <image>
+    <img src="{opts.value}" style="margin:-10px -5px" />
+  </image>
+  <progress>
+    <div style="border:1px solid #ccc;margin:10px auto;top:0px;bottom:0px;background-color:white;width:90%;height:10px;">
+      <div style="height:10px;background:#4d4;width:{opts.value}%"></div>
+    </div>
+  </progress>
+</script>
+
+<script>
+  var cols = [
+    {name:'image', title:'Image', tag:'image', width:90},
+    {name:'name', title:'Name', width: 120},
+    {name:'progress', title:'progress', width: 200, tag:'progress'}
+  ]
+  var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+  var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
+  var randFirstname = function() {
+        var names = ["Chloe", "Emily", "Megan", "Charlotte", "Jessica", "Lauren", "Sophie", "Olivia", "Hannah", "Lucy", "Georgia", "Rebecca", "Bethany", "Amy", "Ellie", "Katie", "Emma", "Abigail", "Molly", "Grace", "Courtney", "Shannon", "Caitlin", "Eleanor", "Jade", "Ella", "Leah", "Alice", "Holly", "Laura", "Anna", "Jasmine", "Sarah", "Elizabeth", "Amelia", "Rachel", "Amber", "Phoebe", "Natasha", "Niamh", "Zoe", "Paige", "Nicole", "Abbie", "Mia", "Imogen", "Lily", "Alexandra", "Chelsea", "Daisy", "Jack", "Thomas", "James", "Joshua", "Daniel", "Harry", "Samuel", "Joseph", "Matthew", "Callum", "Luke", "William", "Lewis", "Oliver", "Ryan", "Benjamin", "George", "Liam", "Jordan", "Adam", "Alexander", "Jake", "Connor", "Cameron", "Nathan", "Kieran", "Mohammed", "Jamie", "Jacob", "Michael", "Ben", "Ethan", "Charlie", "Bradley", "Brandon", "Aaron", "Max", "Dylan", "Kyle", "Robert", "Christopher", "David", "Edward", "Charles", "Owen", "Louis", "Alex", "Joe", "Rhyce"];
+        return names[Math.round(Math.random() * (names.length - 1))];
+      };
+  var data = [], size=100, c=6, d
+  for(var i=0; i<size; i++) {
+    d = {}
+    d.id = i+1
+    d.image = randImage()
+    d.name = randFirstname()
+    d.progress = randAge()
+    data.push(d)
+  }
+
+  riot.mount('rtable#ex05', {
+    cols:cols,
+    data:data,
+    indexCol:true,
+    checkCol:true,
+    multiSelect:true,
+    height:200,
+    rowHeight: 50,
+  })
+</script>
+```
+
+-- HTML --
+
+```
+<rtable id="ex05"></rtable>
+```
+
+{% endtabs %}
