@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>rtable Example 06 - Tree</title>
     <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../bower_components/pikaday/css/pikaday.css">
   </head>
   <body>
     <h1>Tree</h1>
@@ -21,14 +22,17 @@
 
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
     <script src="../bower_components/riot/riot+compiler.min.js"></script>
+    <script src="../bower_components/pikaday/pikaday.js"></script>
+    <script src="../bower_components/pikaday/plugins/pikaday.jquery.js"></script>
     <script src="../src/dataset.js"></script>
     <script src="../dist/rtable.js"></script>
+    <script src="../src/editor.js"></script>
     <style>
       .rtable-cell.myclass {background-color: red;}
     </style>
     <script type="riot/tag">
       <image>
-        <img src="{opts.value}" style="margin:-10px -5px" />
+        <img src="{opts.value}" style="margin:-5px -10px" />
       </image>
     </script>
     <script type="riot/tag">
@@ -39,27 +43,40 @@
       </progress>
     </script>
     <script>
+      var choices = [['1', 'A Value'], ['2', 'B Value'], ['3', 'C Value']]
       var cols = [
-        {name:'id', title:'ID', width:40},
-        {name:'name1', title:'This is a long title', width:80},
-        {name:'name2', title:'B', width: 200},
-        {name:'name3', title:'This is a very long column name', width:100, tag:'image'},
-        {name:'name4', title:'D', align:'center', class:'myclass'},
+        {name:'id', title:'ID', width:40, align:'center'},
+        {name:'name1', title:'This is a long title', width:80, editor:'string'},
+        {name:'name2', title:'B', width: 200, editor:'string'},
+        {name:'name3', title:'Name', width:40, tag:'image'},
+        {name:'name4', title:'D', align:'center', class:'myclass', editor:'date'},
         {name:'name5', title:'E', render: function(row, col, value){
+          for(var i=0, len=choices.length; i<len; i++) {
+            if (choices[i][0] == value){
+              value = choices[i][1]
+              break
+            }
+          }
           return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
-        }},
-        {name:'name6', title:'F', tag:'progress'}
+        }, editor:{name:'select', choices:choices, placeholder:'Empty'}},
+        {name:'name6', title:'F', tag:'progress', editor:'string'}
       ]
       var randAge = function() { return Math.round(Math.random() * 99) + 1;}
       var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
+      var randValue = function () {
+        var names = ['1', '2', '3']
+        return names[Math.round(Math.random() * (names.length - 1))]
+      }
       var data = [], size=10000, c=6, d
       for(var i=0; i<size; i++) {
-        d = {id:i+1}
-        for(var j=0; j<5; j++){
-          d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
-        }
-        d['name6'] = randAge()
-        d['name3'] = randImage()
+        d = {}
+        d.id = i+1
+        d.name1 = 'Name1-'+i+'1'
+        d.name2 = 'Name2-'+i+'2'
+        d.name3 = randImage()
+        d.name4 = 'Name2-'+i+'4'
+        d.name5 = randValue()
+        d.name6 = randAge()
         data.push(d)
       }
       data[1].parent = data[0].id
@@ -71,7 +88,7 @@
         indexCol:true,
         checkCol:true,
         multiSelect:false,
-        rowHeight: 50,
+        rowHeight: 34,
         // clickSelect:null,
         maxHeight:400,
         minHeight:200,
@@ -82,7 +99,17 @@
         orderField:'order',
         levelField:'level',
         treeField:'name2',
-        useFontAwesome:true
+        useFontAwesome:true,
+        onDbclick: function(row, col) {
+          console.log('dbclick', row, col)
+          return false
+        },
+        onClick: function(row, col) {
+          console.log('click', row, col)
+          return false
+        },
+
+        editable:true
       })
 
       var grid = document.getElementById('grid')

@@ -544,11 +544,10 @@ function Update04(e) {
 -- Result --
 
 {% include-code %}
-<script src="./static/tags/ex05.js"></script>
 <rtable id="ex05"></rtable>
 
 <script>
-  var cols = [
+  var cols05 = [
     {name:'image', title:'Image', tag:'image', width:90, align:'center'},
     {name:'name', title:'Name', width: 120, align:'center'},
     {name:'progress', title:'progress', tag:'progress'}
@@ -571,7 +570,7 @@ function Update04(e) {
 
   $(function(){
     riot.mount('rtable#ex05', {
-      cols:cols,
+      cols:cols05,
       data:data,
       indexCol:true,
       height:200,
@@ -585,55 +584,180 @@ function Update04(e) {
 -- Javascript --
 
 ```
-<script type="riot/tag">
-  <image>
-    <img src="{opts.value}" style="margin:-10px -5px" />
-  </image>
-  <progress>
-    <div style="border:1px solid #ccc;margin:10px auto;top:0px;bottom:0px;background-color:white;width:90%;height:10px;">
-      <div style="height:10px;background:#4d4;width:{opts.value}%"></div>
-    </div>
-  </progress>
-</script>
+var cols05 = [
+  {name:'image', title:'Image', tag:'image', width:90, align:'center'},
+  {name:'name', title:'Name', width: 120, align:'center'},
+  {name:'progress', title:'progress', tag:'progress'}
+]
+var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
+var randFirstname = function() {
+      var names = ["Chloe", "Emily", "Megan", "Charlotte", "Jessica", "Lauren", "Sophie", "Olivia", "Hannah", "Lucy", "Georgia", "Rebecca", "Bethany", "Amy", "Ellie", "Katie", "Emma", "Abigail", "Molly", "Grace", "Courtney", "Shannon", "Caitlin", "Eleanor", "Jade", "Ella", "Leah", "Alice", "Holly", "Laura", "Anna", "Jasmine", "Sarah", "Elizabeth", "Amelia", "Rachel", "Amber", "Phoebe", "Natasha", "Niamh", "Zoe", "Paige", "Nicole", "Abbie", "Mia", "Imogen", "Lily", "Alexandra", "Chelsea", "Daisy", "Jack", "Thomas", "James", "Joshua", "Daniel", "Harry", "Samuel", "Joseph", "Matthew", "Callum", "Luke", "William", "Lewis", "Oliver", "Ryan", "Benjamin", "George", "Liam", "Jordan", "Adam", "Alexander", "Jake", "Connor", "Cameron", "Nathan", "Kieran", "Mohammed", "Jamie", "Jacob", "Michael", "Ben", "Ethan", "Charlie", "Bradley", "Brandon", "Aaron", "Max", "Dylan", "Kyle", "Robert", "Christopher", "David", "Edward", "Charles", "Owen", "Louis", "Alex", "Joe", "Rhyce"];
+      return names[Math.round(Math.random() * (names.length - 1))];
+    };
+var data = [], size=100, c=6, d
+for(var i=0; i<size; i++) {
+  d = {}
+  d.id = i+1
+  d.image = randImage()
+  d.name = randFirstname()
+  d.progress = randAge()
+  data.push(d)
+}
 
-<script>
-  var cols = [
-    {name:'image', title:'Image', tag:'image', width:90},
-    {name:'name', title:'Name', width: 120},
-    {name:'progress', title:'progress', width: 200, tag:'progress'}
-  ]
-  var randAge = function() { return Math.round(Math.random() * 99) + 1;}
-  var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
-  var randFirstname = function() {
-        var names = ["Chloe", "Emily", "Megan", "Charlotte", "Jessica", "Lauren", "Sophie", "Olivia", "Hannah", "Lucy", "Georgia", "Rebecca", "Bethany", "Amy", "Ellie", "Katie", "Emma", "Abigail", "Molly", "Grace", "Courtney", "Shannon", "Caitlin", "Eleanor", "Jade", "Ella", "Leah", "Alice", "Holly", "Laura", "Anna", "Jasmine", "Sarah", "Elizabeth", "Amelia", "Rachel", "Amber", "Phoebe", "Natasha", "Niamh", "Zoe", "Paige", "Nicole", "Abbie", "Mia", "Imogen", "Lily", "Alexandra", "Chelsea", "Daisy", "Jack", "Thomas", "James", "Joshua", "Daniel", "Harry", "Samuel", "Joseph", "Matthew", "Callum", "Luke", "William", "Lewis", "Oliver", "Ryan", "Benjamin", "George", "Liam", "Jordan", "Adam", "Alexander", "Jake", "Connor", "Cameron", "Nathan", "Kieran", "Mohammed", "Jamie", "Jacob", "Michael", "Ben", "Ethan", "Charlie", "Bradley", "Brandon", "Aaron", "Max", "Dylan", "Kyle", "Robert", "Christopher", "David", "Edward", "Charles", "Owen", "Louis", "Alex", "Joe", "Rhyce"];
-        return names[Math.round(Math.random() * (names.length - 1))];
-      };
-  var data = [], size=100, c=6, d
-  for(var i=0; i<size; i++) {
-    d = {}
-    d.id = i+1
-    d.image = randImage()
-    d.name = randFirstname()
-    d.progress = randAge()
-    data.push(d)
-  }
-
+$(function(){
   riot.mount('rtable#ex05', {
-    cols:cols,
+    cols:cols05,
     data:data,
     indexCol:true,
-    checkCol:true,
-    multiSelect:true,
     height:200,
-    rowHeight: 50,
-  })
-</script>
+    rowHeight: 50
+  })    
+})
 ```
 
 -- HTML --
 
 ```
+<script src="./static/tags/ex05.js"></script>
 <rtable id="ex05"></rtable>
+```
+
+-- ex05.tag --
+
+```
+<image>
+  <img src="{opts.value}" style="" />
+</image>
+<progress>
+  <div style="border:1px solid #ccc;margin:20px auto;top:0px;bottom:0px;background-color:white;width:90%;height:10px;">
+    <div style="height:10px;background:#4d4;width:{opts.value}%"></div>
+  </div>
+</progress>
+```
+
+{% endtabs %}
+
+
+
+### Cell Editor
+
+{% tabs %}
+
+-- Result --
+
+You can double click to edit a cell.
+
+{% include-code %}
+<rtable id="ex06"></rtable>
+
+<script>
+  var choices = [['1', 'A Value'], ['2', 'B Value'], ['3', 'C Value']]
+  var cols06 = [
+    {name:'id', title:'ID', width:40, align:'center'},
+    {name:'name1', title:'This is a long title', width:80, editor:'string'},
+    {name:'name2', title:'B', width: 200, editor:'string'},
+    {name:'name3', title:'Name', width:40, tag:'image'},
+    {name:'name4', title:'D', align:'center', class:'myclass', editor:'date'},
+    {name:'name5', title:'E', render: function(row, col, value){
+      for(var i=0, len=choices.length; i<len; i++) {
+        if (choices[i][0] == value){
+          value = choices[i][1]
+          break
+        }
+      }
+      return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
+    }, editor:{name:'select', choices:choices, placeholder:'Empty'}},
+    {name:'name6', title:'F', tag:'progress', editor:'string'}
+  ]
+  var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+  var randValue = function () {
+    var names = ['1', '2', '3']
+    return names[Math.round(Math.random() * (names.length - 1))]
+  }
+  var data = [], size=100, d
+  for(var i=0; i<size; i++) {
+    d = {}
+    d.id = i+1
+    d.name1 = 'Name1-'+i+'1'
+    d.name2 = 'Name2-'+i+'2'
+    d.name3 = randImage()
+    d.name4 = 'Name2-'+i+'4'
+    d.name5 = randValue()
+    d.name6 = randAge()
+    data.push(d)
+  }
+
+  $(function(){
+    riot.mount('rtable#ex06', {
+      cols:cols06,
+      data:data,
+      indexCol:true,
+      height:200,
+      rowHeight: 34,
+      editable:true
+    })    
+  })
+
+</script>
+{% endinclude-code %}
+
+-- Javascript --
+
+```
+var choices = [['1', 'A Value'], ['2', 'B Value'], ['3', 'C Value']]
+var cols06 = [
+  {name:'id', title:'ID', width:40, align:'center'},
+  {name:'name1', title:'This is a long title', width:80, editor:'string'},
+  {name:'name2', title:'B', width: 200, editor:'string'},
+  {name:'name3', title:'Name', width:40, tag:'image'},
+  {name:'name4', title:'D', align:'center', class:'myclass', editor:'date'},
+  {name:'name5', title:'E', render: function(row, col, value){
+    for(var i=0, len=choices.length; i<len; i++) {
+      if (choices[i][0] == value){
+        value = choices[i][1]
+        break
+      }
+    }
+    return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
+  }, editor:{name:'select', choices:choices, placeholder:'Empty'}},
+  {name:'name6', title:'F', tag:'progress', editor:'string'}
+]
+var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+var randValue = function () {
+  var names = ['1', '2', '3']
+  return names[Math.round(Math.random() * (names.length - 1))]
+}
+var data = [], size=100, d
+for(var i=0; i<size; i++) {
+  d = {}
+  d.id = i+1
+  d.name1 = 'Name1-'+i+'1'
+  d.name2 = 'Name2-'+i+'2'
+  d.name3 = randImage()
+  d.name4 = 'Name2-'+i+'4'
+  d.name5 = randValue()
+  d.name6 = randAge()
+  data.push(d)
+}
+
+$(function(){
+  riot.mount('rtable#ex06', {
+    cols:cols06,
+    data:data,
+    indexCol:true,
+    height:200,
+    rowHeight: 34,
+    editable:true
+  })    
+})
+```
+
+-- HTML --
+
+```
+<script src="./static/tags/ex05.js"></script>
+<rtable id="ex06"></rtable>
 ```
 
 {% endtabs %}

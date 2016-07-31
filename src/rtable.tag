@@ -11,7 +11,8 @@
     minHeight(optional):    Min height, it set height is 'auto', when less than minHeight, the height will be always minHeight
     width(Optional):        Width of grid, if no provided, it'll use parent width, default is null
     container(Optional):    Used to calculate the width and height, if width or height set to null, default is this.root
-    rawHeight(Optional):    single row height. Default is 34
+    rowHeight(Optional):    single row height. Default is 34
+    headerRowHeight(Optonal)Header row height. Default is 34
     nameField(Optional):    Which value will be used for name of column, default is 'name'
     titleField(Optional):   Which value will be used for title of column, default is 'title'
     start(Optional):        Starting index value, it'll be used for index column, default is 0
@@ -25,6 +26,7 @@
 
     options(Optional):      Used to set above options easily via plain object
     theme(Optional):        Theme of grid
+    editable(Optional):     If the table cell can be editable.
 
   events:
     onUpdate:             When DataSet changed, it'll invoke function(dataset, action, changed)
@@ -70,14 +72,14 @@
       border-right:1px solid gray;
       border-bottom:1px solid gray;
       background-color: white;
-      padding-left:4px;
-      padding-right:4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .rtable-cell-text {
       position:relative;
+      padding-left:4px;
+      padding-right:4px;
     }
     .rtable-cell-text, .rtable-cell-text>* {
       white-space: nowrap;
@@ -220,7 +222,7 @@
 
             <!-- cell content -->
             <div data-is="rtable-cell" if={col.type!='check' && !col.buttons} tag={col.tag}
-              value={col.value} row={col.row} col={col}
+              value={col.__value__} row={col.row} col={col}
               onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
               style={col.indentWidth}></div>
 
@@ -245,7 +247,7 @@
 
               <!-- cell content -->
               <div data-is="rtable-cell" if={col.type!='check' && !col.buttons} tag={col.tag}
-                value={col.value} row={col.row} col={col}
+                value={col.__value__} row={col.row} col={col}
                 onclick={parent.click_handler} ondblclick={parent.dbclick_handler}
                 style={col.indentWidth}></div>
 
@@ -301,6 +303,7 @@
   this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
   this.container = opts.container || $(this.root).parent()
+  this.editable = opts.editable || false
 
   //tree options
   this.tree = opts.tree
@@ -338,7 +341,6 @@
   } else {
     this._data = new DataSet(_opts)
   }
-
 
   this.bind = function () {
     // 绑定事件
@@ -423,7 +425,15 @@
   })
 
   this.click_handler = function(e) {
-    if ($(e.target).hasClass('rtable-cell-text')) {
+    var ret
+    if (self.editable && self.editor) {
+      e.preventUpdate = true
+      return
+    }
+    if (opts.onClick) {
+      ret = opts.onClick(e.item.col.row, e.item.col)
+    }
+    if (!ret && $(e.target).hasClass('rtable-cell-text')) {
       e.preventDefault()
       if (self.clickSelect === 'row') {
         self.toggle_select(e.item.col.row)
@@ -434,9 +444,32 @@
   }
 
   this.dbclick_handler = function(e) {
-    e.preventDefault()
-    //console.log('aaaaa', e.item.col)
+
+    var ret, col = e.item.col
+    if (opts.onDbclick)
+      ret = opts.onDbclick(col.row, col)
+    if (!ret) {
+      e.preventDefault()
+      if (opts.editable) {
+        if (!col.editor) return
+        var el = $(e.target), item
+        if (el.hasClass('rtable-cell-text'))
+          item = e.target
+        else {
+          item = el.parents('.rtable-cell-text')[0]
+        }
+        e.preventUpdate = true
+        document.selection && document.selection.empty && ( document.selection.empty(), 1)
+        || window.getSelection && window.getSelection().removeAllRanges();
+        create_editor($(item).parent()[0], col.row, col)
+      }
+    }
   }
+
+  <!-- this.is_editing = function (col) {
+    if (this.editing_column && col && this.editing_column.id === col.row.id && this.editing_column.name == col.name)
+      return true
+  } -->
 
   this.sort_handler = function(e) {
     var name, dir, col
@@ -581,6 +614,7 @@
         new_col.align = col.align || 'left'
         new_col.class = col.class
         new_col.tag = col.tag || 'raw'
+        new_col.editor = col.editor
 
         //查找同层最左边的结点，判断是否title和rowspan一致
         //如果一致，进行合并，即colspan +1
@@ -871,7 +905,9 @@
           sor:col.sort,
           align:col.align,
           class:col.class,
-          tag:col.tag
+          tag:col.tag,
+          editor:col.editor,
+          name:col.name
         }
         if (opts.treeField == col.name && opts.tree) {
           indent = row.level || 0
@@ -885,7 +921,8 @@
           d.indent = indent*self.indentWidth
           d.indentWidth = 'padding-left:' + d.indent + 'px'
         }
-        d.value = this.get_col_data(d, row[col.name])
+        d.value = row[col.name]
+        d.__value__ = this.get_col_data(d, row[col.name])
         if (col.frozen) {
           vf_row.cols.push(d)
         }
@@ -1205,6 +1242,26 @@
     return this[haystack].split(/\s+/).indexOf(needle) > -1
   }
 
+  this.testing = function () {
+    console.log('testing', arguments)
+    return true
+  }
+
+  var create_editor = function (target, row, col) {
+    var name
+
+    if (typeof col.editor === 'string')
+      name = col.editor
+    else
+      name = col.editor.name
+    if (self.editor) {
+      self.editor.destory()
+      self.editor = null
+    }
+    var editor = window[name+'_editor']
+    if (editor)
+      self.editor = editor.call(self, target, row, col)
+  }
 </rtable>
 
 <rtable-cell>
