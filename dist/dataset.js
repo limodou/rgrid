@@ -288,7 +288,6 @@ DataSet.prototype._insert = function (data, index, position) {
   return addedIds;
 };
 
-
 /**
  * Insert a single item before index. Will fail when an item with the same id already exists.
  * @param {Object} item
@@ -370,6 +369,39 @@ DataSet.prototype._reOrder = function (index, level, last_order) {
   }
 }
 
+DataSet.prototype.move = function (item, target, position) {
+  return this._move(item, target, position)
+}
+DataSet.prototype._move = function (item, target, position) {
+  var me = this, updatedIds = [], addedIds = [], order, index, next, items, len,
+    ids
+
+  if (me.isChild(target, item))
+    throw new Error('Target nodes could not be child')
+  index = me.index(item)
+  next = me._findNext(index)
+  if (next == -1) {
+    len = me.length - index + 1
+  } else {
+    len = next = index
+  }
+  items = me._data.splice(index, len)
+  me.length -= items.length
+  me._resetParent(index)
+  me._resetIds()
+  //save level
+  if (position == 'before') {
+    ids = me.insertBefore(items, target)
+  } else if (position == 'after') {
+    ids = me.insertAfter(items, target)
+  } else if (position == 'child') {
+    ids = me.add(items, target)
+  }
+  for(var i=0, _len=ids; i<_len; i++) {
+    updatedIds.push(ids[i])
+  }
+  return updatedIds
+}
 /**
  * Find next element for tree
  * @param {Number} Index for element
@@ -440,6 +472,21 @@ DataSet.prototype.load_tree = function (url, callback) {
   self.add(d);
 }
 
+/**
+ * Test if a node is a child of parent
+ * @param {Object} Node will be testing
+ * @param {Object} Parent node
+ */
+DataSet.prototype.isChild = function(item, parent) {
+  var me = this, p
+  if (me._isTree) {
+    p = item[me._parentField]
+    while (p) {
+      if (me.getId(p) == me.getId(parent)) return true
+      p = p[me._parentField]
+    }
+  }
+}
 /**
  * Update existing items. When an item does not exist, it will be created
  * @param {Object | Array} data
@@ -1070,17 +1117,7 @@ remove = function (id) {
             }
           }
 
-          //process parent has_children flag
-          if (index - 1 > -1) {
-            n = me._data[index-1]
-            if (n[me._hasChildrenField]) {
-              if (index < me.length) {
-                n[me._hasChildrenField] = me._data[index][me._levelField] > n[me._levelField]
-              } else {
-                n[me._hasChildrenField] = false
-              }
-            }
-          }
+          me._resetParent(index)
         }
 
       };
@@ -1102,6 +1139,20 @@ remove = function (id) {
   return removedIds;
 
 };
+
+DataSet.prototype._resetParent = function (index) {
+  var me = this, n
+  if (index - 1 > -1) {
+    n = me._data[index-1]
+    if (n[me._hasChildrenField]) {
+      if (index < me.length) {
+        n[me._hasChildrenField] = me._data[index][me._levelField] > n[me._levelField]
+      } else {
+        n[me._hasChildrenField] = false
+      }
+    }
+  }
+}
 
 /**
  * Reset ids

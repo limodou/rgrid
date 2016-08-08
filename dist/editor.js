@@ -23,15 +23,19 @@ var string_editor = function (parent, row, col) {
     if (e.keyCode == 13) {
       var value = input.val()
       row[col.name] = value
-      self.root.update(row)
-      input.destory()
+      $.when(self.onEdited(row, col, value)).then(function(r){
+        if (r) {
+          self.root.update(row)
+          input.destory()
+        }
+      })
     } else if (e.keyCode == 27) {
       input.destory()
     }
   })
-  // input.on('blur', function(e){
-  //   input.destory()
-  // })
+  input.on('blur', function(e){
+    input.destory()
+  })
   input.destory = function () {
     input.remove()
   }
@@ -72,8 +76,12 @@ var select_editor = function (parent, row, col) {
   input.on('change', function(e){
     var value = input.val()
     row[col.name] = value
-    self.root.update(row)
-    input.destory()
+    $.when(self.onEdited(row, col, value)).then(function(r){
+      if (r) {
+        self.root.update(row)
+        input.destory()
+      }
+    })
   })
 
   input.destory = function () {
@@ -108,8 +116,12 @@ var date_editor = function (parent, row, col) {
     onClose:function () {
       var value = input.val()
       row[col.name] = value
-      self.root.update(row)
-      input.destory()
+      $.when(self.onEdited(row, col, value)).then(function(r){
+        if (r) {
+          self.root.update(row)
+          input.destory()
+        }
+      })
     }
   })
 
