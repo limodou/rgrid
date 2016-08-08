@@ -2,6 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
     <title>rtable Example 06 - Tree</title>
     <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="../bower_components/pikaday/css/pikaday.css">
@@ -24,11 +26,14 @@
     <script src="../bower_components/riot/riot+compiler.min.js"></script>
     <script src="../bower_components/pikaday/pikaday.js"></script>
     <script src="../bower_components/pikaday/plugins/pikaday.jquery.js"></script>
+    <script src="../bower_components/jquery-ui/jquery-ui.js"></script>
     <script src="../src/dataset.js"></script>
     <script src="../dist/rtable.js"></script>
     <script src="../src/editor.js"></script>
     <style>
-      .rtable-cell.myclass {background-color: red;}
+      .rtable-cell.red {background-color: red;}
+      .rtable-cell.green {background-color: green;}
+      .rtable-cell.blue {background-color: blue;}
     </style>
     <script type="riot/tag">
       <image>
@@ -44,12 +49,22 @@
     </script>
     <script>
       var choices = [['1', 'A Value'], ['2', 'B Value'], ['3', 'C Value']]
+      var randClass = function (row, col, value) {
+        var names = ['red', 'green', 'blue']
+        return names[Math.round(Math.random() * (names.length - 1))]
+      }
+      var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+      var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
+      var randValue = function () {
+        var names = ['1', '2', '3']
+        return names[Math.round(Math.random() * (names.length - 1))]
+      }
       var cols = [
         {name:'id', title:'ID', width:40, align:'center'},
         {name:'name1', title:'This is a long title', width:80, editor:'string'},
         {name:'name2', title:'B', width: 200, editor:'string'},
         {name:'name3', title:'Name', width:40, tag:'image'},
-        {name:'name4', title:'D', align:'center', class:'myclass', editor:'date'},
+        {name:'name4', title:'D', align:'center', class:randClass, editor:'date'},
         {name:'name5', title:'E', render: function(row, col, value){
           for(var i=0, len=choices.length; i<len; i++) {
             if (choices[i][0] == value){
@@ -57,17 +72,11 @@
               break
             }
           }
-          return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
+          return '<a href="http://google.com">' + value + '</a>'
         }, editor:{name:'select', choices:choices, placeholder:'Empty'}},
         {name:'name6', title:'F', tag:'progress', editor:'string'}
       ]
-      var randAge = function() { return Math.round(Math.random() * 99) + 1;}
-      var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
-      var randValue = function () {
-        var names = ['1', '2', '3']
-        return names[Math.round(Math.random() * (names.length - 1))]
-      }
-      var data = [], size=10000, c=6, d
+      var data = [], size=5, c=6, d
       for(var i=0; i<size; i++) {
         d = {}
         d.id = i+1
@@ -100,8 +109,8 @@
         levelField:'level',
         treeField:'name2',
         useFontAwesome:true,
-        onDbclick: function(row, col) {
-          console.log('dbclick', row, col)
+        onDblclick: function(row, col) {
+          console.log('dblclick', row, col)
           return false
         },
         onClick: function(row, col) {
@@ -109,6 +118,22 @@
           return false
         },
 
+        onMove: function(from, to, position) {
+          console.log('onmove', from, to, position)
+          grid.move(from, to, position)
+        },
+
+        onEdit: function(row, col, value) {
+          console.log('edit', row, col, value)
+          return true
+        },
+        onEdited: function(row, col, value) {
+          row['name2'] = 'edited'
+          console.log('edited', row, col, value)
+          if (value == 'aaa') return true
+          return false
+        },
+        draggable:true,
         editable:true
       })
 

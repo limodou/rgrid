@@ -9,6 +9,17 @@ var gulp = require('gulp'),
     riot = require('gulp-riot'),
     livereload = require('gulp-livereload');
 
+gulp.task('css', function() {
+  return gulp.src(['src/*.css'])
+    // .pipe(jshint('.jshintrc'))
+    .pipe(gulp.dest('dist/'))
+    .pipe(rename({suffix: '.min'}))
+    .pipe(minifycss().on('error', function(e){
+            console.log(e);
+         }))
+     .pipe(gulp.dest('dist/'))
+    // .pipe(notify({ message: 'js-main task complete' }));
+});
 
 gulp.task('js', function() {
   return gulp.src(['src/*.js'])
@@ -44,5 +55,5 @@ gulp.task('watch', function() {
 });
 
 gulp.task('default', function() {
-    gulp.start('js', 'tags');
+    gulp.start('js', 'css', 'tags');
 });

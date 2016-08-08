@@ -25,6 +25,7 @@
             <li><b>render</b> Custom render fucntion</li>
             <li><b>fixed</b> If true, the column can not be resized by drag and drop</li>
             <li><b>sort</b> If this column can be sortable, default is <b>false</b></li>
+            <li><b>class</b> Custom column class, it can be Function or String.</li>
         </ul>
     </td>
 </tr>
@@ -52,7 +53,7 @@
     <td>maxHeight</td>
     <td>optional</td>
     <td>int</td>
-    <td>When height is set to `'auto'`, if maxHeight is set, when real height is great than maxHeight, 
+    <td>When height is set to `'auto'`, if maxHeight is set, when real height is great than maxHeight,
     the height will be always maxHeight
     </td>
 </tr>
@@ -60,7 +61,7 @@
     <td>minHeight</td>
     <td>optional</td>
     <td>int</td>
-    <td>When height is set to `'auto'`, if minHeight is set, when there are no rows, 
+    <td>When height is set to `'auto'`, if minHeight is set, when there are no rows,
     the height will be always minHeight
     </td>
 </tr>
@@ -178,6 +179,16 @@
     <td>onRowClass</td>
     <td>Return row class</td>
 </tr>
+<tr>
+    <td>onEdit</td>
+    <td>On cell editing. function(row, col, value), if return false, then editor will be
+    note created.</td>
+</tr>
+<tr>
+    <td>onEdited</td>
+    <td>After cell edited. function(row, col, value), if return false, the value will be
+    note accepted.</td>
+</tr>
 </table>
 
 
@@ -199,7 +210,27 @@ You can see just use doc element directly.
 </tr>
 <tr>
     <td>add</td>
-    <td>Add new records: add(row), row could be an array</td>
+    <td>Add new records: add(row, parent), row could be an array. If `parent` is null, row
+    will be appended at the end, if `parent` is existed, it'll be the last-child
+    child node of `parent`</td>
+</tr>
+<tr>
+    <td>addFirstChild</td>
+    <td>Add new records: add(row, parent), row could be an array. The row will be
+    add as the first child node of `parent`.</td>
+</tr>
+<tr>
+    <td>insertBefore</td>
+    <td>Insert new record in front of target row: insertBefore(row, target). </td>
+</tr>
+<tr>
+    <td>insertAfter</td>
+    <td>Insert new record after target row: insertAfter(row, target). </td>
+</tr>
+<tr>
+    <td>move</td>
+    <td>Move source rows to new place according to target row and position: move(row, target, position).
+    `position` is: `'before'`, `'after'`, and `'child'`</td>
 </tr>
 <tr>
     <td>remove</td>
@@ -230,4 +261,3 @@ You can see just use doc element directly.
     <td>Get selected rows: get_selected()</td>
 </tr>
 </table>
-
