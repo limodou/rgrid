@@ -967,11 +967,46 @@
     }
   }
 
+  this.getId = function(row) {
+    return self._data.getId(row)
+  }
+
   this.toggle_expand = function(e) {
-    var id = e.item.col.row.id, status = this.parents_expand_status[id]
+    var id = self.getId(e.item.col.row), status = this.parents_expand_status[id]
     if (status === undefined) status = this.expanded
     this.parents_expand_status[id] = !status
     this.update()
+  }
+
+  this.expand = function (row) {
+    self._expand(row, true)
+  }
+
+  this.collapse = function (row) {
+    self._expand(row, false)
+  }
+
+  this._expand = function(row, expanded) {
+    var item, i, len, id, self=this
+
+    if (!row) {
+      for(id in self.parents_expand_status) {
+        self.parents_expand_status[id] = expanded
+      }
+    } else {
+      if (Array.isArray(row)) {
+        for(i=0, len=row.length; i<len; i++) {
+          id = self.getId(row[i])
+          if (self.parents_expand_status.hasOwnProperty(id))
+            self.parents_expand_status[id] = expanded
+        }
+      } else {
+        id = self.getId(row)
+        if (self.parents_expand_status.hasOwnProperty(id))
+          self.parents_expand_status[id] = expanded
+      }
+    }
+    self.update()
   }
 
   this.opened = function(row) {
@@ -1170,6 +1205,8 @@
     })
   }
   this.root.get_selected = proxy('get_selected')
+  this.root.expand = proxy('expand')
+  this.root.collapse = proxy('collapse')
 
   /* resize width and height */
   this.resize = function () {

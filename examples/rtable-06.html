@@ -19,6 +19,10 @@
       <button onclick="InsertBefore()">Insert Before</button>
       <button onclick="InsertAfter()">Insert After</button>
       <button onclick="Update()">Update</button>
+      <button onclick="ExpandAll()">Expand All</button>
+      <button onclick="Expand()">Expand</button>
+      <button onclick="CollapseAll()">Collapse All</button>
+      <button onclick="Collapse()">Collapse</button>
     </div>
     <rtable id="grid"></rtable>
 
@@ -195,6 +199,30 @@
           var d = make_item()
           d.id = row.id
           grid.update(d)
+        }
+      }
+
+      function ExpandAll(e) {
+        grid.expand()
+      }
+
+      function Expand(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.expand(row)
+        }
+      }
+
+      function CollapseAll(e) {
+        grid.collapse()
+      }
+
+      function Collapse(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.collapse(row)
         }
       }
 
