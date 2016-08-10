@@ -59,6 +59,7 @@ function DataSet(data, options) {
   this._hasChildrenField = this._options.hasChildrenField || 'has_children';
   this._isTree = this._options.tree || false;
   this._type = {}; // internal field types (NOTE: this can differ from this._options.type)
+  this._mute = false; //used to toggle event trigger status
 
   // all variants of a Date are internally stored as Date, so we can convert
   // from everything to everything (also from ISODate to Number for example)
@@ -121,6 +122,10 @@ DataSet.prototype.off = function (event, callback) {
   }
 };
 
+DataSet.prototype.mute = function (flag) {
+  this._mute = flag === undefined ? true : flag
+}
+
 /**
  * Trigger an event
  * @param {String} event
@@ -129,6 +134,7 @@ DataSet.prototype.off = function (event, callback) {
  * @private
  */
 DataSet.prototype._trigger = function (event, params, senderId) {
+  if (this._mute) return
   if (event == '*') {
     throw new Error('Cannot trigger event *');
   }
@@ -206,15 +212,22 @@ DataSet.prototype.addFirstChild = function (data, parent) {
 DataSet.prototype._add = function (data, parent, position) {
   var addedIds = [],
       id,
-      me = this;
+      me = this, level, item, p;
 
   if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
-      id = me._addItem(data[i], parent, position);
+      item = data[i]
+      if (me._isTree && i>0 && item[me._parentField]) {
+        p = me.get(item[me._parentField])
+        if (!p)
+            p = parent
+        id = me._addItem(item, p, position)
+      } else
+        id = me._addItem(item, parent, position);
       addedIds.push(id);
-      if (data[i][me._childField] && data[i][me._childField].length > 0) {
-        addedIds.concat(me.add(data[i][me._childField], data[i][me._idField]))
+      if (item[me._childField] && item[me._childField].length > 0) {
+        addedIds.concat(me.add(item[me._childField], item[me._idField]))
       }
     }
   } else if (data instanceof Object) {
@@ -250,20 +263,27 @@ DataSet.prototype.insertAfter = function (data, index) {
  * @param {String} [parentId] Optional parent id
  * @return {Array} addedIds      Array with the ids of the added items
  */
-DataSet.prototype._insert = function (data, index, position) {
+DataSet.prototype._insert = function (data, target, position) {
   var addedIds = [],
       id,
-      me = this;
+      me = this, delta;
 
-  index = this.index(index);
+  index = this.index(target);
 
   if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
+      if (i==0) {
+        if (me._isTree)
+          delta = data[0][me._levelField] - target[me._levelField]
+        else {
+          delta = 0
+        }
+      }
       if (position == 'before')
-        id = me._insertItem(data[i], index+i, 'before');
+        id = me._insertItem(data[i], index+i, 'before', delta);
       else {
-        id = me._insertItem(data[i], index, 'after');
+        id = me._insertItem(data[i], index, 'after', delta);
         index = id.index
       }
       addedIds.push(id.id);
@@ -296,8 +316,9 @@ DataSet.prototype._insert = function (data, index, position) {
  * @return {String} id
  * @private
  */
-DataSet.prototype._insertItem = function (item, index, position) {
+DataSet.prototype._insertItem = function (item, index, position, delta) {
   var id = item[this._idField], node = this._data[index];
+  delta = delta == undefined ? 0 : delta
 
   if (id != undefined) {
     // check whether this id is already taken
@@ -334,7 +355,8 @@ DataSet.prototype._insertItem = function (item, index, position) {
   var last_order, level, x, parent
   if (this._isTree) {
     d[this._parentField] = node[this._parentField]
-    d[this._levelField] = node[this._levelField]
+    if (!d[this._levelField])
+      d[this._levelField] = node[this._levelField]
     if (position == 'after')
       d[this._orderField] = node[this._orderField] + 1
     else
@@ -372,18 +394,34 @@ DataSet.prototype._reOrder = function (index, level, last_order) {
 DataSet.prototype.move = function (item, target, position) {
   return this._move(item, target, position)
 }
+
+DataSet.prototype._resetLevel = function (items, level) {
+  var delta, me=this
+
+  for(var i=0, _len=items.length; i<_len; i++) {
+    if (i== 0) {
+      delta = items[i][me._levelField] - level
+    }
+    items[i][me._levelField] -= delta
+  }
+}
+
 DataSet.prototype._move = function (item, target, position) {
   var me = this, updatedIds = [], addedIds = [], order, index, next, items, len,
-    ids
+    ids, level
 
   if (me.isChild(target, item))
     throw new Error('Target nodes could not be child')
+
+  if (me.getId(item) == me.getId(target)) return
+  me.mute(true)
+
   index = me.index(item)
   next = me._findNext(index)
   if (next == -1) {
-    len = me.length - index + 1
+    len = me.length - index
   } else {
-    len = next = index
+    len = next - index
   }
   items = me._data.splice(index, len)
   me.length -= items.length
@@ -391,15 +429,28 @@ DataSet.prototype._move = function (item, target, position) {
   me._resetIds()
   //save level
   if (position == 'before') {
+    level = target[me._levelField]
+    me._resetLevel(items, level)
     ids = me.insertBefore(items, target)
   } else if (position == 'after') {
+    level = target[me._levelField]
+    me._resetLevel(items, level)
     ids = me.insertAfter(items, target)
   } else if (position == 'child') {
+    level = target[me._levelField] + 1
+    me._resetLevel(items, level)
     ids = me.add(items, target)
   }
-  for(var i=0, _len=ids; i<_len; i++) {
+  for(var i=0, _len=ids.length; i<_len; i++) {
     updatedIds.push(ids[i])
   }
+
+  me.mute(false)
+
+  if (updatedIds.length) {
+    me._trigger('update', { items: updatedIds });
+  }
+
   return updatedIds
 }
 /**
@@ -436,12 +487,18 @@ DataSet.prototype.load = function (url, callback) {
   this.length = 0;
   if (typeof url === 'string') {
     return $.getJSON(url || this._options.url).done(function(r) {
+        self.mute()
         if (callback) self.add(callback(r))
         else self.add(r)
+        self.mute(false)
+        self._trigger('load')
       })
   } else {
+    self.mute()
     if (callback) self.add(callback(url))
     else self.add(url)
+    self.mute(false)
+    self._trigger('load')
   }
 }
 
@@ -1226,30 +1283,36 @@ DataSet.prototype._addItem = function (item, parent, position) {
 
   var child, index
 
-  if (this._isTree && parent) {
-    index = this.index(parent)
-    d[this._parentField] = parent[this._idField]
-    d[this._levelField] = parent[this._levelField] + 1
-    //parent is not the real element maybe
-    parent = this._data[index]
-    parent[this._hasChildrenField] = true
-    child = this._getFirstChild(parent)
-    if (!child) {
-      d[this._orderField] = 1
-      this._data.splice(index+1, 0, d)
-      this.length ++
-    } else {
-      if (position == 'first') {
-        id = this._insertItem(d, index+1, 'before').id
+  if (this._isTree) {
+    if (parent) {
+      index = this.index(parent)
+      d[this._parentField] = parent[this._idField]
+      if (!d[this._levelField])
+        d[this._levelField] = parent[this._levelField] + 1
+      //parent is not the real element maybe
+      parent = this._data[index]
+      parent[this._hasChildrenField] = true
+      child = this._getFirstChild(parent)
+      if (!child) {
+        d[this._orderField] = 1
+        this._data.splice(index+1, 0, d)
+        this.length ++
       } else {
-        index = this._findNext(index)
-        if (index == -1) {
-          index = this.length - 1
+        if (position == 'first') {
+          id = this._insertItem(d, index+1, 'before').id
+        } else {
+          index = this._findNext(index)
+          if (index == -1) {
+            index = this.length - 1
+          }
+          id = this._insertItem(d, index-1, 'after').id
         }
-        id = this._insertItem(d, index-1, 'after').id
       }
+      this._resetIds()
+    } else {
+      if (!d[this._levelField])
+        d[this._levelField] = 0
     }
-    this._resetIds()
   }
 
   return id;

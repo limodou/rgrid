@@ -7,6 +7,7 @@
     <title>rtable Example 06 - Tree</title>
     <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="../bower_components/pikaday/css/pikaday.css">
+    <link rel="stylesheet" href="../bower_components/select2/dist/css/select2.css">
   </head>
   <body>
     <h1>Tree</h1>
@@ -31,6 +32,7 @@
     <script src="../bower_components/pikaday/pikaday.js"></script>
     <script src="../bower_components/pikaday/plugins/pikaday.jquery.js"></script>
     <script src="../bower_components/jquery-ui/jquery-ui.js"></script>
+    <script src="../bower_components/select2/dist/js/select2.js"></script>
     <script src="../src/dataset.js"></script>
     <script src="../dist/rtable.js"></script>
     <script src="../src/editor.js"></script>
@@ -65,7 +67,9 @@
       }
       var cols = [
         {name:'id', title:'ID', width:40, align:'center'},
-        {name:'name1', title:'This is a long title', width:80, editor:'string'},
+        {name:'name1', title:'This is a long title', width:160, editor:'string',
+          editor:{name:'select2', choices:choices, placeholder:'Empty'}
+        },
         {name:'name2', title:'B', width: 200, editor:'string'},
         {name:'name3', title:'Name', width:40, tag:'image'},
         {name:'name4', title:'D', align:'center', class:randClass, editor:'date'},
@@ -134,8 +138,11 @@
         onEdited: function(row, col, value) {
           row['name2'] = 'edited'
           console.log('edited', row, col, value)
-          if (value == 'aaa') return true
-          return false
+          if (col.name=='name2') {
+            if (value === 'aaa') return true
+            return false
+          }
+          return true
         },
         draggable:true,
         editable:true
