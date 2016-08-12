@@ -47,19 +47,13 @@ function DataSet(data, options) {
     data = null;
   }
 
-  this._options = options || {};
   this._data = []; // map with data indexed by id
   this._ids = {};
+  this.setOption(options);
   this.length = 0; // number of items in the DataSet
-  this._idField = this._options.idField || 'id'; // name of the field containing id
-  this._parentField = this._options.parentField || '_parent'; //name of the parent field containing id
-  this._childField = this._options.childField || 'nodes';
-  this._orderField = this._options.orderField || 'order';
-  this._levelField = this._options.levelField || 'level';
-  this._hasChildrenField = this._options.hasChildrenField || 'has_children';
-  this._isTree = this._options.tree || false;
   this._type = {}; // internal field types (NOTE: this can differ from this._options.type)
   this._mute = false; //used to toggle event trigger status
+  this._saved = [];   //saved data
 
   // all variants of a Date are internally stored as Date, so we can convert
   // from everything to everything (also from ISODate to Number for example)
@@ -85,6 +79,17 @@ function DataSet(data, options) {
   if (data) {
     this.add(data);
   }
+}
+
+DataSet.prototype.setOption = function(options) {
+  this._options = options || {}
+  this._idField = this._options.idField || 'id'; // name of the field containing id
+  this._parentField = this._options.parentField || '_parent'; //name of the parent field containing id
+  this._childField = this._options.childField || 'nodes';
+  this._orderField = this._options.orderField || 'order';
+  this._levelField = this._options.levelField || 'level';
+  this._hasChildrenField = this._options.hasChildrenField || 'has_children';
+  this._isTree = this._options.tree || false;
 }
 
 /**
@@ -1378,6 +1383,70 @@ DataSet.prototype._getItem = function (id, types) {
   }
   return converted;
 };
+
+DataSet.prototype.save = function () {
+  this._saved = $.extend(true, [], this.get({order:[this._idField]}))
+  return this._saved
+}
+
+function cmpObject(a, b) {
+    // Of course, we can do it use for in
+    // Create arrays of property names
+    var aProps = Object.getOwnPropertyNames(a);
+    var bProps = Object.getOwnPropertyNames(b);
+
+    // If number of properties is different,
+    // objects are not equivalent
+    if (aProps.length != bProps.length) {
+        return false;
+    }
+
+    for (var i = 0; i < aProps.length; i++) {
+        var propName = aProps[i];
+
+        // If values of same property are not equal,
+        // objects are not equivalent
+        if (a[propName] !== b[propName]) {
+            return false;
+        }
+    }
+
+    // If we made it this far, objects
+    // are considered equivalent
+    return true;
+}
+
+DataSet.prototype.diff = function (data) {
+  data = data || this._saved
+  var src = this.get({order:[this._idField]}), i=0, j=0, len=src.length, _len=data.length,
+    x, y, updated=[], added=[], deleted=[], x_id, y_id
+  while(i<len && j<_len) {
+    x = src[i]
+    y = data[j]
+    x_id = x[this._idField]
+    y_id = y[this._idField]
+    if (x_id == y_id) {
+      if (!cmpObject(x, y)) {
+        updated.push(x)
+      }
+      i ++
+      j ++
+    } else (x_id<y_id) {
+      added.push(x)
+      i ++
+    } else {
+      deleted.push(y)
+      j ++
+    }
+  }
+  for(; i<len; i++) {
+    added.push(src[i])
+  }
+  for(; j<_len; j++) {
+    deleted.push(data[j])
+  }
+  return {added:added, updated:updated, deleted:deleted}
+}
 
 /**
  * Update a single item: merge with existing item.
