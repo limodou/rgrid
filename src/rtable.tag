@@ -1254,6 +1254,8 @@
   this.root.insertBefore = data_proxy('insertBefore')
   this.root.insertAfter = data_proxy('insertAfter')
   this.root.move = data_proxy('move')
+  this.root.diff = data_proxy('diff')
+  this.root.save = data_proxy('save')
 
   <!-- this.root.load = function(newrows){
     self._data.clear()

@@ -143,9 +143,13 @@ var select2_editor = function (parent, row, col) {
   var tmpl = [
     riot.util.tmpl('<select name={name} class="inline-editor">', {name:col.name})
   ]
-  var item, choices=col.editor.choices
+  var item
+  var value
+  if (col.editor.value_from) value = col.row[col.editor.value_from]
+  else value = col.value
+  var choices = col.editor.choices ? col.editor.choices : [[value, col.value]]
   for(var i=0, len=choices.length; i<len; i++) {
-    item = {value:col.value, option_value:choices[i][0], option_text:choices[i][1]}
+    item = {value:value, option_value:choices[i][0], option_text:choices[i][1]}
     tmpl.push(riot.util.tmpl('<option {value==option_value?"selected":""} value={option_value}>{option_text}</option>', item))
   }
   tmpl.push('</select>')
@@ -182,9 +186,17 @@ var select2_editor = function (parent, row, col) {
     position: 'relative'
   })
 
+  input.on('select2:close', function(e){
+    input.destroy()
+  })
   input.on('change', function(e){
     var value = input.val()
     row[col.name] = value
+    if (col.editor.value_from) {
+      row[col.editor.value_from] = value
+      row[col.name] = input.select2('data')[0].text
+    }
+    else row[col.name] = value
     $.when(self.onEdited(row, col, value)).then(function(r){
       if (r) {
         self.root.update(row)
@@ -195,7 +207,7 @@ var select2_editor = function (parent, row, col) {
 
   input.destroy = function () {
     if (input.data('select2')) {
-      input.select2('destroy')      
+      input.select2('destroy')
     }
     input.remove()
   }

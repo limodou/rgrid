@@ -47,19 +47,13 @@ function DataSet(data, options) {
     data = null;
   }
 
-  this._options = options || {};
   this._data = []; // map with data indexed by id
   this._ids = {};
+  this.setOption(options);
   this.length = 0; // number of items in the DataSet
-  this._idField = this._options.idField || 'id'; // name of the field containing id
-  this._parentField = this._options.parentField || '_parent'; //name of the parent field containing id
-  this._childField = this._options.childField || 'nodes';
-  this._orderField = this._options.orderField || 'order';
-  this._levelField = this._options.levelField || 'level';
-  this._hasChildrenField = this._options.hasChildrenField || 'has_children';
-  this._isTree = this._options.tree || false;
   this._type = {}; // internal field types (NOTE: this can differ from this._options.type)
   this._mute = false; //used to toggle event trigger status
+  this._saved = [];   //saved data
 
   // all variants of a Date are internally stored as Date, so we can convert
   // from everything to everything (also from ISODate to Number for example)
@@ -85,6 +79,17 @@ function DataSet(data, options) {
   if (data) {
     this.add(data);
   }
+}
+
+DataSet.prototype.setOption = function(options) {
+  this._options = options || {}
+  this._idField = this._options.idField || 'id'; // name of the field containing id
+  this._parentField = this._options.parentField || 'parent'; //name of the parent field containing id
+  this._childField = this._options.childField || 'nodes';
+  this._orderField = this._options.orderField || 'order';
+  this._levelField = this._options.levelField || 'level';
+  this._hasChildrenField = this._options.hasChildrenField || 'has_children';
+  this._isTree = this._options.tree || false;
 }
 
 /**
@@ -526,7 +531,10 @@ DataSet.prototype.load_tree = function (url, callback) {
   this._data = [];
   this._ids = {};
   this.length = 0;
+  this.mute()
   self.add(d);
+  this.mute(false)
+  self._trigger('load')
 }
 
 /**
@@ -1249,6 +1257,8 @@ DataSet.prototype.clear = function (senderId) {
 /**
  * Add a single item. Will fail when an item with the same id already exists.
  * @param {Object} item
+ * @param {Object} parent
+ * @param {String} position, 'first'
  * @return {String} id
  * @private
  */
@@ -1281,33 +1291,42 @@ DataSet.prototype._addItem = function (item, parent, position) {
     this._ids[id] = this.length-1;
   }
 
-  var child, index
+  var child, index, node
 
   if (this._isTree) {
     if (parent) {
       index = this.index(parent)
+      parent = this._data[index]
       d[this._parentField] = parent[this._idField]
       if (!d[this._levelField])
         d[this._levelField] = parent[this._levelField] + 1
       //parent is not the real element maybe
-      parent = this._data[index]
       parent[this._hasChildrenField] = true
       child = this._getFirstChild(parent)
       if (!child) {
         d[this._orderField] = 1
         this._data.splice(index+1, 0, d)
-        this.length ++
       } else {
         if (position == 'first') {
-          id = this._insertItem(d, index+1, 'before').id
+          d[this._orderField] = this._data[index+1][this._orderField]
+          this._data.splice(index+1, 0, d)
+          level = d[this._levelField]
+          last_order = d[this._orderField]
+          this._reOrder(index+1, level, last_order)
         } else {
           index = this._findNext(index)
           if (index == -1) {
-            index = this.length - 1
+            this._data.push(d)
+            order = this._data[this.length-1][this._orderField] + 1
+            index = this._data.length
+          } else {
+            order = this._data[index-1][this._orderField] + 1
+            this._data.splice(index, 0, d)
           }
-          id = this._insertItem(d, index-1, 'after').id
+          d[this._orderField] = order
         }
       }
+      this.length ++
       this._resetIds()
     } else {
       if (!d[this._levelField])
@@ -1378,6 +1397,71 @@ DataSet.prototype._getItem = function (id, types) {
   }
   return converted;
 };
+
+DataSet.prototype.save = function () {
+  this._saved = $.extend(true, [], this.get({order:[this._idField]}))
+  return this._saved
+}
+
+function cmpObject(a, b) {
+    // Of course, we can do it use for in
+    // Create arrays of property names
+    var aProps = Object.getOwnPropertyNames(a);
+    var bProps = Object.getOwnPropertyNames(b);
+
+    // If number of properties is different,
+    // objects are not equivalent
+    if (aProps.length != bProps.length) {
+        return false;
+    }
+
+    for (var i = 0; i < aProps.length; i++) {
+        var propName = aProps[i];
+
+        // If values of same property are not equal,
+        // objects are not equivalent
+        if (a[propName] !== b[propName]) {
+            return false;
+        }
+    }
+
+    // If we made it this far, objects
+    // are considered equivalent
+    return true;
+}
+
+DataSet.prototype.diff = function (data) {
+  data = data || this._saved
+  var src = this.get({order:[this._idField]}),
+    i=0, j=0, len=src.length, _len=data.length,
+    x, y, updated=[], added=[], deleted=[], x_id, y_id
+  while(i<len && j<_len) {
+    x = src[i]
+    y = data[j]
+    x_id = x[this._idField]
+    y_id = y[this._idField]
+    if (x_id == y_id) {
+      if (!cmpObject(x, y)) {
+        updated.push(x)
+      }
+      i ++
+      j ++
+    } else if (x_id<y_id) {
+      added.push(x)
+      i ++
+    } else {
+      deleted.push(y)
+      j ++
+    }
+  }
+  for(; i<len; i++) {
+    added.push(src[i])
+  }
+  for(; j<_len; j++) {
+    deleted.push(data[j])
+  }
+  return {added:added, updated:updated, deleted:deleted}
+}
 
 /**
  * Update a single item: merge with existing item.

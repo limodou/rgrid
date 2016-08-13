@@ -84,7 +84,7 @@ function DataSet(data, options) {
 DataSet.prototype.setOption = function(options) {
   this._options = options || {}
   this._idField = this._options.idField || 'id'; // name of the field containing id
-  this._parentField = this._options.parentField || '_parent'; //name of the parent field containing id
+  this._parentField = this._options.parentField || 'parent'; //name of the parent field containing id
   this._childField = this._options.childField || 'nodes';
   this._orderField = this._options.orderField || 'order';
   this._levelField = this._options.levelField || 'level';
@@ -531,7 +531,10 @@ DataSet.prototype.load_tree = function (url, callback) {
   this._data = [];
   this._ids = {};
   this.length = 0;
+  this.mute()
   self.add(d);
+  this.mute(false)
+  self._trigger('load')
 }
 
 /**
@@ -1254,6 +1257,8 @@ DataSet.prototype.clear = function (senderId) {
 /**
  * Add a single item. Will fail when an item with the same id already exists.
  * @param {Object} item
+ * @param {Object} parent
+ * @param {String} position, 'first'
  * @return {String} id
  * @private
  */
@@ -1286,33 +1291,42 @@ DataSet.prototype._addItem = function (item, parent, position) {
     this._ids[id] = this.length-1;
   }
 
-  var child, index
+  var child, index, node
 
   if (this._isTree) {
     if (parent) {
       index = this.index(parent)
+      parent = this._data[index]
       d[this._parentField] = parent[this._idField]
       if (!d[this._levelField])
         d[this._levelField] = parent[this._levelField] + 1
       //parent is not the real element maybe
-      parent = this._data[index]
       parent[this._hasChildrenField] = true
       child = this._getFirstChild(parent)
       if (!child) {
         d[this._orderField] = 1
         this._data.splice(index+1, 0, d)
-        this.length ++
       } else {
         if (position == 'first') {
-          id = this._insertItem(d, index+1, 'before').id
+          d[this._orderField] = this._data[index+1][this._orderField]
+          this._data.splice(index+1, 0, d)
+          level = d[this._levelField]
+          last_order = d[this._orderField]
+          this._reOrder(index+1, level, last_order)
         } else {
           index = this._findNext(index)
           if (index == -1) {
-            index = this.length - 1
+            this._data.push(d)
+            order = this._data[this.length-1][this._orderField] + 1
+            index = this._data.length
+          } else {
+            order = this._data[index-1][this._orderField] + 1
+            this._data.splice(index, 0, d)
           }
-          id = this._insertItem(d, index-1, 'after').id
+          d[this._orderField] = order
         }
       }
+      this.length ++
       this._resetIds()
     } else {
       if (!d[this._levelField])
@@ -1418,7 +1432,8 @@ function cmpObject(a, b) {
 
 DataSet.prototype.diff = function (data) {
   data = data || this._saved
-  var src = this.get({order:[this._idField]}), i=0, j=0, len=src.length, _len=data.length,
+  var src = this.get({order:[this._idField]}),
+    i=0, j=0, len=src.length, _len=data.length,
     x, y, updated=[], added=[], deleted=[], x_id, y_id
   while(i<len && j<_len) {
     x = src[i]
@@ -1431,7 +1446,7 @@ DataSet.prototype.diff = function (data) {
       }
       i ++
       j ++
-    } else (x_id<y_id) {
+    } else if (x_id<y_id) {
       added.push(x)
       i ++
     } else {

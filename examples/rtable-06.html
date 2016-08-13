@@ -68,8 +68,9 @@
       var cols = [
         {name:'id', title:'ID', width:40, align:'center'},
         {name:'name1', title:'This is a long title', width:160, editor:'string',
-          editor:{name:'select2', choices:choices, placeholder:'Empty'}
+          editor:{name:'select2', choices:choices, placeholder:'Empty', value_from:'name1_value'}
         },
+        {name:'name1_value', title:'Name1 Value', hidden:true},
         {name:'name2', title:'B', width: 200, editor:'string'},
         {name:'name3', title:'Name', width:40, tag:'image'},
         {name:'name4', title:'D', align:'center', class:randClass, editor:'date'},
@@ -89,6 +90,7 @@
         d = {}
         d.id = i+1
         d.name1 = 'Name1-'+i+'1'
+        d.name1_value = randValue()
         d.name2 = 'Name2-'+i+'2'
         d.name3 = randImage()
         d.name4 = 'Name2-'+i+'4'

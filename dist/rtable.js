@@ -961,6 +961,8 @@ riot.tag2('rtable', '<yield></yield> <div class="{rtable-root:true, zebra:theme=
   this.root.insertBefore = data_proxy('insertBefore')
   this.root.insertAfter = data_proxy('insertAfter')
   this.root.move = data_proxy('move')
+  this.root.diff = data_proxy('diff')
+  this.root.save = data_proxy('save')
 
   this.root.setData = function(dataset){
     self._data = dataset
