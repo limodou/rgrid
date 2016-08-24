@@ -146,6 +146,17 @@
           }
           return true
         },
+        onSelect: function (row) {
+          if (row['id'] == 1) {
+            return false
+          } return true
+        },
+        onSelected: function (row) {
+          console.log('selected', row.id)
+        },
+        onDeselected: function (row) {
+          console.log('deselected', row)
+        },
         draggable:true,
         editable:true
       })

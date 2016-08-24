@@ -176,11 +176,11 @@
     .rtable-root.zebra .rtable-row.even .rtable-cell {
       background-color: #f2f2f2;
       border-bottom:none;
-      border-right:1px dotted gray;
+      border-right:1px solid #ddd;
     }
     .rtable-root.zebra .rtable-row.odd .rtable-cell {
       border-bottom:none;
-      border-right:1px dotted gray;
+      border-right:1px solid #ddd;
     }
     .rtable-root.zebra .rtable-row.even .rtable-cell.selected {
       background-color: #ffefd5;
@@ -325,6 +325,8 @@
   this.onEdit = opts.onEdit || function(){return true}
   this.onEdited = opts.onEdited || function(){return true}
   this.onSelected = opts.onSelected || function(){}
+  this.onSelect = opts.onSelect || function(){return true}
+  this.onDeselected = opts.onDeselected || function(){}
 
   //tree options
   this.tree = opts.tree
@@ -1161,9 +1163,6 @@
   this.select = function(rows) {
     var row, id
 
-    if (!opts.multiSelect)
-      self.selected_rows = []
-
     if (!rows) rows = this._data.get()
     if (!Array.isArray(rows)) {
       rows = [rows]
@@ -1172,14 +1171,23 @@
       row = rows[i]
       if (row instanceof Object) id = row.id
       else id = row
-      if (this.selected_rows.indexOf(id) == -1)
-        this.selected_rows.push(id)
+      if (this.selected_rows.indexOf(id) == -1) {
+        if (this.onSelect(row)) {
+          if (!opts.multiSelect)
+            self.selected_rows = []
+          this.selected_rows.push(id)
+          this.onSelected(row)
+        }
+      }
     }
   }
 
   this.deselect = function(rows) {
     var r = [], row, selected_rows = this.selected_rows, index, items = [], id
-    if (!rows) this.selected_rows = []
+    if (!rows) {
+      this.selected_rows = []
+      this.onDeselected()
+    }
     else {
       if (!Array.isArray(rows))
         rows = [rows]
@@ -1194,6 +1202,7 @@
         if (index != -1){
           selected_rows.splice(i, 1)
           items.splice(index, 1)
+          this.onDeselected(this._data.get(row))
         }
         if (rows.length == 0)
           break

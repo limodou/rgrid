@@ -49,7 +49,7 @@ gulp.task('tags', function() {
 
 gulp.task('watch', function() {
   livereload.listen();
-  gulp.watch('src/*.tags', ['tags']);
+  gulp.watch('src/*.tag', ['tags']);
   gulp.watch('src/*.js', ['js']);
 
 });

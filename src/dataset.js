@@ -357,6 +357,7 @@ DataSet.prototype._insertItem = function (item, index, position, delta) {
       this._data.splice(index, 0, d)
     }
   }
+  this.length++;
   var last_order, level, x, parent
   if (this._isTree) {
     d[this._parentField] = node[this._parentField]
@@ -372,9 +373,7 @@ DataSet.prototype._insertItem = function (item, index, position, delta) {
     last_order = d[this._orderField]
 
     this._reOrder(index+1, level, last_order)
-
   }
-  this.length++;
 
   return {id:id, index:index};
 };
@@ -508,33 +507,48 @@ DataSet.prototype.load = function (url, callback) {
 }
 
 DataSet.prototype.load_tree = function (url, callback) {
-  var self = this, opts = {}
+  var me = this, opts = {}
+  var f
   this._data = [];
   this._ids = {};
   this.length = 0;
+
+  var _post = function(){
+    if (typeof callback != 'function' && callback instanceof Object) {
+      opts = callback
+    }
+    opts.plain = true
+
+    var d = me.tree(opts)
+    me._data = [];
+    me._ids = {};
+    me.length = 0;
+    me.mute()
+    me.add(d);
+    me.mute(false)
+    me._trigger('load')
+  }
+
   if (typeof url === 'string') {
     return $.getJSON(url || this._options.url).done(function(r) {
-        if (callback) self.add(callback(r))
-        else self.add(r)
+        me._isTree = false
+        me.mute()
+        if (callback) me.add(callback(r))
+        else me.add(r)
+        me.mute(false)
+        me._isTree = true
+        _post()
       })
   } else {
+    me._isTree = true
+    me.mute()
     if (typeof callback == 'function')
-      self.add(callback(url))
-    else self.add(url)
+      me.add(callback(url))
+    else me.add(url)
+    me.mute(false)
+    me._isTree = false
+    _post()
   }
-  if (callback instanceof Object) {
-    opts = callback
-  }
-  opts.plain = true
-
-  var d = self.tree(opts)
-  this._data = [];
-  this._ids = {};
-  this.length = 0;
-  this.mute()
-  self.add(d);
-  this.mute(false)
-  self._trigger('load')
 }
 
 /**
