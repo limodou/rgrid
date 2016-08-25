@@ -38,6 +38,7 @@ var string_editor = function (parent, row, col) {
   })
   input.destroy = function () {
     input.remove()
+    self.editor = null
   }
 
   return input
@@ -89,6 +90,7 @@ var select_editor = function (parent, row, col) {
 
   input.destroy = function () {
     input.remove()
+    self.editor = null
   }
 
   return input
@@ -132,6 +134,7 @@ var date_editor = function (parent, row, col) {
 
   input.destroy = function () {
     input.remove()
+    self.editor = null
   }
 
   return input
@@ -210,6 +213,7 @@ var select2_editor = function (parent, row, col) {
       input.select2('destroy')
     }
     input.remove()
+    self.editor = null
   }
 
   return input

@@ -66,6 +66,9 @@
       top:0;
       overflow:hidden;
     }
+    .rtable-content {
+      overflow: hidden;
+    }
     .rtable-cell {
       position:absolute;
       box-sizing: border-box;
@@ -247,7 +250,7 @@
               style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
 
             <!-- display checkbox -->
-            <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
+            <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={is_selected(col.row)}
               class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
           </div>
         </div>
@@ -271,7 +274,7 @@
                 style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
 
               <!-- display checkbox -->
-              <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={col.selected}
+              <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={is_selected(col.row)}
                   class="rtable-check" style="margin-top:{rowHeight/2-7}px;"></input>
 
               <virtual if={col.buttons} no-reorder each={btn in col.buttons}>
@@ -440,6 +443,7 @@
     $(this.content_fixed).on('click', '.rtable-cell', this.click_handler)
       .on('dblclick', '.rtable-cell', this.dblclick_handler)
 
+    this.scrollbar_width = getScrollbarWidth()
     this.ready_data() //prepare data
     this.calSize()
     this.calHeader()  //calculate header positions
@@ -786,12 +790,14 @@
         width += col.width
     }
 
+    //计算无width的列
     if (cal_cols.length > 0) {
-      var dw = Math.floor((this.width-width)/cal_cols.length)
+      var w = this.width-width-this.scrollbar_width
+      var dw = Math.floor(w/cal_cols.length)
       for(var i=0, len=cal_cols.length; i<len; i++) {
         cal_cols[i].width = dw
         if (i == cal_cols.length - 1)
-          cal_cols[i].width = (this.width-width) - (cal_cols.length-1)*dw
+          cal_cols[i].width = w - (cal_cols.length-1)*dw
       }
     }
 
@@ -840,7 +846,6 @@
   }
 
   this.calScrollbar = function () {
-    this.scrollbar_width = getScrollbarWidth()
     this.has_yscroll = this.content.scrollHeight > this.content.clientHeight || (this.rows.length * this.rowHeight > (this.height - this.header_height))
     this.has_xscroll = this.content.scrollWidth > this.content.clientWidth || this.main_width > (this.width - this.fix_width)
     this.xscroll_width = this.has_xscroll ? this.scrollbar_width : 0
@@ -1143,10 +1148,9 @@
   }
 
   this.checkcol = function(e) {
-    if (e.target.checked){
-      self.select(e.item.col.row)
-    } else
-      self.deselect(e.item.col.row)
+    self.toggle_select(e.item.col.row)
+    e.target.checked = self.is_selected(e.item.col.row)
+    self.update()
   }
 
   /* toggle selected row */
@@ -1180,6 +1184,7 @@
         }
       }
     }
+    <!-- this.update() -->
   }
 
   this.deselect = function(rows) {
@@ -1208,6 +1213,7 @@
           break
       }
     }
+    <!-- this.update() -->
   }
 
   function proxy(funcname) {
