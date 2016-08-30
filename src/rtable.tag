@@ -297,6 +297,7 @@
   </div>
 
   var self = this
+  this.observable = opts.observable
   this.root.instance = this
 
   if(opts.options) {
@@ -321,6 +322,7 @@
   this.editable = opts.editable || false
   this.draggable = opts.draggable || false
   this.theme = 'zebra'
+  this.minColWidth = opts.minColWidth || 5
 
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
@@ -344,10 +346,10 @@
   this.iconInden = 16
   this.expanded = opts.expanded === undefined ? false: opts.expanded
   this.parents_expand_status = {}
-  this.parentField = opts.parentField
-  this.orderField = opts.orderField
-  this.levelField = opts.levelField
-  this.hasChildrenField = opts.hasChildrenField
+  this.parentField = opts.parentField || 'parent'
+  this.orderField = opts.orderField || 'order'
+  this.levelField = opts.levelField || 'level'
+  this.hasChildrenField = opts.hasChildrenField || 'has_children'
   this.indentWidth = 16
 
   var _opts = {tree:opts.tree, parentField:opts.parentField,
@@ -569,7 +571,7 @@
     header.css('-moz-user-select','none');
 
     root.on('mousemove', function(e){
-      d = Math.max(width + e.clientX - start, 5)
+      d = Math.max(width + e.clientX - start, self.minColWidth)
       col.real_col.width = d
       self.resize()
     }).on('mouseup', function(e){
@@ -905,7 +907,7 @@
     r1.top = this.content.scrollTop
     r1.left = this.content.scrollLeft
     r1.bottom = r1.top + this.height - this.header_height - this.scrollbar_width
-    r1.right = r1.left + this.main_width - this.fix_width - this.scrollbar_width
+    r1.right = r1.left + this.width - this.fix_width - this.scrollbar_width
 
     first = Math.max(Math.floor(this.content.scrollTop / this.rowHeight), 0)
     last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
@@ -1141,10 +1143,19 @@
   } -->
 
   this.checkall = function(e) {
-    if (e.target.checked)
-      self.selected_rows = self._data.getIds()
-    else
-      self.selected_rows = []
+    e.preventUpdate = true
+    if (e.target.checked) {
+      var ids = self._data.getIds()
+      for (var i=0, len=ids.length; i<len; i++) {
+        self.select(self.get(ids[i]))
+      }
+    } else {
+      var ids = self.selected_rows.slice()
+      for (var i=0, len=ids.length; i<len; i++) {
+        self.deselect(self.get(ids[i]))
+      }
+    }
+    self.update()
   }
 
   this.checkcol = function(e) {
@@ -1181,6 +1192,7 @@
             self.selected_rows = []
           this.selected_rows.push(id)
           this.onSelected(row)
+          this.observable.trigger('selected', row)
         }
       }
     }
@@ -1192,6 +1204,7 @@
     if (!rows) {
       this.selected_rows = []
       this.onDeselected()
+      this.observable.trigger('deselected')
     }
     else {
       if (!Array.isArray(rows))
@@ -1208,6 +1221,7 @@
           selected_rows.splice(i, 1)
           items.splice(index, 1)
           this.onDeselected(this._data.get(row))
+          this.observable.trigger('deselected', this._data.get(row))
         }
         if (rows.length == 0)
           break

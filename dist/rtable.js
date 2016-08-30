@@ -70,6 +70,7 @@ riot.tag2('rtable', '<yield></yield> <div class="{rtable-root:true, zebra:theme=
   this.editable = opts.editable || false
   this.draggable = opts.draggable || false
   this.theme = 'zebra'
+  this.minColWidth = opts.minColWidth || 5
 
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
@@ -310,7 +311,7 @@ riot.tag2('rtable', '<yield></yield> <div class="{rtable-root:true, zebra:theme=
     header.css('-moz-user-select','none');
 
     root.on('mousemove', function(e){
-      d = Math.max(width + e.clientX - start, 5)
+      d = Math.max(width + e.clientX - start, self.minColWidth)
       col.real_col.width = d
       self.resize()
     }).on('mouseup', function(e){
@@ -623,7 +624,7 @@ riot.tag2('rtable', '<yield></yield> <div class="{rtable-root:true, zebra:theme=
     r1.top = this.content.scrollTop
     r1.left = this.content.scrollLeft
     r1.bottom = r1.top + this.height - this.header_height - this.scrollbar_width
-    r1.right = r1.left + this.main_width - this.fix_width - this.scrollbar_width
+    r1.right = r1.left + this.width - this.fix_width - this.scrollbar_width
 
     first = Math.max(Math.floor(this.content.scrollTop / this.rowHeight), 0)
     last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
