@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <title>rtable Example 07 - rgrid</title>
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../bower_components/pikaday/css/pikaday.css">
+    <link rel="stylesheet" href="../bower_components/select2/dist/css/select2.css">
+    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+  </head>
+  <body>
+    <h1>Tree</h1>
+
+    <div style="padding:5px 0px;">
+      <button onclick="Add()">Add</button>
+      <button onclick="AddFirstChild()">Add Frist Child</button>
+      <button onclick="AddLastChild()">Add Last Child</button>
+      <button onclick="Remove()">Remove</button>
+      <button onclick="InsertBefore()">Insert Before</button>
+      <button onclick="InsertAfter()">Insert After</button>
+      <button onclick="Update()">Update</button>
+      <button onclick="ExpandAll()">Expand All</button>
+      <button onclick="Expand()">Expand</button>
+      <button onclick="CollapseAll()">Collapse All</button>
+      <button onclick="Collapse()">Collapse</button>
+    </div>
+    <rgrid id="grid"></rtable>
+
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/riot/riot+compiler.min.js"></script>
+    <script src="../bower_components/pikaday/pikaday.js"></script>
+    <script src="../bower_components/pikaday/plugins/pikaday.jquery.js"></script>
+    <script src="../bower_components/jquery-ui/jquery-ui.js"></script>
+    <script src="../bower_components/select2/dist/js/select2.js"></script>
+    <script src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../src/dataset.js"></script>
+    <script src="../src/query_string.js"></script>
+    <script src="../dist/rtable.js"></script>
+    <script src="../src/editor.js"></script>
+    <script src="../dist/query_condition.js"></script>
+    <script src="../dist/pagination.js"></script>
+    <script src="../dist/rgrid.js"></script>
+    <script>
+      var choices = [['1', 'A Value'], ['2', 'B Value'], ['3', 'C Value']]
+      var randClass = function (row, col, value) {
+        var names = ['red', 'green', 'blue']
+        return names[Math.round(Math.random() * (names.length - 1))]
+      }
+      var randAge = function() { return Math.round(Math.random() * 99) + 1;}
+      var randImage = function(){return "https://randomuser.me/api/portraits/thumb/men/"+Math.round(Math.random() * 99)+".jpg";}
+      var randValue = function () {
+        var names = ['1', '2', '3']
+        return names[Math.round(Math.random() * (names.length - 1))]
+      }
+      var cols = [
+        {name:'id', title:'ID', width:40, align:'center'},
+        {name:'name1', title:'This is a long title', width:160, editor:'string',
+          editor:{name:'select2', choices:choices, placeholder:'Empty', value_from:'name1_value'}
+        },
+        {name:'name1_value', title:'Name1 Value', hidden:true},
+        {name:'name2', title:'B', width: 200, editor:'string'},
+        {name:'name3', title:'Name', width:40, tag:'image'},
+        {name:'name4', title:'D', align:'center', class:randClass, editor:'date'},
+        {name:'name5', title:'E', render: function(row, col, value){
+          for(var i=0, len=choices.length; i<len; i++) {
+            if (choices[i][0] == value){
+              value = choices[i][1]
+              break
+            }
+          }
+          return '<a href="http://google.com">' + value + '</a>'
+        }, editor:{name:'select', choices:choices, placeholder:'Empty'}},
+        {name:'name6', title:'F', tag:'progress', editor:'string'}
+      ]
+      var data = [], size=5, c=6, d
+      for(var i=0; i<size; i++) {
+        d = {}
+        d.id = i+1
+        d.name1 = 'Name1-'+i+'1'
+        d.name1_value = randValue()
+        d.name2 = 'Name2-'+i+'2'
+        d.name3 = randImage()
+        d.name4 = 'Name2-'+i+'4'
+        d.name5 = randValue()
+        d.name6 = randAge()
+        data.push(d)
+      }
+      data[1].parent = data[0].id
+      data[3].parent = data[2].id
+      data[4].parent = data[3].id
+
+      var query = {
+          fields:[
+            {name:'subject', type:'str', label:'字符串'},
+            {name:'strtest', type:'str', label:'测试一个很长的标签'},
+            {name:'password', type:'password', label:'密码', placeholder:'请输入密码'},
+          ],
+          layout: [
+            ['subject', 'strtest'],
+            ['password'],
+          ],
+          data: {
+            subject: 'test',
+            strtest: 'test2'
+          }
+      }
+
+      riot.mount('rgrid', {
+        cols:cols,
+        data:data,
+        query:query,
+        height:'auto',
+        indexCol:true,
+        checkCol:true,
+        multiSelect:false,
+        // clickSelect:null,
+        maxHeight:400,
+        minHeight:200,
+
+        tree:true,
+        expanded:true,
+        parentField:'parent',
+        orderField:'order',
+        levelField:'level',
+        treeField:'name2',
+        useFontAwesome:true,
+        onDblclick: function(row, col) {
+          console.log('dblclick', row, col)
+          return false
+        },
+        onClick: function(row, col) {
+          console.log('click', row, col)
+          return false
+        },
+
+        onMove: function(from, to, position) {
+          console.log('onmove', from, to, position)
+          grid.move(from, to, position)
+        },
+
+        onEdit: function(row, col, value) {
+          console.log('edit', row, col, value)
+          return true
+        },
+        onEdited: function(row, col, value) {
+          row['name2'] = 'edited'
+          console.log('edited', row, col, value)
+          if (col.name=='name2') {
+            if (value === 'aaa') return true
+            return false
+          }
+          return true
+        },
+        onSelect: function (row) {
+          if (row['id'] == 1) {
+            return false
+          } return true
+        },
+        onSelected: function (row) {
+          console.log('selected', row.id)
+        },
+        onDeselected: function (row) {
+          console.log('deselected', row)
+        },
+        draggable:true,
+        editable:true
+      })
+
+      var grid = document.getElementById('grid')
+      var begin = 100
+      function make_item () {
+        var d = {}
+        for(var j=0; j<c; j++){
+          d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
+        }
+        begin ++
+        return d
+      }
+      function Add (e) {
+        grid.add(make_item())
+      }
+
+      function AddFirstChild (e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.addFirstChild(make_item(), row)
+        }
+      }
+
+      function AddLastChild (e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.add(make_item(), row)
+        }
+      }
+
+      function Remove (e) {
+        var rows = grid.get_selected()
+        grid.remove(rows)
+      }
+
+      function InsertBefore(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.insertBefore(make_item(), row)
+        }
+      }
+
+      function InsertAfter(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.insertAfter(make_item(), row)
+        }
+      }
+
+      function Update(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          var d = make_item()
+          d.id = row.id
+          grid.update(d)
+        }
+      }
+
+      function ExpandAll(e) {
+        grid.expand()
+      }
+
+      function Expand(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.expand(row)
+        }
+      }
+
+      function CollapseAll(e) {
+        grid.collapse()
+      }
+
+      function Collapse(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.collapse(row)
+        }
+      }
+
+
+    </script>
+  </body>
+</html>
