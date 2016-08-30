@@ -271,7 +271,7 @@ DataSet.prototype.insertAfter = function (data, index) {
 DataSet.prototype._insert = function (data, target, position) {
   var addedIds = [],
       id,
-      me = this, delta;
+      me = this, delta, parent;
 
   index = this.index(target);
 
@@ -284,11 +284,14 @@ DataSet.prototype._insert = function (data, target, position) {
         else {
           delta = 0
         }
+      } else {
+        if (addedIds.indexOf(data[i][me._parentField])>=0)
+          parent = data[i][me._parentField]
       }
       if (position == 'before')
-        id = me._insertItem(data[i], index+i, 'before', delta);
+        id = me._insertItem(data[i], index+i, 'before', delta, parent);
       else {
-        id = me._insertItem(data[i], index, 'after', delta);
+        id = me._insertItem(data[i], index, 'after', delta, parent);
         index = id.index
       }
       addedIds.push(id.id);
@@ -321,7 +324,7 @@ DataSet.prototype._insert = function (data, target, position) {
  * @return {String} id
  * @private
  */
-DataSet.prototype._insertItem = function (item, index, position, delta) {
+DataSet.prototype._insertItem = function (item, index, position, delta, parent) {
   var id = item[this._idField], node = this._data[index];
   delta = delta == undefined ? 0 : delta
 
@@ -358,9 +361,9 @@ DataSet.prototype._insertItem = function (item, index, position, delta) {
     }
   }
   this.length++;
-  var last_order, level, x, parent
+  var last_order, level, x
   if (this._isTree) {
-    d[this._parentField] = node[this._parentField]
+    d[this._parentField] = parent || node[this._parentField]
     if (!d[this._levelField])
       d[this._levelField] = node[this._levelField]
     if (position == 'after')
@@ -369,7 +372,6 @@ DataSet.prototype._insertItem = function (item, index, position, delta) {
       d[this._orderField] = node[this._orderField]
 
     level = node[this._levelField]
-    parent = node[this._parentField]
     last_order = d[this._orderField]
 
     this._reOrder(index+1, level, last_order)
@@ -491,6 +493,7 @@ DataSet.prototype.load = function (url, callback) {
   this.length = 0;
   if (typeof url === 'string') {
     return $.getJSON(url || this._options.url).done(function(r) {
+        self._trigger('loading')
         self.mute()
         if (callback) self.add(callback(r))
         else self.add(r)
@@ -498,6 +501,7 @@ DataSet.prototype.load = function (url, callback) {
         self._trigger('load')
       })
   } else {
+    self._trigger('loading')
     self.mute()
     if (callback) self.add(callback(url))
     else self.add(url)
@@ -540,13 +544,13 @@ DataSet.prototype.load_tree = function (url, callback) {
         _post()
       })
   } else {
-    me._isTree = true
+    me._isTree = false
     me.mute()
     if (typeof callback == 'function')
       me.add(callback(url))
     else me.add(url)
     me.mute(false)
-    me._isTree = false
+    me._isTree = true
     _post()
   }
 }

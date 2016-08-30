@@ -85,7 +85,7 @@
         }, editor:{name:'select', choices:choices, placeholder:'Empty'}},
         {name:'name6', title:'F', tag:'progress', editor:'string'}
       ]
-      var data = [], size=5, c=6, d
+      var data = [], size=2000, c=6, d
       for(var i=0; i<size; i++) {
         d = {}
         d.id = i+1
@@ -100,7 +100,8 @@
       }
       data[1].parent = data[0].id
       data[3].parent = data[2].id
-      data[4].parent = data[3].id
+      data[10].parent = data[9].id
+      data[11].parent = data[10].id
       riot.mount('rtable', {cols:cols,
         data:data,
         height:'auto',
@@ -113,7 +114,7 @@
         minHeight:200,
 
         tree:true,
-        expanded:true,
+        expanded:false,
         parentField:'parent',
         orderField:'order',
         levelField:'level',

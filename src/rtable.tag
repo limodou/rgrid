@@ -168,6 +168,17 @@
       color: #ccc;
       line-height: 34px;
     }
+    .rtable-loading {
+      position:relative;;
+      margin: auto;
+      height: 34px;
+      text-align: center;
+      color: black;
+      line-height: 34px;
+      border: 1px solid gray;
+      width: 100px;
+      background-color: antiquewhite;
+    }
     .rtable-expander {
       position:absolute;
       top:0px;
@@ -292,6 +303,9 @@
       <div if={rows.length==0} data-is="rtable-raw" value={noData} class="rtable-nodata"
         style="top:{height/2-header_height/2+rowHeight/2}px;"></div>
 
+      <div if={loading} data-is="rtable-raw" value={loading} class="rtable-loading"
+        style="top:{height/2-header_height/2+rowHeight/2}px;"></div>
+
     </div>
 
   </div>
@@ -318,6 +332,7 @@
   this.sort_cols = []
   this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
+  this.loadingText = opts.loadingText || 'Loading... <i class="fa fa-spinner fa-pulse fa-spin"></i>'
   this.container = opts.container || $(this.root).parent()
   this.editable = opts.editable || false
   this.draggable = opts.draggable || false
@@ -376,19 +391,31 @@
     this._data = new DataSet(_opts)
   }
 
+  this.show_loading = function (flag) {
+    if (flag)
+      this.loading = this.loadingText
+    else
+      this.loading = ''
+  }
+
   this.bind = function () {
     // 绑定事件
     self._data.on('*', function(r, d){
-        self.onUpdate(self._data, r, d)
-        if (r == 'remove') {
-          var index, items = d.items
-          for(var i=0, len=items.length; i<len; i++){
-            index = self.selected_rows.indexOf(items[i].id)
-            if (index !== -1) self.selected_rows.splice(index, 1)
-          }
+      self.onUpdate(self._data, r, d)
+      if (r == 'remove') {
+        var index, items = d.items
+        for(var i=0, len=items.length; i<len; i++){
+          index = self.selected_rows.indexOf(items[i].id)
+          if (index !== -1) self.selected_rows.splice(index, 1)
         }
-        self.ready_data()
-        self.calData()
+      }
+      if (r == 'loading') {
+        self.show_loading(true)
+      } else if (r == 'load'){
+        self.show_loading(false)
+      }
+      self.ready_data()
+      self.calData()
       self.update()
     })
   }
@@ -1192,7 +1219,8 @@
             self.selected_rows = []
           this.selected_rows.push(id)
           this.onSelected(row)
-          this.observable.trigger('selected', row)
+          if (this.observable)
+            this.observable.trigger('selected', row)
         }
       }
     }
@@ -1204,7 +1232,8 @@
     if (!rows) {
       this.selected_rows = []
       this.onDeselected()
-      this.observable.trigger('deselected')
+      if (this.observable)
+        this.observable.trigger('deselected')
     }
     else {
       if (!Array.isArray(rows))
@@ -1221,7 +1250,8 @@
           selected_rows.splice(i, 1)
           items.splice(index, 1)
           this.onDeselected(this._data.get(row))
-          this.observable.trigger('deselected', this._data.get(row))
+          if (this.observable)
+            this.observable.trigger('deselected', this._data.get(row))
         }
         if (rows.length == 0)
           break
@@ -1285,6 +1315,7 @@
   this.root.move = data_proxy('move')
   this.root.diff = data_proxy('diff')
   this.root.save = data_proxy('save')
+  this.root.refresh = proxy('update')
 
   <!-- this.root.load = function(newrows){
     self._data.clear()

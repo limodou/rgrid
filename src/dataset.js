@@ -493,6 +493,7 @@ DataSet.prototype.load = function (url, callback) {
   this.length = 0;
   if (typeof url === 'string') {
     return $.getJSON(url || this._options.url).done(function(r) {
+        self._trigger('loading')
         self.mute()
         if (callback) self.add(callback(r))
         else self.add(r)
@@ -500,6 +501,7 @@ DataSet.prototype.load = function (url, callback) {
         self._trigger('load')
       })
   } else {
+    self._trigger('loading')
     self.mute()
     if (callback) self.add(callback(url))
     else self.add(url)
