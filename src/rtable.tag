@@ -687,14 +687,13 @@
   function _parse_header(cols, max_level, frozen){
     var columns = [], //保存每行的最后有效列
       columns_width = {}, //保存每行最右坐标
-      i, len, j, jj, col, jl, jl_len,
+      i, len, j, jj, col, jl, 
       subs_len,
       path,
       rowspan, //每行平均层数，max_level/sub_len，如最大4层，当前总层数为2,则每行占两层
       colspan,
       parent, //上一层的结点为下一层的父结点
       new_col, //记录显示用的表头单元
-      <!-- last_pos, //记录上一层的列数，用于判断是否当前层要和前一个结点合并 -->
       left  //某层最左结点
 
     if (!cols || cols.length === 0)
@@ -710,7 +709,6 @@
       col = cols[i]
       subs_len = col.subs.length
       rowspan = 1//Math.floor(max_level / subs_len)
-      // last_pos = -1
       for (j=0; j<subs_len; j++) {
         path = col.subs[j]
         new_col = {}
@@ -719,7 +717,6 @@
           //如果是最后一层，则rowspan为最大值减其余层
           new_col.rowspan = max_level - (subs_len-1)*rowspan
           new_col.leaf = true
-          //new_col.real_col = col
         } else {
           new_col.rowspan = rowspan
         }

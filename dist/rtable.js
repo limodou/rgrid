@@ -370,14 +370,13 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   function _parse_header(cols, max_level, frozen){
     var columns = [],
       columns_width = {},
-      i, len, j, jj, col, jl, jl_len,
+      i, len, j, jj, col, jl,
       subs_len,
       path,
       rowspan,
       colspan,
       parent,
       new_col,
-
       left
 
     if (!cols || cols.length === 0)
@@ -392,7 +391,6 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
       col = cols[i]
       subs_len = col.subs.length
       rowspan = 1
-
       for (j=0; j<subs_len; j++) {
         path = col.subs[j]
         new_col = {}
@@ -401,7 +399,6 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
 
           new_col.rowspan = max_level - (subs_len-1)*rowspan
           new_col.leaf = true
-
         } else {
           new_col.rowspan = rowspan
         }
