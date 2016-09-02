@@ -16,13 +16,17 @@
     <script src="../dist/rtable.js"></script>
     <script>
       var cols = [
-        {name:'name1', title:'A/B', width:60, frozen:true},
-        {name:'name2', title:'A/C', width:200,frozen:true},
-        {name:'name3', title:'C/E/F', width:200},
-        {name:'name4', title:'C/E/H', width:200},
-        {name:'name5', title:'C/F/G', width:300},
-        {name:'name6', title:'C/F/I', width:200},
-        {name:'action', title:'X', width:60, buttons:[
+        {name:'name1', title:'A/B', frozen:true},
+        {name:'name2', title:'A/C', frozen:true},
+        {name:'name3', title:'C/E/F'},
+        {name:'name4', title:'C/E/H'},
+        {name:'name5', title:'C/F/G'},
+        {name:'name6', title:'C/F/I'},
+        {name:'name7', title:'X%%X'},
+        {name:'name8', title:'Y'},
+        {name:'name9', title:'T/V'},
+        {name:'name10', title:'T/U'},
+        {name:'action', title:'ACTION', buttons:[
           {
             label:'Edit',
             onclick:function (row) {
@@ -31,7 +35,7 @@
           }
         ]}
       ]
-      var data = [], size=10000, c=6, d
+      var data = [], size=10000, c=10, d
       for(var i=0; i<size; i++) {
         d = {id:i+1}
         for(var j=0; j<c; j++){
@@ -39,7 +43,7 @@
         }
         data.push(d)
       }
-      riot.mount('rtable#ex01', {cols:cols, data:data, width:800, height:400, rowHeight:24, indexCol:true, checkCol:true})
+      riot.mount('rtable#ex01', {cols:cols, data:data, height:400, rowHeight:24, indexCol:true, checkCol:true})
 
 /*
       var cols = [

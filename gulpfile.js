@@ -48,10 +48,9 @@ gulp.task('tags', function() {
 });
 
 gulp.task('watch', function() {
-  livereload.listen();
+  gulp.start('js', 'css', 'tags');
   gulp.watch('src/*.tag', ['tags']);
   gulp.watch('src/*.js', ['js']);
-
 });
 
 gulp.task('default', function() {

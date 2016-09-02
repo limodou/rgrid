@@ -43,6 +43,13 @@
     is_selected:          Test is a row is selected: is_selected(row)
     get_selected:         Get selected rows: get_selected()
 */
+/*
+  rtable v1.0.0.1
+  author : lvyangg@gmail.com
+
+  ADD-options:
+    combineCols(Optional): list of cols's name, the index of list means grouping-level
+*/
 <rtable>
 
   <style scoped>
@@ -178,6 +185,7 @@
       border: 1px solid gray;
       width: 100px;
       background-color: antiquewhite;
+      z-index: 9999;
     }
     .rtable-expander {
       position:absolute;
@@ -211,13 +219,57 @@
     .rtable-root.simple .rtable-row.even .rtable-cell.selected {
     }
     .rtable-root.simple .rtable-header .rtable-cell {
+      background-color: #f2f2f2;
+    }
+
+    /*table*/
+    .rtable-root.table {
+      border: none;
+    }
+    .rtable-root.table .rtable-row.even .rtable-cell {
+    }
+    .rtable-root.table .rtable-row.odd .rtable-cell {
+    }
+    .rtable-root.table .rtable-row.even .rtable-cell.selected {
+    }
+    .rtable-root.table .rtable-header .rtable-cell {
+    }
+    .rtable-root.table .rtable-cell{
+      border-right:none;
+      border-bottom:1px solid #ddd;
+    }
+    .rtable-root.table .rtable-header .rtable-cell {
+      border-bottom: 2px solid #ddd;
+    }
+
+    /*table*/
+    .rtable-root.table-striped {
+      border: none;
+    }
+    .rtable-root.table-striped .rtable-row.even .rtable-cell {
+      background-color: #f2f2f2;
+      border-bottom:none;
+    }
+    .rtable-root.table-striped .rtable-row.odd .rtable-cell {
+      border-bottom:none;
+    }
+    .rtable-root.table-striped .rtable-row.even .rtable-cell.selected {
+    }
+    .rtable-root.table-striped .rtable-header .rtable-cell {
+    }
+    .rtable-root.table-striped .rtable-cell{
+      border-right:none;
+      border-bottom:1px solid #ddd;
+    }
+    .rtable-root.table-striped .rtable-header .rtable-cell {
+      border-bottom: 2px solid #ddd;
     }
 
   </style>
 
   <yield/>
 
-  <div class={rtable-root:true, zebra:theme=='zebra'} style="width:{width-1}px;height:{height-1}px">
+  <div class="rtable-root {theme}" style="width:{width-1}px;height:{height-1}px">
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
@@ -248,7 +300,7 @@
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.fixed} no-reorder class={get_row_class(row.row, row.line)}>
-          <div each={col in row.cols} no-reorder class={get_cell_class(col)}
+          <div if={col.height!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
             style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
             <!-- cell content -->
@@ -272,7 +324,7 @@
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.main} no-reorder class={get_row_class(row.row, row.line)}>
-          <div each={col in row.cols} no-reorder class={get_cell_class(col)}
+          <div if={col.height!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
               style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
               <!-- cell content -->
@@ -303,8 +355,7 @@
       <div if={rows.length==0} data-is="rtable-raw" value={noData} class="rtable-nodata"
         style="top:{height/2-header_height/2+rowHeight/2}px;"></div>
 
-      <div if={loading} data-is="rtable-raw" value={loading} class="rtable-loading"
-        style="top:{height/2-header_height/2+rowHeight/2}px;"></div>
+      <div style="display:none;top:{height/2-header_height/2+rowHeight/2}px" class="rtable-loading"></div>
 
     </div>
 
@@ -323,6 +374,7 @@
   this.nameField = opts.nameField || 'name'
   this.titleField = opts.titleField || 'title'
   this.cols = opts.cols.slice()
+  this.combineCols = opts.combineCols || []
   this.headerRowHeight = opts.headerRowHeight || 34
   this.rowHeight = opts.rowHeight || 34
   this.indexColWidth = opts.indexColWidth || 40
@@ -332,11 +384,11 @@
   this.sort_cols = []
   this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
-  this.loadingText = opts.loadingText || 'Loading... <i class="fa fa-spinner fa-pulse fa-spin"></i>'
+  this.loading = opts.loading || 'Loading... <i class="fa fa-spinner fa-pulse fa-spin"></i>'
   this.container = opts.container || $(this.root).parent()
   this.editable = opts.editable || false
   this.draggable = opts.draggable || false
-  this.theme = 'zebra'
+  this.theme = opts.theme || 'zebra'
   this.minColWidth = opts.minColWidth || 5
 
   this.onUpdate = opts.onUpdate || function(){}
@@ -361,14 +413,15 @@
   this.iconInden = 16
   this.expanded = opts.expanded === undefined ? false: opts.expanded
   this.parents_expand_status = {}
+  this.idField = opts.idField || 'id'
   this.parentField = opts.parentField || 'parent'
   this.orderField = opts.orderField || 'order'
   this.levelField = opts.levelField || 'level'
   this.hasChildrenField = opts.hasChildrenField || 'has_children'
   this.indentWidth = 16
 
-  var _opts = {tree:opts.tree, parentField:opts.parentField,
-    levelField:opts.levelField, orderField:opts.orderField, hasChildrenField:opts.hasChildrenField}
+  var _opts = {tree:opts.tree, idField:this.idField, parentField:this.parentField,
+    levelField:this.levelField, orderField:this.orderField, hasChildrenField:this.hasChildrenField}
   var d
   if (opts.data) {
     if (Array.isArray(opts.data)) {
@@ -381,9 +434,9 @@
     }
     if (opts.tree) {
       this._data.setOption(_opts)
-      this._data.load_tree(d, {parentField:opts.parentField,
-        orderField:opts.orderField, levelField:opts.levelField,
-        hasChildrenField:opts.hasChildrenField, plain:true})
+      this._data.load_tree(d, {parentField:this.parentField,
+        orderField:this.orderField, levelField:this.levelField,
+        hasChildrenField:this.hasChildrenField, plain:true})
     } else
       this._data.load(d)
 
@@ -393,9 +446,9 @@
 
   this.show_loading = function (flag) {
     if (flag)
-      this.loading = this.loadingText
+      $(this.root).find('.rtable-loading').html(this.loading).show()
     else
-      this.loading = ''
+      $(this.root).find('.rtable-loading').hide()
   }
 
   this.bind = function () {
@@ -632,14 +685,16 @@
   })
 
   function _parse_header(cols, max_level, frozen){
-    var columns = [], i, len, j, jj, col,
+    var columns = [], //保存每行的最后有效列
+      columns_width = {}, //保存每行最右坐标
+      i, len, j, jj, col, jl, jl_len,
       subs_len,
       path,
       rowspan, //每行平均层数，max_level/sub_len，如最大4层，当前总层数为2,则每行占两层
       colspan,
       parent, //上一层的结点为下一层的父结点
       new_col, //记录显示用的表头单元
-      last_pos, //记录上一层的列数，用于判断是否当前层要和前一个结点合并
+      <!-- last_pos, //记录上一层的列数，用于判断是否当前层要和前一个结点合并 -->
       left  //某层最左结点
 
     if (!cols || cols.length === 0)
@@ -647,18 +702,19 @@
 
     //初始化表头层
     for (i=0; i<max_level; i++) {
-      columns.push([])
+      columns[i] = []
+      columns_width[i] = 0
     }
     //处理多级表头
     for(i=0, len=cols.length; i<len; i++) {
       col = cols[i]
       subs_len = col.subs.length
       rowspan = 1//Math.floor(max_level / subs_len)
-      last_pos = -1
+      // last_pos = -1
       for (j=0; j<subs_len; j++) {
         path = col.subs[j]
         new_col = {}
-        new_col.title = path
+        new_col.title = path.replace('%%', '/')
         if (j == subs_len - 1) {
           //如果是最后一层，则rowspan为最大值减其余层
           new_col.rowspan = max_level - (subs_len-1)*rowspan
@@ -697,32 +753,18 @@
           left = null
         }
 
-        //取上一结点的col值
-        if (j == 0) {
-          last_pos = -1
-          parent = null
-        } else {
-          //上一层的最后一个结点是父结点
-          parent = columns[j-1][columns[j-1].length-1]
-          last_pos = parent.col
-        }
-
         //进行合并的判断，当left不为null，并且标题，层级，并且位置小于当前位置
-        if (left && left.title==new_col.title && left.level==new_col.level && last_pos<i) {
+        if (left && left.title==new_col.title && left.level==new_col.level) {
           left.colspan ++
           left.width += new_col.width
+          columns_width[j] += new_col.width
         } else {
+          //当new_col占多行时，将下层结点清空
           columns[j].push(new_col)
-          new_col.parent_col = parent
-          if (i == 0) {
-            new_col.left = 0
-          } else {
-            if (left)
-              new_col.left = left.left + left.width
-            else if (parent)
-              new_col.left = parent.left
-            else
-              new_col.left = 0
+          new_col.left = columns_width[j]
+          columns_width[j] += new_col.width
+          for (jl=1; jl<new_col.rowspan; jl++) {
+            columns_width[j+jl] += new_col.width
           }
         }
         col.left = new_col.left
@@ -947,6 +989,17 @@
     cols = this.fix_columns.concat(this.main_columns)
     i = 0
     index = 0
+
+    // 合并单元格相关参数 --START--
+    var last_val = {}
+    var last_col_index = {}
+    var now_row_combine_flag = []
+    for (var key in this.combineCols) {
+      last_col_index[key] = -1
+      now_row_combine_flag.push(false)
+    }
+    // 合并单元格相关参数 --END--
+
     while (i<len && first+i<this.rows.length) {
       row = this.rows[first+i]
       //hidden support
@@ -981,6 +1034,7 @@
           editor:col.editor,
           name:col.name
         }
+
         if (opts.treeField == col.name && opts.tree) {
           indent = row.level || 0
           if (row.has_children) {
@@ -996,6 +1050,37 @@
         }
         d.value = row[col.name]
         d.__value__ = this.get_col_data(d, row[col.name])
+
+        // 合并单元格相关方法 --START--
+        // 如果当前列是检查合并列
+        if (this.combineCols.indexOf(col.name) > -1) {
+          // 依次检查当前col之前的col是否合并，如果是第一行，使用默认的true
+          var now_col_level = this.combineCols.indexOf(col.name)
+          // 表示之前列是否合并的变量
+          var before_col_combine_flag = ((now_col_level - 1) >= 0) ? now_row_combine_flag[now_col_level - 1] : true
+          //console.log(col.name, '>>>', before_col_combine_flag, last_val[col.name], '==', d.value, '=?=>>>', (last_val[col.name] == d.value));
+          if (before_col_combine_flag && last_val[col.name] && (last_val[col.name].value == d.value)){
+            // 当前列合并
+            now_row_combine_flag[now_col_level] = true
+
+            // 当前列的高度为0
+            d.height = 0
+
+            // 上一列的指定列的高度 加 单位高度h（注意：这里现在只写了静态列）
+            last_val[col.name].height += h
+          } else {
+            // 当前列不合并
+            now_row_combine_flag[now_col_level] = false
+
+            // 设置最后一列的序号等于当前行号
+            last_col_index[col.name] = first+i
+
+            // 设置上次指定列的值等于这次的
+            last_val[col.name] = d
+          }
+        }
+        // 合并单元格相关方法 --END--
+
         if (col.frozen) {
           vf_row.cols.push(d)
         }

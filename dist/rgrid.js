@@ -34,6 +34,7 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
 
   this.rtable_options = {
     theme : opts.theme,
+    combineCols : opts.combineCols,
     nameField : opts.nameField || 'name',
     labelField : opts.labelField || 'title',
     indexCol: opts.indexCol,
@@ -49,6 +50,7 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
     tree: opts.tree,
     expanded: opts.expanded === undefined ? true : opts.expanded,
     useFontAwesome: opts.useFontAwesome === undefined ? true : opts.useFontAwesome,
+    idField: opts.idField,
     parentField: opts.parentField,
     orderField: opts.orderField,
     levelField: opts.levelField,
