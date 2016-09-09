@@ -26,9 +26,10 @@
     </style>
     <script>
       var cols = [
-        {name:'name1', title:'This is a long title', width:100, frozen:true},
+        {name:'name1', title:'This is a long title', headerTooltip:'Help Message',
+          width:100, frozen:true, columnTooltip:function(row, col, value){return col.__value__}},
         {name:'name2', title:'B', width: 120, frozen:true},
-        {name:'name3', title:'This is a very long column name', sort:'desc', width:100},
+        {name:'name3', title:'C', sort:'desc', width:100, columnTooltip:'This is a very long column name'},
         {name:'name4', title:'D', sort:'asc', align:'center', width:200, class:'myclass'},
         {name:'name5', title:'E', width:200, render: function(row, col, value){
           return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'

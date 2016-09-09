@@ -492,8 +492,8 @@ DataSet.prototype.load = function (url, callback) {
   this._ids = {};
   this.length = 0;
   if (typeof url === 'string') {
+    self._trigger('loading')
     return $.getJSON(url || this._options.url).done(function(r) {
-        self._trigger('loading')
         self.mute()
         if (callback) self.add(callback(r))
         else self.add(r)

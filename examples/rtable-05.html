@@ -28,8 +28,8 @@
       var cols = [
         {name:'name1', title:'This is a long title', width:40},
         {name:'name2', title:'B', width: 120, fixed:true},
-        {name:'name3', title:'This is a very long column name', sort:'desc', width:100},
-        {name:'name4', title:'D', sort:'asc', align:'center', class:'myclass'},
+        {name:'name3', title:'This is a very long column name', sort:true, width:100},
+        {name:'name4', title:'D', sort:true, align:'center', class:'myclass'},
         {name:'name5', title:'E', render: function(row, col, value){
           return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
         }},
