@@ -102,6 +102,8 @@
         data.push(d)
       }
       data[1].parent = data[0].id
+      data[0] = {id:1, name1:'Group1 asdf asf adsf adsfda sfadsf adfads fadsf ', name2:'-', name3:'-', name4:'-', name5:'-', name6:'-'}
+      data[2] = {id:3, name1:'Group2', name2:'-', name3:'-', name4:'Name4', name5:'Name5', name6:'-'}
       data[3].parent = data[2].id
       data[10].parent = data[9].id
       data[11].parent = data[10].id
@@ -121,9 +123,10 @@
         parentField:'parent',
         orderField:'order',
         levelField:'level',
-        treeField:'name2',
+        treeField:'name1',
         useFontAwesome:true,
         draggable:true,
+        colspanValue:'-',
         // theme: 'table-striped',
         contextMenu: [
           { type: 'item', title: 'Add Sites', icon: 'fa fa-modx', fn: function(row, col) {

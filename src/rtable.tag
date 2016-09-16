@@ -113,10 +113,6 @@
     .rtable-cell.selected {
       background-color:#ffefd5;
     }
-    .rtable-cell .rtable-check {
-      vertical-align: text-bottom;
-      margin-top: 5px;
-    }
     .rtable-cell .rtable-sort, .rtable-cell .rtable-sort.desc,
     .rtable-cell .rtable-sort.asc {
       position: absolute;
@@ -278,7 +274,8 @@
           style="{sort?'padding-right:22px':''}" title={tooltip}></div>
         <!-- checkbox -->
         <i if={type=='check' && parent.multiSelect} onclick={checkall}
-          class="fa {parent.selected_rows.length>0 ? 'fa-check-square-o' : 'fa-square-o'}"></i>
+          class="fa {parent.selected_rows.length>0 ? 'fa-check-square-o' : 'fa-square-o'}"
+          style="cursor:pointer"></i>
 
         <!-- <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
           class="rtable-check" style="margin-top:{headerRowHeight/2-7}px" checked={parent.selected_rows.length>0}></input> -->
@@ -296,8 +293,12 @@
         <div if={type!='check'} data-is="rtable-raw" class="rtable-cell-text" value={title}
           style="{sort?'padding-right:22px':''}" title={tooltip}></div>
         <!-- checkbox -->
-        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
-          class="rtable-check" style="margin-top:{headerRowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
+        <i if={type=='check' && parent.multiSelect} onclick={checkall}
+          class="fa {parent.selected_rows.length>0 ? 'fa-check-square-o' : 'fa-square-o'}"
+          style="cursor:pointer"></i>
+        <!-- <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
+          class="rtable-check" style="margin-top:{headerRowHeight/2-7}px"
+          checked={parent.selected_rows.length>0}></input> -->
         <!-- resizer -->
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
@@ -311,7 +312,7 @@
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.fixed} no-reorder class={get_row_class(row.row, row.line)}>
-          <div if={col.height!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
+          <div if={col.height!=0 && col.width!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
             style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
             <!-- cell content -->
@@ -325,7 +326,8 @@
 
             <!-- display checkbox -->
             <i if={col.type=='check' && onCheckable(col.row)} onclick={checkcol}
-              class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"></i>
+              class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"
+              style="cursor:pointer"></i>
             <!-- <input if={col.type=='check' && !useFontAwesome} type="checkbox" onclick={checkcol} checked={console.log(is_selected(col.row)) || is_selected(col.row)}
               class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input> -->
           </div>
@@ -337,7 +339,7 @@
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.main} no-reorder class={get_row_class(row.row, row.line)}>
-          <div if={col.height!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
+          <div if={col.height!=0 && col.width!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
               style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
               <!-- cell content -->
@@ -351,7 +353,8 @@
 
               <!-- display checkbox -->
               <i if={col.type=='check' && onCheckable(col.row)} onclick={checkcol}
-                class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"></i>
+                class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"
+                style="cursor:pointer"></i>
               <!-- <input if={col.type=='check' && !useFontAwesome} type="checkbox" onclick={checkcol} checked={console.log(is_selected(col.row)) || is_selected(col.row)}
                 class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input> -->
 
@@ -438,6 +441,7 @@
   this.levelField = opts.levelField || 'level'
   this.hasChildrenField = opts.hasChildrenField || 'has_children'
   this.indentWidth = 16
+  this.colspanValue = opts.colspanValue || '--'
 
   var _opts = {tree:opts.tree, idField:this.idField, parentField:this.parentField,
     levelField:this.levelField, orderField:this.orderField, hasChildrenField:this.hasChildrenField}
@@ -716,7 +720,7 @@
       this._updated = true
       this.resize()
     }
-    console.log('update')
+    <!-- console.log('update') -->
   })
 
   this.click_handler = function(e) {
@@ -1127,7 +1131,8 @@
   this.calVis = function() {
     var i, j, last, len, len1, r2, cols, row, col, new_row, value, d, index,
       visrows, top, h, r1, vis_rows, vis_fixed_rows, v_row, vf_row, indent,
-      hidden_nodes = {} //remember the hidden status about parent id
+      hidden_nodes = {}, //remember the hidden status about parent id
+      last_colspan;
 
       function is_hidden (data, row) {
         if (!self.tree) return false
@@ -1184,18 +1189,20 @@
     i = 0
     index = 0
     //因为有隐藏行，所以要先定位到first的位置
-    while (i<this.rows.length && index<first) {
+    while (i<this.rows.length) {
       row = this.rows[i]
       if (is_hidden(this.rows, row)) {
         i ++
         continue
       }
+      if (index >= first) break
+      i ++
       index ++
     }
 
     index = 0 //记录实际显示行数
-    while (index<len && first+i<this.rows.length) {
-      row = this.rows[first+i]
+    while (index<len && i<this.rows.length) {
+      row = this.rows[i]
       //hidden support
       if (is_hidden(this.rows, row)) {
         i++
@@ -1210,6 +1217,12 @@
       for (j=0, len1=cols.length; j<len1; j++) {
         col = cols[j]
         if (!col.leaf) continue
+
+        //检查是否需要colspan处理
+        if (row[col.name] == this.colspanValue) {
+          last_colspan.width += col.width
+          continue
+        }
         d = {
           top:top,
           width:col.width,
@@ -1230,6 +1243,8 @@
           name:col.name
         }
 
+        //记录上一次的colspan单元格
+        last_colspan = d
         if (opts.treeField == col.name && opts.tree) {
           indent = row.level || 0
           if (row.has_children) {
@@ -1457,10 +1472,11 @@
   };
 
   this.mousewheel = function(e) {
-    e.preventDefault()
     var wheelEvent = normalizeWheel(event);
     // we need to detect in which direction scroll is happening to allow trackpads scroll horizontally
     // horizontal scroll
+    var left1 = this.header.scrollLeft, top1 = this.header.scrollTop,
+      left2 = this.content.scrollLeft, top2 = this.content.scrollTop
     if (Math.abs(wheelEvent.pixelX) > Math.abs(wheelEvent.pixelY)) {
         this.header.scrollLeft = this.header.scrollLeft + wheelEvent.pixelX
         this.content.scrollLeft = this.content.scrollLeft + wheelEvent.pixelX
@@ -1469,6 +1485,9 @@
         this.header.scrollTop = this.header.scrollTop + wheelEvent.pixelY
         this.content.scrollTop = this.content.scrollTop + wheelEvent.pixelY
     }
+    <!-- if ((this.header.scrollLeft != left1) || (this.content.scrollLeft != left2) ||
+      (this.header.scrollTop!=top1) || (this.content.scrollTop != top2)) -->
+    e.preventDefault()
     return false;
   }
 
@@ -1496,7 +1515,7 @@
 
   this.checkcol = function(e) {
     self.toggle_select(e.item.col.row)
-    e.target.checked = self.is_selected(e.item.col.row)
+    // e.target.checked = self.is_selected(e.item.col.row)
     // self.update()
   }
 
