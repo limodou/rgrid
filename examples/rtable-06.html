@@ -138,9 +138,15 @@
           console.log('dblclick', row, col)
           return false
         },
+
         onClick: function(row, col) {
           console.log('click', row, col)
           return false
+        },
+
+        onCheckable: function (row) {
+          if (row.id==7 || row.id==8) return false
+          return true
         },
 
         onMove: function(from, to, position) {
@@ -152,6 +158,7 @@
           console.log('edit', row, col, value)
           return true
         },
+
         onEdited: function(row, col, value) {
           row['name2'] = 'edited'
           console.log('edited', row, col, value)
@@ -161,17 +168,21 @@
           }
           return true
         },
+
         onSelect: function (row) {
           if (row['id'] == 1) {
             return false
           } return true
         },
+
         onSelected: function (row) {
           console.log('selected', row.id)
         },
+
         onDeselected: function (row) {
           console.log('deselected', row)
         },
+
         draggable:true,
         editable:true
       })

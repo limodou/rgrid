@@ -324,7 +324,7 @@
               style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
 
             <!-- display checkbox -->
-            <i if={col.type=='check'} onclick={checkcol}
+            <i if={col.type=='check' && onCheckable(col.row)} onclick={checkcol}
               class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"></i>
             <!-- <input if={col.type=='check' && !useFontAwesome} type="checkbox" onclick={checkcol} checked={console.log(is_selected(col.row)) || is_selected(col.row)}
               class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input> -->
@@ -350,7 +350,7 @@
                 style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
 
               <!-- display checkbox -->
-              <i if={col.type=='check'} onclick={checkcol}
+              <i if={col.type=='check' && onCheckable(col.row)} onclick={checkcol}
                 class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"></i>
               <!-- <input if={col.type=='check' && !useFontAwesome} type="checkbox" onclick={checkcol} checked={console.log(is_selected(col.row)) || is_selected(col.row)}
                 class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input> -->
@@ -416,6 +416,7 @@
   this.onSelect = opts.onSelect || function(){return true}
   this.onDeselected = opts.onDeselected || function(){}
   this.onLoadData = opts.onLoadData || function(parent){}
+  this.onCheckable = opts.onCheckable || function(row){return true} //是否显示checkbox
 
   //tree options
   this.tree = opts.tree
@@ -1519,6 +1520,7 @@
     }
     for(var i=0, len=rows.length; i<len; i++){
       row = rows[i]
+      if (!self.onCheckable(row)) return
       if (row instanceof Object) id = row.id
       else id = row
       if (this.selected_rows.indexOf(id) == -1) {
@@ -1553,6 +1555,7 @@
       }
       for(var i=selected_rows.length-1; i>-1; i--){
         row = selected_rows[i]
+        if (!self.onCheckable(row)) return
         index = items.indexOf(row)
         if (index != -1){
           selected_rows.splice(i, 1)
