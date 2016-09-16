@@ -286,7 +286,7 @@
           title={sort} onclick={sort_handler} style="top:{get_sort_top(get_sorted(name))}px"></div>
       </div>
     </div>
-    <div class="rtable-header rtable-main" style="width:{width-fix_width-xscroll_width}px;right:0px;height:{header_height}px;left:{fix_width}px;">
+    <div class="rtable-header rtable-main" style="width:{width-fix_width-xscroll_fix}px;right:0px;height:{header_height}px;left:{fix_width}px;">
       <div each={main_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
         <!-- table header column -->
@@ -1050,7 +1050,7 @@
 
     //计算无width的列
     if (cal_cols.length > 0) {
-      var w = this.width-width-this.scrollbar_width
+      var w = this.width-width-this.yscroll_fix
       var dw = Math.floor(w/cal_cols.length)
       for(var i=0, len=cal_cols.length; i<len; i++) {
         cal_cols[i].width = dw
@@ -1382,6 +1382,7 @@
     var id = self.getId(row), index
     var status = self.loaded_status[id]
 
+    if (!row[self.hasChildrenField]) return
     //already loaded, simple return
     if (status) return
     //test if there are children nodes
@@ -1407,9 +1408,9 @@
 
   this.scrolling = function(e) {
     e.preventUpdate = true
-    this.header.scrollLeft = this.content.scrollLeft
-    this.content_fixed.scrollTop = this.content.scrollTop
-    return this.update()
+    self.header.scrollLeft = self.content.scrollLeft
+    self.content_fixed.scrollTop = self.content.scrollTop
+    return self.update()
   }
 
   var normalizeWheel = function (event) {
@@ -1515,7 +1516,7 @@
 
   this.checkcol = function(e) {
     self.toggle_select(e.item.col.row)
-    // e.target.checked = self.is_selected(e.item.col.row)
+    e.target.checked = self.is_selected(e.item.col.row)
     // self.update()
   }
 
