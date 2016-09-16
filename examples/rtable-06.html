@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="../bower_components/pikaday/css/pikaday.css">
     <link rel="stylesheet" href="../bower_components/select2/dist/css/select2.css">
+    <link rel="stylesheet" href="contextmenu/basicContext.min.css">
+    <link rel="stylesheet" href="contextmenu/themes/default.min.css">
   </head>
   <body>
     <h1>Tree</h1>
@@ -33,6 +35,7 @@
     <script src="../bower_components/pikaday/plugins/pikaday.jquery.js"></script>
     <script src="../bower_components/jquery-ui/jquery-ui.js"></script>
     <script src="../bower_components/select2/dist/js/select2.js"></script>
+    <script src="contextmenu/basicContext.min.js"></script>
     <script src="../src/dataset.js"></script>
     <script src="../dist/rtable.js"></script>
     <script src="../src/editor.js"></script>
@@ -107,7 +110,7 @@
         height:'auto',
         indexCol:true,
         checkCol:true,
-        multiSelect:false,
+        multiSelect:true,
         rowHeight: 34,
         // clickSelect:null,
         maxHeight:400,
@@ -120,7 +123,17 @@
         levelField:'level',
         treeField:'name2',
         useFontAwesome:true,
-        theme: 'table-striped',
+        draggable:true,
+        // theme: 'table-striped',
+        contextMenu: [
+          { type: 'item', title: 'Add Sites', icon: 'fa fa-modx', fn: function(row, col) {
+            console.log(row, col)
+          }},
+          { type: 'item', title: 'Reset Login', icon: 'fa fa-user', fn: function() {}},
+          { type: 'item', title: 'Help', icon: 'fa fa-pied-piper', fn: function() {}},
+          { type: 'separator' },
+          { type: 'item', title: 'Logout', icon: 'fa fa-power-off', fn: function() {}}
+        ],
         onDblclick: function(row, col) {
           console.log('dblclick', row, col)
           return false

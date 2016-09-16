@@ -94,7 +94,7 @@
       position:relative;
       padding-left:4px;
       padding-right:4px;
-      width: 100%;
+      /*width: 100%;*/
       height: 100%;
     }
     .rtable-cell-text, .rtable-cell-text>* {
@@ -277,8 +277,11 @@
         <div if={type!='check'} data-is="rtable-raw" class="rtable-cell-text" value={title}
           style="{sort?'padding-right:22px':''}" title={tooltip}></div>
         <!-- checkbox -->
-        <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
-          class="rtable-check" style="margin-top:{headerRowHeight/2-7}px" checked={parent.selected_rows.length>0}></input>
+        <i if={type=='check' && parent.multiSelect} onclick={checkall}
+          class="fa {parent.selected_rows.length>0 ? 'fa-check-square-o' : 'fa-square-o'}"></i>
+
+        <!-- <input if={type=='check' && parent.multiSelect} type="checkbox" onclick={checkall}
+          class="rtable-check" style="margin-top:{headerRowHeight/2-7}px" checked={parent.selected_rows.length>0}></input> -->
         <!-- resizer -->
         <div if={!fixed && leaf} class="rtable-resizer" onmousedown={colresize}></div>
         <!-- sortable column -->
@@ -321,8 +324,10 @@
               style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
 
             <!-- display checkbox -->
-            <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={is_selected(col.row)}
-              class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input>
+            <i if={col.type=='check'} onclick={checkcol}
+              class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"></i>
+            <!-- <input if={col.type=='check' && !useFontAwesome} type="checkbox" onclick={checkcol} checked={console.log(is_selected(col.row)) || is_selected(col.row)}
+              class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input> -->
           </div>
         </div>
       </div>
@@ -345,8 +350,10 @@
                 style="left:{col.indent-12}px;" onclick={toggle_expand}></span>
 
               <!-- display checkbox -->
-              <input if={col.type=='check'} type="checkbox" onclick={checkcol} checked={is_selected(col.row)}
-                  class="rtable-check" style="margin-top:{rowHeight/2-7}px;"></input>
+              <i if={col.type=='check'} onclick={checkcol}
+                class="fa {is_selected(col.row)?'fa-check-square-o':'fa-square-o'}"></i>
+              <!-- <input if={col.type=='check' && !useFontAwesome} type="checkbox" onclick={checkcol} checked={console.log(is_selected(col.row)) || is_selected(col.row)}
+                class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input> -->
 
               <virtual if={col.buttons} no-reorder each={btn in col.buttons}>
                 <i if={ btn.icon } class="fa fa-{btn.icon} action" title={ btn.title }
@@ -398,6 +405,7 @@
   this.draggable = opts.draggable || false
   this.theme = opts.theme || 'zebra'
   this.minColWidth = opts.minColWidth || 5
+  this.contextMenu = opts.contextMenu || []
 
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
@@ -536,7 +544,9 @@
       .on('dblclick', '.rtable-cell', this.dblclick_handler)
     $(this.content_fixed).on('click', '.rtable-cell', this.click_handler)
       .on('dblclick', '.rtable-cell', this.dblclick_handler)
+    this.dnd()
 
+    this.bind_contextmenu()
     this.scrollbar_width = getScrollbarWidth()
     this.ready_data() //prepare data
     this.calSize()
@@ -547,11 +557,165 @@
     this.update()
   })
 
+  this.dnd = function (reset) {
+    var el = $(this.root)
+    if (reset) {
+      el.off('dragstart', '.rtable-cell-text[draggable]', this.handleDragStart)
+        .off('dragover', '.rtable-cell-text[draggable]', this.handleDragOver)
+        .off('drop', '.rtable-cell-text[draggable]', this.handleDrop)
+      if (this.browser.ie) {
+        el.off('selectstart', '.rtable-cell-text[draggable]', this.handleSelectStart)
+      }
+    }
+    if (this.draggable) {
+      el.on('dragstart', '.rtable-cell-text[draggable]', this.handleDragStart)
+        .on('dragover', '.rtable-cell-text[draggable]', this.handleDragOver)
+        .on('drop', '.rtable-cell-text[draggable]', this.handleDrop)
+      if (this.browser.ie) {
+        el.on('selectstart', '.rtable-cell-text[draggable]', this.handleSelectStart)
+      }
+    }
+  }
+
+  this.handleDragStart = function(e) {
+    var col = e.target._tag.opts.col
+    self.drag_start_element = e.target
+    self.drag_src = col.row
+    e.originalEvent.dataTransfer.effectAllowed = 'move'
+  }
+
+  this.handleSelectStart = function(e){
+    e.preventDefault()
+    e.stopPropagation()
+    this.dragDrop();
+    return false
+  }
+
+  function in_rect(r, v) {
+    return (v.x>r.left && v.x<r.right && v.y>r.top && v.y<r.bottom)
+  }
+
+  function draw_rect(el, r, pos) {
+    el.style.width = (r.right-r.left) + 'px'
+    if (pos == 'before') {
+      el.style.left = r.left + 'px'
+      el.style.top = '0px'
+      el.style.bottom = ''
+    } else {
+      el.style.top = ''
+      el.style.left = r.left + 'px'
+      el.style.bottom = '0px'
+    }
+  }
+  this.handleDragOver = function(e) {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+
+    if (e.target.isSameNode(self.drag_start_element)) return
+    if (!e.target._tag) return
+    var col = e.target._tag.opts.col
+    if (!col.treeField) return false
+    var w = col.width,
+      h = col.height, r_up, r_d_left, r_d_right, helper = e.target.querySelector('.rtable-draggable-helper')
+
+    //test is child node
+    if (self._data.isChild(col.row, self.drag_src)) {
+      return false
+    }
+
+    r_up = {top:0, left:0, right:w, bottom:h/2}
+    r_d_left = {top:h/2, left:0, right:w*2/5, bottom:h}
+    r_d_right = {top:h/2, left:w*2/5, right:w, bottom:h}
+
+    var pos = {x: e.originalEvent.offsetX, y: e.originalEvent.offsetY}
+    var up = in_rect(r_up, pos), left = in_rect(r_d_left, pos), right = in_rect(r_d_right, pos)
+    if (up || left || right) {
+      if (!helper){
+        helper = document.createElement('div')
+        helper.style.position = 'absolute'
+        helper.className = 'rtable-draggable-helper'
+        helper.style.zIndex = 1000
+        helper.style.borderTop = '2px solid green'
+        e.target.appendChild(helper)
+        if (self.drag_helper) {
+          $(self.drag_helper).remove()
+          self.drag_helper = null
+        }
+        self.drag_helper = helper
+      }
+      if (up && self.drag_last_pos != 'before') {
+        self.drag_last_pos = 'before'
+        draw_rect(helper, r_up, self.drag_last_pos)
+      } else if (left && self.drag_last_pos != 'after') {
+        self.drag_last_pos = 'after'
+        draw_rect(helper, r_d_left, self.drag_last_pos)
+      } else if (right) {
+        self.drag_last_pos = 'child'
+        draw_rect(helper, r_d_right, self.drag_last_pos)
+      }
+    }
+
+    col = e.target._tag.opts.col
+    e.originalEvent.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
+
+    return false;
+  }
+
+  this.handleDrop = function(e) {
+    var last_pos = self.drag_last_pos
+    if (!last_pos) return
+
+    if (self.drag_helper) {
+      $(self.drag_helper).remove()
+      self.drag_helper = null
+      self.drag_last_pos = ''
+    }
+    if (!e.currentTarget._tag) return
+    var col = e.currentTarget._tag.opts.col
+    var src_item = self.drag_src, to_item = col.row
+    if (self.opts.onMove)
+      self.opts.onMove(src_item, to_item, last_pos)
+
+  }
+
+  this.bind_contextmenu = function() {
+    //backup fn to _fn
+    for (var i=0, len=this.contextMenu.length; i<len; i++) {
+      item = this.contextMenu[i]
+      item._fn = item.fn
+    }
+
+    var init_menus = function(row, col) {
+      var item
+      for (var i=0, len=self.contextMenu.length; i<len; i++) {
+        item = self.contextMenu[i]
+        var onclick = function(item, row, col) {
+          return function(){
+            item._fn.call(self, row, col)
+          }
+        }
+        if (item.type != 'separator')
+          item.fn = onclick(item, row, col)
+      }
+    }
+    $(this.content).on('contextmenu', ".rtable-cell", function(e){
+      var col = e.target._tag.opts.col
+      var row = col.row
+      self.select(row)
+      self.update()
+      e.preventDefault()
+      init_menus(row, col)
+      basicContext.show(self.contextMenu, e)
+    })
+  }
+
   this.on('updated', function(){
     if (!this._updated) {
       this._updated = true
       this.resize()
     }
+    console.log('update')
   })
 
   this.click_handler = function(e) {
@@ -629,7 +793,7 @@
     else
       self.sort_cols = []
     if (opts.remoteSort)
-      self._data.load(self.onSort.call(self, self.sort_cols))
+      self.onSort.call(self, self.sort_cols)
     else {
       self.ready_data()
       self.calData()
@@ -1022,7 +1186,7 @@
     while (i<this.rows.length && index<first) {
       row = this.rows[i]
       if (is_hidden(this.rows, row)) {
-        i++
+        i ++
         continue
       }
       index ++
@@ -1153,16 +1317,20 @@
 
   this.toggle_expand = function(e) {
     var id = self.getId(e.item.col.row), status = self.parents_expand_status[id]
-    if (status === undefined) status = self.expanded
+    if (status === undefined)
+      // status = self.expanded
+      status = true
     self._expand(e.item.col.row, !status)
   }
 
   this.expand = function (row) {
     self._expand(row, true)
+    self.update()
   }
 
   this.collapse = function (row) {
     self._expand(row, false)
+    self.update()
   }
 
   this._expand = function(row, expanded) {
@@ -1191,7 +1359,7 @@
             self.load_node(row)
       }
     }
-    self.update()
+    <!-- self.update() -->
   }
 
   this.load_node = function(row) {
@@ -1214,11 +1382,11 @@
         id = row.id
       } else
         id = row
-      status = this.parents_expand_status[id]
+      status = self.parents_expand_status[id]
       if (status === true) return true
       else if (status === false) return false
-      this.parents_expand_status[id] = this.expanded
-      return this.expanded
+      self.parents_expand_status[id] = self.expanded
+      return self.parents_expand_status[id]
   }
 
   this.scrolling = function(e) {
@@ -1312,16 +1480,15 @@
 
   this.checkall = function(e) {
     e.preventUpdate = true
-    if (e.target.checked) {
-      var ids = self._data.getIds()
-      for (var i=0, len=ids.length; i<len; i++) {
-        self.select(self.get(ids[i]))
-      }
-    } else {
-      var ids = self.selected_rows.slice()
-      for (var i=0, len=ids.length; i<len; i++) {
-        self.deselect(self.get(ids[i]))
-      }
+    var status = true
+    if (self.selected_rows.length > 0)
+      status = false
+    var ids = self._data.getIds()
+    for (var i=0, len=ids.length; i<len; i++) {
+      if (status)
+        self.select(self._data.get(ids[i]))
+      else
+        self.deselect(self._data.get(ids[i]))
     }
     self.update()
   }
@@ -1329,7 +1496,7 @@
   this.checkcol = function(e) {
     self.toggle_select(e.item.col.row)
     e.target.checked = self.is_selected(e.item.col.row)
-    self.update()
+    // self.update()
   }
 
   /* toggle selected row */
@@ -1454,7 +1621,11 @@
   this.root.load = data_proxy('load')
   this.root.insertBefore = data_proxy('insertBefore')
   this.root.insertAfter = data_proxy('insertAfter')
-  this.root.move = data_proxy('move')
+  this.root.move = function () {
+    var result = self._data.move.apply(self._data, arguments)
+    self.expand(arguments[1])
+    return result
+  }
   this.root.diff = data_proxy('diff')
   this.root.save = data_proxy('save')
   this.root.refresh = proxy('update')
@@ -1568,7 +1739,7 @@
   </style>
 
   <div class="rtable-cell-text {rtable-tree-field:opts.col.treeField}"
-    draggable="{parent.draggable && (!parent.tree || parent.tree && opts.col.treeField) ? "true" : false}"
+    draggable="{parent.draggable && (!parent.tree || parent.tree && opts.col.treeField) ? "true" : false}">
     <yield></yield>
   </div>
 
@@ -1579,145 +1750,25 @@
     if (!opts.tag) {
       return
     }
-    this.prevtag = opts.tag
-    if (self.parent.draggable)
-      this.dnd()
-    return this.mountedTag = riot.mount(this.root.querySelector('div'), opts.tag, opts)[0]
+    <!-- this.prevtag = opts.tag -->
+    <!-- return this.mountedTag = riot.mount(this.root.querySelector('div'), opts.tag, opts)[0] -->
   });
 
-  this.dnd = function () {
-    var el = $(this.root).find('.rtable-cell-text[draggable]')
-    if (el.size() > 0) {
-      el.unbind('dragstart', this.handleDragStart)
-        .unbind('dragover', this.handleDragOver)
-        .unbind('drop', this.handleDrop)
-      if (this.parent.browser.ie) {
-        el.unbind('selectstart', this.handleSelectStart)
-      }
-      el.bind('dragstart', this.handleDragStart)
-        .bind('dragover', this.handleDragOver)
-        .bind('drop', this.handleDrop)
-      if (this.parent.browser.ie) {
-        el.bind('selectstart', this.handleSelectStart)
-      }
-    }
-  }
   this.on('update', function() {
-    if (self.parent.draggable)
-      this.dnd()
-    if (this.prevtag && this.prevtag !== opts.tag) {
+    var _opts = $.extend({}, opts)
+
+    if (this.mountedTag) this.mountedTag.unmount(true)
+    var tag = this.mountedTag = riot.mount(this.root.querySelector('div'), opts.tag, opts)[0]
+    return tag
+    <!-- if (this.prevtag && this.prevtag !== opts.tag) {
       this.prevtag = opts.tag
       this.mountedTag.unmount(true)
-      return this.mountedTag = riot.mount(this.root.querySelector('div'), opts.tag, opts)[0]
+      return this.mountedTag = riot.mount(this.root.querySelector('div'), opts.tag, _opts)[0]
     } else if (this.mountedTag) {
-      this.mountedTag.opts = opts
+      this.mountedTag.opts = _opts
       return this.mountedTag.update()
-    }
+    } -->
   });
-
-  this.handleDragStart = function(e) {
-    var col = e.target._tag.opts.col
-    self.start_element = e.target
-    self.parent.drag_src = col.row
-    e.originalEvent.dataTransfer.effectAllowed = 'move'
-  }
-
-  this.handleSelectStart = function(e){
-    e.preventDefault()
-    e.stopPropagation()
-    this.dragDrop();
-    return false
-  }
-
-  function in_rect(r, v) {
-    return (v.x>r.left && v.x<r.right && v.y>r.top && v.y<r.bottom)
-  }
-
-  function draw_rect(el, r, pos) {
-    el.style.width = (r.right-r.left) + 'px'
-    if (pos == 'before') {
-      el.style.left = r.left + 'px'
-      el.style.top = '0px'
-      el.style.bottom = ''
-    } else {
-      el.style.top = ''
-      el.style.left = r.left + 'px'
-      el.style.bottom = '0px'
-    }
-  }
-  this.handleDragOver = function(e) {
-    if (e.preventDefault) {
-      e.preventDefault();
-    }
-
-    if (e.target.isSameNode(self.start_element)) return
-    if (!e.target._tag) return
-    var col = e.target._tag.opts.col
-    if (!col.treeField) return false
-    var w = col.width,
-      h = col.height, r_up, r_d_left, r_d_right, helper = self.root.querySelector('.rtable-draggable-helper')
-
-    //test is child node
-    if (self.parent._data.isChild(col.row, self.parent.drag_src)) {
-      return false
-    }
-
-    self.parent.to_item = col.row
-
-    r_up = {top:0, left:0, right:w, bottom:h/2}
-    r_d_left = {top:h/2, left:0, right:w*2/5, bottom:h}
-    r_d_right = {top:h/2, left:w*2/5, right:w, bottom:h}
-
-    var pos = {x: e.offsetX, y: e.offsetY}
-    var up = in_rect(r_up, pos), left = in_rect(r_d_left, pos), right = in_rect(r_d_right, pos)
-    if (up || left || right) {
-      if (!helper){
-        helper = document.createElement('div')
-        helper.style.position = 'absolute'
-        helper.className = 'rtable-draggable-helper'
-        helper.style.zIndex = 1000
-        helper.style.borderTop = '2px solid green'
-        e.target.appendChild(helper)
-        if (self.parent.helper) {
-          $(self.parent.helper).remove()
-          self.parent.helper = null
-        }
-        self.parent.helper = helper
-      }
-      if (up && self.parent.last_pos != 'before') {
-        self.parent.last_pos = 'before'
-        draw_rect(helper, r_up, self.parent.last_pos)
-      } else if (left && self.parent.last_pos != 'after') {
-        self.parent.last_pos = 'after'
-        draw_rect(helper, r_d_left, self.parent.last_pos)
-      } else if (right) {
-        self.parent.last_pos = 'child'
-        draw_rect(helper, r_d_right, self.parent.last_pos)
-      }
-    }
-
-    col = e.target._tag.opts.col
-    e.originalEvent.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
-
-    return false;
-  }
-
-  this.handleDrop = function(e) {
-    var last_pos = self.parent.last_pos
-    if (!last_pos) return
-
-    if (self.parent.helper) {
-      $(self.parent.helper).remove()
-      self.parent.helper = null
-      self.parent.last_pos = ''
-    }
-    if (!e.currentTarget._tag) return
-    var col = e.currentTarget._tag.opts.col
-    var src_item = self.parent.drag_src, to_item = col.row
-    if (self.parent.opts.onMove)
-      self.parent.opts.onMove(src_item, to_item, last_pos)
-
-  }
 
   this.on('unmount', function() {
     if (this.mountedTag) {
