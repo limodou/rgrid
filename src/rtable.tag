@@ -308,7 +308,7 @@
     </div>
 
     <div class="rtable-body rtable-fixed"
-      style="width:{fix_width}px;bottom:{xscroll_width}px;top:{header_height}px;height:{height-header_height-xscroll_width}px;">
+      style="width:{fix_width}px;bottom:{xscroll_fix}px;top:{header_height}px;height:{height-header_height-yscroll_fix}px;">
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.fixed} no-reorder class={get_row_class(row.row, row.line)}>
@@ -334,7 +334,7 @@
         </div>
       </div>
     </div>
-    <div class="rtable-body rtable-main" onscroll={scrolling}
+    <div class="rtable-body rtable-main"
       style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+yscroll_fix}px;height:{height-header_height+xscroll_fix}px;">
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
@@ -541,9 +541,14 @@
         self.resize()
     })
 
+
+    this.content.addEventListener('scroll', function(e){
+      self.scrolling(e)
+    }, {passive:true})
+
     this.content.addEventListener('mousewheel', function(e){
       self.mousewheel(e)
-    })
+    }, {passive:true})
 
     $(this.content).on('click', '.rtable-cell', this.click_handler)
       .on('dblclick', '.rtable-cell', this.dblclick_handler)
@@ -1168,6 +1173,7 @@
 
     first = Math.max(Math.floor(this.content.scrollTop / this.rowHeight), 0)
     last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
+
     var b = new Date().getTime()
 
     len = last - first
@@ -1234,7 +1240,7 @@
           selected:this.is_selected(row),
           render:col.render,
           buttons:col.buttons,
-          index:first+i,
+          index:first+index,
           sor:col.sort,
           align:col.align,
           class:col.class,
@@ -1407,7 +1413,6 @@
   }
 
   this.scrolling = function(e) {
-    e.preventUpdate = true
     self.header.scrollLeft = self.content.scrollLeft
     self.content_fixed.scrollTop = self.content.scrollTop
     return self.update()
@@ -1476,8 +1481,6 @@
     var wheelEvent = normalizeWheel(event);
     // we need to detect in which direction scroll is happening to allow trackpads scroll horizontally
     // horizontal scroll
-    var left1 = this.header.scrollLeft, top1 = this.header.scrollTop,
-      left2 = this.content.scrollLeft, top2 = this.content.scrollTop
     if (Math.abs(wheelEvent.pixelX) > Math.abs(wheelEvent.pixelY)) {
         this.header.scrollLeft = this.header.scrollLeft + wheelEvent.pixelX
         this.content.scrollLeft = this.content.scrollLeft + wheelEvent.pixelX
@@ -1486,10 +1489,7 @@
         this.header.scrollTop = this.header.scrollTop + wheelEvent.pixelY
         this.content.scrollTop = this.content.scrollTop + wheelEvent.pixelY
     }
-    <!-- if ((this.header.scrollLeft != left1) || (this.content.scrollLeft != left2) ||
-      (this.header.scrollTop!=top1) || (this.content.scrollTop != top2)) -->
-    e.preventDefault()
-    return false;
+    return false
   }
 
   <!--
