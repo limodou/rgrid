@@ -551,8 +551,8 @@
     }, {passive:true})
 
     this.content.addEventListener('mousewheel', function(e){
-      self.mousewheel(e)
-      e.preventDefault()
+      if (self.mousewheel(e))
+        e.preventDefault()
     })
 
     this.content_fixed.addEventListener('mousewheel', function(e){
@@ -1505,14 +1505,22 @@
     // we need to detect in which direction scroll is happening to allow trackpads scroll horizontally
     // horizontal scroll
     if (Math.abs(wheelEvent.pixelX) > Math.abs(wheelEvent.pixelY)) {
+        var left1 = this.header.scrollLeft, left2 = this.content.scrollLeft
         this.header.scrollLeft = this.header.scrollLeft + wheelEvent.pixelX
         this.content.scrollLeft = this.content.scrollLeft + wheelEvent.pixelX
+        if ((left1 == this.header.scrollLeft) && (left2 == this.content.scrollLeft))
+          return false
+        return true
     }
-    else {
+    else if (wheelEvent.pixelY){
+        var top1 = this.header.scrollTop, top2 = this.content.scrollTop
         this.header.scrollTop = this.header.scrollTop + wheelEvent.pixelY
         this.content.scrollTop = this.content.scrollTop + wheelEvent.pixelY
+        if ((top1 == this.header.scrollTop) && (top2 == this.content.scrollTop))
+          return false
+        return true
     }
-    return true
+    return false
   }
 
   <!--
