@@ -396,6 +396,8 @@
   this.headerRowHeight = opts.headerRowHeight || 34
   this.rowHeight = opts.rowHeight || 34
   this.indexColWidth = opts.indexColWidth || 40
+  this.indexColFrozen = opts.indexColFrozen || false
+  this.checkColFrozen = opts.checkColFrozen || false
   this.multiSelect = opts.multiSelect || false
   this.visCells = []
   this.selected_rows = []
@@ -547,6 +549,11 @@
     }, {passive:true})
 
     this.content.addEventListener('mousewheel', function(e){
+      self.mousewheel(e)
+      e.preventDefault()
+    })
+
+    this.content_fixed.addEventListener('mousewheel', function(e){
       self.mousewheel(e)
     }, {passive:true})
 
@@ -1004,7 +1011,7 @@
           return col.index + 1
         },
         width:self.indexColWidth,
-        frozen:true,
+        frozen:this.indexColFrozen,
         align:'center'
       }
       col[this.nameField] = '__index_col__'
@@ -1024,7 +1031,7 @@
         type:'check',
         width:30,
         align:'center',
-        frozen:has_frozen
+        frozen: has_frozen
       }
       col[this.nameField] = '__check_col__'
       col[this.titleField] = '_check'
@@ -1489,7 +1496,7 @@
         this.header.scrollTop = this.header.scrollTop + wheelEvent.pixelY
         this.content.scrollTop = this.content.scrollTop + wheelEvent.pixelY
     }
-    return false
+    return true
   }
 
   <!--
