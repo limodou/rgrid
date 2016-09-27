@@ -111,9 +111,6 @@
       top:0px;
       right:0px;
     }
-    .rtable-cell.selected {
-      background-color:#ffefd5;
-    }
     .rtable-cell .rtable-sort, .rtable-cell .rtable-sort.desc,
     .rtable-cell .rtable-sort.asc {
       position: absolute;
@@ -191,17 +188,34 @@
       font-size:14px;
     }
 
-    /* theme */
+    .rtable-row:hover .rtable-cell {
+      background-color: #e1eff8;
+    }
+    .rtable-row.selected:hover .rtable-cell {
+      background-color: #ffefd5;
+    }
+
+    .rtable-row.selected .rtable-cell {
+      background-color:#ffefd5;
+    }
+    /*.rtable-cell.selected {
+      background-color:#ffefd5;
+    }*/
+
+    /* zebra */
     .rtable-root.zebra .rtable-row.even .rtable-cell {
-      background-color: #f2f2f2;
+      background-color: #f9f9f9;
       border-bottom:none;
       border-right:1px solid #ddd;
+    }
+    .rtable-root.zebra .rtable-row.even:hover .rtable-cell {
+      background-color: #e1eff8;
     }
     .rtable-root.zebra .rtable-row.odd .rtable-cell {
       border-bottom:none;
       border-right:1px solid #ddd;
     }
-    .rtable-root.zebra .rtable-row.even .rtable-cell.selected {
+    .rtable-root.zebra .rtable-row.even.selected .rtable-cell {
       background-color: #ffefd5;
     }
     .rtable-root.zebra .rtable-header .rtable-cell {
@@ -211,9 +225,11 @@
     /*simple*/
     .rtable-root.simple .rtable-row.even .rtable-cell {
     }
+    .rtable-root.simple .rtable-row.even:hover .rtable-cell {
+    }
     .rtable-root.simple .rtable-row.odd .rtable-cell {
     }
-    .rtable-root.simple .rtable-row.even .rtable-cell.selected {
+    .rtable-root.simple .rtable-row.even.selected .rtable-cell {
     }
     .rtable-root.simple .rtable-header .rtable-cell {
       background-color: #f2f2f2;
@@ -227,7 +243,8 @@
     }
     .rtable-root.table .rtable-row.odd .rtable-cell {
     }
-    .rtable-root.table .rtable-row.even .rtable-cell.selected {
+    .rtable-root.table .rtable-row.even.selected .rtable-cell {
+      background-color: #ffefd5;
     }
     .rtable-root.table .rtable-header .rtable-cell {
     }
@@ -239,18 +256,21 @@
       border-bottom: 2px solid #ddd;
     }
 
-    /*table*/
+    /*table-striped*/
     .rtable-root.table-striped {
       border: none;
     }
     .rtable-root.table-striped .rtable-row.even .rtable-cell {
-      background-color: #f2f2f2;
+      background-color: #f9f9f9;
       border-bottom:none;
+    }
+    .rtable-root.table-striped .rtable-row.even:hover .rtable-cell {
+      background-color: #e1eff8;
     }
     .rtable-root.table-striped .rtable-row.odd .rtable-cell {
       border-bottom:none;
     }
-    .rtable-root.table-striped .rtable-row.even .rtable-cell.selected {
+    .rtable-root.table-striped .rtable-row.even.selected .rtable-cell {
     }
     .rtable-root.table-striped .rtable-header .rtable-cell {
     }
@@ -261,6 +281,7 @@
     .rtable-root.table-striped .rtable-header .rtable-cell {
       border-bottom: 2px solid #ddd;
     }
+
 
   </style>
 
@@ -312,7 +333,7 @@
       style="width:{fix_width}px;bottom:0;padding-bottom:{xscroll_fix}px;top:{header_height}px;height:{height-header_height-xscroll_fix}px;">
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
-        <div each={row in visCells.fixed} no-reorder class={get_row_class(row.row, row.line)}>
+        <div each={row in visCells.fixed} no-reorder class="{get_row_class(row.row, row.line)}">
           <div if={col.height!=0 && col.width!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
             style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
@@ -339,7 +360,7 @@
       style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+(browser.ie?yscroll_fix:0)}px;height:{height-header_height+(browser.ie?xscroll_fix:0)}px;">
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
-        <div each={row in visCells.main} no-reorder class={get_row_class(row.row, row.line)}>
+        <div each={row in visCells.main} no-reorder class="{get_row_class(row.row, row.line)}">
           <div if={col.height!=0 && col.width!=0} each={col in row.cols} no-reorder class={get_cell_class(col)}
               style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};">
 
@@ -371,7 +392,7 @@
         </div>
       </div>
 
-      <div if={rows.length==0} data-is="rtable-raw" value={noData} class="rtable-nodata"
+      <div if={rows.length==0 && noData} data-is="rtable-raw" value={noData} class="rtable-nodata"
         style="top:{height/2-header_height/2+rowHeight/2}px;"></div>
 
       <div style="display:none;top:{height/2-header_height/2+rowHeight/2}px" class="rtable-loading"></div>
@@ -413,6 +434,7 @@
   this.theme = opts.theme || 'zebra'
   this.minColWidth = opts.minColWidth || 5
   this.contextMenu = opts.contextMenu || []
+  this.virtual = opts.virtual || false
 
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
@@ -472,10 +494,13 @@
   }
 
   this.show_loading = function (flag) {
-    if (flag)
+    if (flag) {
       $(this.root).find('.rtable-loading').html(this.loading).show()
+      $(this.root).find('.rtable-nodata').hide()
+    }
     else
       $(this.root).find('.rtable-loading').hide()
+    <!-- this.update() -->
   }
 
   this.bind = function () {
@@ -550,14 +575,14 @@
       self.scrolling(e)
     }, {passive:true})
 
-    this.content.addEventListener('mousewheel', function(e){
+    <!-- this.content.addEventListener('mousewheel', function(e){
       if (self.mousewheel(e))
         e.preventDefault()
     })
 
     this.content_fixed.addEventListener('mousewheel', function(e){
       self.mousewheel(e)
-    }, {passive:true})
+    }, {passive:true}) -->
 
     $(this.content).on('click', '.rtable-cell', this.click_handler)
       .on('dblclick', '.rtable-cell', this.dblclick_handler)
@@ -1194,8 +1219,13 @@
     r1.bottom = r1.top + this.height - this.header_height - this.scrollbar_width
     r1.right = r1.left + this.width - this.fix_width - this.scrollbar_width
 
-    first = Math.max(Math.floor(this.content.scrollTop / this.rowHeight), 0)
-    last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
+    if (this.virtual) {
+      first = Math.max(Math.floor(this.content.scrollTop / this.rowHeight), 0)
+      last = Math.ceil((this.content.scrollTop+this.height-this.header_height) / this.rowHeight)
+    } else {
+      first = 0
+      last = this.rows.length
+    }
 
     var b = new Date().getTime()
 
@@ -1263,7 +1293,7 @@
           selected:this.is_selected(row),
           render:col.render,
           buttons:col.buttons,
-          index:first+index,
+          index:this.start+index,
           sor:col.sort,
           align:col.align,
           class:col.class,
@@ -1332,8 +1362,12 @@
         }
         else {
           //test column
-          if (!(d.left > r1.right || d.right < r1.left))
+          if (this.virtual) {
+            if (!(d.left > r1.right || d.right < r1.left))
+              v_row.cols.push(d)
+          } else {
             v_row.cols.push(d)
+          }
         }
       }
 
@@ -1438,7 +1472,8 @@
   this.scrolling = function(e) {
     self.header.scrollLeft = self.content.scrollLeft
     self.content_fixed.scrollTop = self.content.scrollTop
-    return self.update()
+    if (this.virtual)
+      return self.update()
   }
 
   var normalizeWheel = function (event) {
@@ -1733,6 +1768,8 @@
     cls = this.onRowClass(row, index)
     if (cls)
       klass.push(cls)
+    if (this.is_selected(row))
+      klass.push('selected')
     return klass.join(' ')
   }
 

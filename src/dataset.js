@@ -508,9 +508,6 @@ DataSet.prototype.has_child = function (row) {
  */
 DataSet.prototype.load = function (url, param, callback) {
   var me = this
-  this._data = [];
-  this._ids = {};
-  this.length = 0;
   this.url = url;
   if (typeof url === 'string') {
     if (typeof param === 'function') {
@@ -520,6 +517,9 @@ DataSet.prototype.load = function (url, param, callback) {
     me._trigger('loading')
     return $.getJSON(url || this._options.url, param).done(function(r) {
         me.mute()
+        me._data = [];
+        me._ids = {};
+        me.length = 0;
         if (callback) me.add(callback(r))
         else me.add(r)
         me.mute(false)
@@ -528,6 +528,9 @@ DataSet.prototype.load = function (url, param, callback) {
   } else {
     me._trigger('loading')
     me.mute()
+    me._data = [];
+    me._ids = {};
+    me.length = 0;
     if (callback) me.add(callback(url))
     else me.add(url)
     me.mute(false)
