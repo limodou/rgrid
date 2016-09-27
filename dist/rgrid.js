@@ -1,4 +1,4 @@
-riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" fields="{query_fields}" layout="{query_layout}" data="{query_data}"></query-condition> <div class="btn-toolbar"> <div if="{left_tools}" class="rgrid-tools pull-left"> <div each="{btn_group in left_tools}" class="{btn_group_class}"> <button each="{btn in btn_group}" data-is="rgrid-button" btn="{btn}"></button> </div> </div> <div if="{right_tools}" class="rgrid-tools pull-right"> <div each="{btn_group in right_tools}" class="{btn_group_class}"> <button each="{btn in btn_group}" data-is="rgrid-button" btn="{btn}"></button> </div> </div> </div> <rtable cols="{cols}" options="{rtable_options}" data="{data}" start="{start}" observable="{observable}"></rtable> <div class="clearfix tools"> <pagination if="{pagination}" data="{data}" url="{url}" page="{page}" total="{total}" limit="{limit}" onpagechanged="{onpagechanged}" onbeforepage="{onbeforepage}"></pagination> <div if="{footer_tools}" class="pull-right {btn_group_class}"> <button each="{btn in footer_tools}" data-is="rgrid-button" btn="{btn}"></button> </div> </div>', 'rgrid .rgrid-tools,[riot-tag="rgrid"] .rgrid-tools,[data-is="rgrid"] .rgrid-tools{margin-bottom:5px;padding-left:5px;} rgrid .btn-toolbar .btn-group,[riot-tag="rgrid"] .btn-toolbar .btn-group,[data-is="rgrid"] .btn-toolbar .btn-group{margin-right:8px;}', '', function(opts) {
+riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" fields="{query_fields}" layout="{query_layout}" data="{query_data}"></query-condition> <div if="{left_tools.length>0 || right_tools.length>0}" class="btn-toolbar"> <div if="{left_tools.length>0}" class="rgrid-tools pull-left"> <div each="{btn_group in left_tools}" class="{btn_group_class}"> <button each="{btn in btn_group}" data-is="rgrid-button" btn="{btn}"></button> </div> </div> <div if="{right_tools.length>0}" class="rgrid-tools pull-right"> <div each="{btn_group in right_tools}" class="{btn_group_class}"> <button each="{btn in btn_group}" data-is="rgrid-button" btn="{btn}"></button> </div> </div> </div> <yield></yield> <rtable cols="{cols}" options="{rtable_options}" data="{data}" start="{start}" observable="{observable}"></rtable> <div class="clearfix tools"> <pagination if="{pagination}" data="{data}" url="{url}" page="{page}" total="{total}" observable="{observable}" limit="{limit}" onpagechanged="{onpagechanged}" onbeforepage="{onbeforepage}"></pagination> <div if="{footer_tools.length>0}" class="pull-right {btn_group_class}"> <button each="{btn in footer_tools}" data-is="rgrid-button" btn="{btn}"></button> </div> </div>', 'rgrid .rgrid-tools,[riot-tag="rgrid"] .rgrid-tools,[data-is="rgrid"] .rgrid-tools{margin-bottom:5px;padding-left:5px;} rgrid .btn-toolbar .btn-group,[riot-tag="rgrid"] .btn-toolbar .btn-group,[data-is="rgrid"] .btn-toolbar .btn-group{margin-right:8px;}', '', function(opts) {
 
 
   var self = this
@@ -32,9 +32,17 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
   this.onLoaded = opts.onLoaded
   this.autoLoad = opts.audoLoad || true
 
-  this.onpagechanged = function (page) {
-    self.start = (page - 1) * self.limit
-    self.update()
+  this.onsort = function (sorts) {
+    var _url
+    if (sorts.length > 0) {
+      _url = get_url(self.url, {sort:sorts[0].name+'.'+sorts[0].direction})
+    } else
+      _url = get_url(self.url, {sort:''})
+
+    self.url = _url
+    self.load(_url, function(r){
+      return r.rows
+    })
   }
 
   this.onloaddata = function (parent) {
@@ -55,17 +63,20 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
   }
 
   this.rtable_options = {
-    theme : opts.theme,
+    theme : opts.theme || 'zebra',
     combineCols : opts.combineCols,
     nameField : opts.nameField || 'name',
     labelField : opts.labelField || 'title',
     indexCol: opts.indexCol,
     checkCol: opts.checkCol,
+    indexColFrozen: opts.indexColFrozen,
+    checkColFrozen: opts.checkColFrozen,
     multiSelect: opts.multiSelect,
     maxHeight: opts.maxHeight,
     minHeight: opts.minHeight,
     height: opts.height,
     width: opts.width,
+    clickSelect: opts.clickSelect,
     rowHeight: opts.rowHeight,
     container: $(this.root).parent(),
     noData: opts.noData,
@@ -77,6 +88,8 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
     orderField: opts.orderField,
     levelField: opts.levelField,
     treeField: opts.treeField,
+    hasChildrenField: opts.hasChildrenField,
+    virtual: opts.virtual,
     onDblclick: opts.onDblclick,
     onClick: opts.onClick,
     onMove: opts.onMove,
@@ -86,10 +99,17 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
     onSelected: opts.onSelected,
     onDeselected: opts.onDeselected,
     onLoadData: opts.onLoadData || this.onloaddata,
+    onSort: opts.onSort || this.onsort,
+    onCheckable: opts.onCheckable,
+    colspanValue: opts.colspanValue,
     draggable: opts.draggable,
     editable: opts.editable,
-    onSort: opts.onSort,
     remoteSort: opts.remoteSort
+  }
+
+  this.onpagechanged = function (page) {
+    self.start = (page - 1) * self.limit
+    self.update()
   }
 
   this.on('mount', function(){
@@ -139,7 +159,7 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
     this.root.instance = this
     if (this.url && this.autoLoad) {
       this.table.show_loading(true)
-      this.load()
+      setTimeout(function(){self.load()}, 100)
     }
 
     this.observable.on('selected deselected', function(row) {
@@ -157,15 +177,18 @@ riot.tag2('rgrid', '<query-condition if="{has_query}" rules="{query_ules}" field
   })
 
   this.load = function(url, param){
-    var f
+    var f, url
     param = param || {}
     var _f = function(r){
       return r.rows
     }
 
     self.url = url || self.url
-    if (opts.tree) f = self.data.load_tree(self.url, param, _f)
-    else f = self.data.load(self.url, param, this.onLoaded || _f)
+    if (self.pagination) {
+      url = get_url(self.url, {limit:self.limit})
+    } else url = self.url
+    if (opts.tree) f = self.data.load_tree(url, param, _f)
+    else f = self.data.load(url, param, this.onLoaded || _f)
     f.done(function(r){
       self.total = r.total
       self.update()

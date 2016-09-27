@@ -188,10 +188,10 @@
       font-size:14px;
     }
 
-    .rtable-row:hover .rtable-cell {
+    .rtable-row.hover .rtable-cell {
       background-color: #e1eff8;
     }
-    .rtable-row.selected:hover .rtable-cell {
+    .rtable-row.selected.hover .rtable-cell {
       background-color: #ffefd5;
     }
 
@@ -208,7 +208,7 @@
       border-bottom:none;
       border-right:1px solid #ddd;
     }
-    .rtable-root.zebra .rtable-row.even:hover .rtable-cell {
+    .rtable-root.zebra .rtable-row.even.hover .rtable-cell {
       background-color: #e1eff8;
     }
     .rtable-root.zebra .rtable-row.odd .rtable-cell {
@@ -225,7 +225,7 @@
     /*simple*/
     .rtable-root.simple .rtable-row.even .rtable-cell {
     }
-    .rtable-root.simple .rtable-row.even:hover .rtable-cell {
+    .rtable-root.simple .rtable-row.even.hover .rtable-cell {
     }
     .rtable-root.simple .rtable-row.odd .rtable-cell {
     }
@@ -264,7 +264,7 @@
       background-color: #f9f9f9;
       border-bottom:none;
     }
-    .rtable-root.table-striped .rtable-row.even:hover .rtable-cell {
+    .rtable-root.table-striped .rtable-row.even.hover .rtable-cell {
       background-color: #e1eff8;
     }
     .rtable-root.table-striped .rtable-row.odd .rtable-cell {
@@ -287,7 +287,7 @@
 
   <yield/>
 
-  <div class="rtable-root {theme}" style="width:{width-1}px;height:{height-1}px">
+  <div class="rtable-root {theme}" style="width:{width-1}px;height:{height-1+xscroll_fix}px">
     <div class="rtable-header rtable-fixed" style="width:{fix_width}px;height:{header_height}px">
       <div each={fix_columns} no-reorder class={rtable-cell:true}
         style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;">
@@ -330,7 +330,7 @@
     </div>
 
     <div class="rtable-body rtable-fixed"
-      style="width:{fix_width}px;bottom:0;padding-bottom:{xscroll_fix}px;top:{header_height}px;height:{height-header_height-xscroll_fix}px;">
+      style="width:{fix_width}px;bottom:0;padding-bottom:{xscroll_fix}px;top:{header_height}px;height:{height-header_height}px;">
       <!-- transform:translate3d(0px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{fix_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.fixed} no-reorder class="{get_row_class(row.row, row.line)}">
@@ -357,7 +357,7 @@
       </div>
     </div>
     <div class="rtable-body rtable-main"
-      style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+(browser.ie?yscroll_fix:0)}px;height:{height-header_height+(browser.ie?xscroll_fix:0)}px;">
+      style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+(browser.ie?yscroll_fix:0)}px;height:{height-header_height+(browser.ie?2*xscroll_fix:xscroll_fix)}px;">
       <!-- transform:translate3d({0-content.scrollLeft}px,{0-content.scrollTop}px,0px); -->
       <div class="rtable-content" style="width:{main_width}px;height:{rows.length*rowHeight}px;">
         <div each={row in visCells.main} no-reorder class="{get_row_class(row.row, row.line)}">
@@ -586,8 +586,14 @@
 
     $(this.content).on('click', '.rtable-cell', this.click_handler)
       .on('dblclick', '.rtable-cell', this.dblclick_handler)
+    $(this.content).on('mouseenter', '.rtable-row', this.hover_handler1)
+      .on('mouseleave', '.rtable-row', this.hover_handler2)
+
     $(this.content_fixed).on('click', '.rtable-cell', this.click_handler)
       .on('dblclick', '.rtable-cell', this.dblclick_handler)
+    $(this.content_fixed).on('hover', '.rtable-cell', this.hover_handler)
+      .on('mouseleave', '.rtable-row', this.hover_handler2)
+
     this.dnd()
 
     this.bind_contextmenu()
@@ -600,6 +606,18 @@
     this.bind()       //monitor data change
     this.update()
   })
+
+  this.hover_handler1 = function (e) {
+    var index = $(this).index()
+    $(self.content_fixed).find('.rtable-row:eq('+index+')').addClass('hover')
+    $(self.content).find('.rtable-row:eq('+index+')').addClass('hover')
+  }
+
+  this.hover_handler2 = function (e) {
+    var index = $(this).index()
+    $(self.content_fixed).find('.rtable-row:eq('+index+')').removeClass('hover')
+    $(self.content).find('.rtable-row:eq('+index+')').removeClass('hover')
+  }
 
   this.dnd = function (reset) {
     var el = $(this.root)
