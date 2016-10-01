@@ -48,7 +48,7 @@ var select_editor = function (parent, row, col) {
   var self = this
   var $p = $(parent), w=$p.width(), h=$p.height()
   var tmpl = [
-    riot.util.tmpl('<select name={name} class="inline-editor">', {name:col.name})
+    '<select name="' + col.name + '" class="inline-editor" ' + (col.editor.multiple?'multiple="multiple"':'') + '>'
   ]
   var item, choices=col.editor.choices
   if (col.editor.placeholder) {
@@ -144,16 +144,35 @@ var select2_editor = function (parent, row, col) {
   var self = this
   var $p = $(parent), w=$p.width(), h=$p.height()
   var tmpl = [
-    riot.util.tmpl('<select name={name} class="inline-editor">', {name:col.name})
+    '<select name="' + col.name + '" class="inline-editor" ' + (col.editor.multiple?'multiple="multiple"':'') + '>'
   ]
   var item
-  var value
-  if (col.editor.value_from) value = col.row[col.editor.value_from]
-  else value = col.value
-  var choices = col.editor.choices ? col.editor.choices : [[value, col.value]]
+  var value, text=[], choices=[], value_from = col.editor.value_from
+  if (col.editor.multiple) {
+    if (value_from) {
+      value = col.row[value_from]['value']
+      if (Array.isArray(value)) {
+        for(var j=0, _len=value.length; j<_len; j++) {
+          choices.push([col.row[value_from]['value'][j], col.row[value_from]['text'][j]])
+        }
+      } else {
+        choices = [[col.row[value_from]['value'], col.row[value_from]['text']]]
+      }
+    }
+    else {
+      value = col.value
+      choices = [[value, value]]
+    }
+  } else {
+    value = [col.value]
+    choices = [[col.value, col.value]]
+  }
+  var choices = col.editor.choices ? col.editor.choices : choices
+  if (col.editor.placeholder)
+    tmpl.push('<option value="">'+col.editor.placeholder+'</option>')
   for(var i=0, len=choices.length; i<len; i++) {
     item = {value:value, option_value:choices[i][0], option_text:choices[i][1]}
-    tmpl.push(riot.util.tmpl('<option {value==option_value?"selected":""} value={option_value}>{option_text}</option>', item))
+    tmpl.push(riot.util.tmpl('<option {value.indexOf(option_value)>-1?"selected":""} value={option_value}>{option_text}</option>', item))
   }
   tmpl.push('</select>')
   var input = $(tmpl.join(''))
@@ -175,6 +194,8 @@ var select2_editor = function (parent, row, col) {
   input.focus()
   if (col.editor.url)
     input.attr('url', col.editor.url)
+  if (col.editor['data-url'])
+    input.attr('url', col.editor['data-url'])
   if (col.editor.placeholder)
     input.attr('placeholder', col.editor.placeholder)
   _simple_select2(input)
@@ -196,8 +217,15 @@ var select2_editor = function (parent, row, col) {
     var value = input.val()
     row[col.name] = value
     if (col.editor.value_from) {
-      row[col.editor.value_from] = value
-      row[col.name] = input.select2('data')[0].text
+      if (col.editor.multiple) {
+        for(var i=0, len=input.select2('data').length; i<len; i++) {
+          text.push(input.select2('data')[i].text)
+        }
+        row[col.editor.value_from] = {value:value, text:text}
+      } else {
+        text = input.select2('data')[0].text
+        row[col.editor.value_from] = {value:value, text:text}
+      }
     }
     else row[col.name] = value
     $.when(self.onEdited(row, col, value)).then(function(r){
@@ -223,16 +251,21 @@ function _simple_select2 (el, options){
   var $el = $(el),
     url = $el.attr('data-url') || $el.attr('url'),
     placeholder = $el.attr('placeholder') || '请选择';
+  options = options || {}
   if (typeof options === 'string') {
     url = options
     options = {}
   }
-  var opts
+  var opts, data
+  var limit = options.limit || 10
   if (url)
     opts = {
       minimumInputLength: 2,
       width: '100%',
-      placeholder:placeholder,
+      placeholder:{
+        id:'',
+        placeholder:placeholder
+      },
       allowClear:true,
       language: 'zh-CN',
       ajax: {
@@ -241,21 +274,29 @@ function _simple_select2 (el, options){
               return {
                   term: params.term,
                   label: 'text',
-                  page:params.page
+                  page:params.page,
+                  limit:limit
               }
           },
           dataType: 'json',
-          processResults: function (data, params) {
+          processResults: function (result, params) {
             // parse the results into the format expected by Select2
             // since we are using custom formatting functions we do not need to
             // alter the remote JSON data, except to indicate that infinite
             // scrolling can be used
             params.page = params.page || 1;
 
+            if (!Array.isArray(result)) {
+              data = result.rows
+              total = result.total
+            } else {
+              data = result
+              total = 0
+            }
             return {
               results: data,
               pagination: {
-                more: (params.page * 20) < data.length
+                more: (params.page * limit) < total
               }
             }
           }
@@ -273,9 +314,12 @@ function _simple_select2 (el, options){
     opts = {
       width: '100%',
       allowClear:true,
-      placeholder:placeholder,
+      placeholder:{
+        id:'',
+        placeholder:placeholder
+      },
       language: 'zh-CN'
     }
 
-  $(el).select2($.extend(true, {}, opts, options));
+  $el.select2($.extend(true, {}, opts, options));
 }

@@ -68,9 +68,24 @@
         var names = ['1', '2', '3']
         return names[Math.round(Math.random() * (names.length - 1))]
       }
+      function get_choice(choices, value) {
+        for(var i=0, len=choices.length; i<len; i++) {
+          if (choices[i][0] == value){
+            return choices[i][1]
+          }
+        }
+        return ''
+      }
       var cols = [
         {name:'id', title:'ID', width:40, align:'center'},
-        {name:'name1', title:'This is a long title', width:160, editor:'string',
+        {name:'name1', title:'This is a long title', width:300, render: function(row, col, value){
+            if (!value || !row['name1_value']) return value
+            if (Array.isArray(value)) {
+              return row['name1_value']['text'].join(',')
+            }
+            else
+              return row['name1_value']['text']
+          },
           editor:{name:'select2', choices:choices, placeholder:'Empty', value_from:'name1_value'}
         },
         {name:'name1_value', title:'Name1 Value', hidden:true},
@@ -79,13 +94,8 @@
         {name:'name3', title:'Name', width:40},
         {name:'name4', title:'D', align:'center', class:randClass, editor:'date'},
         {name:'name5', title:'E', render: function(row, col, value){
-          for(var i=0, len=choices.length; i<len; i++) {
-            if (choices[i][0] == value){
-              value = choices[i][1]
-              break
-            }
-          }
-          return '<a href="http://google.com">' + value + '</a>'
+          var text = get_choice(choices, value)
+          return '<a href="http://google.com">' + text + '</a>'
         }, editor:{name:'select', choices:choices, placeholder:'Empty'}},
         {name:'name6', title:'F', tag:'progress', editor:'string'}
       ]
@@ -118,6 +128,7 @@
         // clickSelect:null,
         maxHeight:400,
         minHeight:200,
+        virtual:true,
 
         tree:true,
         expanded:false,

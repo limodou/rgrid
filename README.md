@@ -70,8 +70,8 @@ The features list which already be implemented or will be implemented：
 - [X] Custom column tag
 - [ ] Column could be visible toggled dynamically
 - [ ] Resize width and height of grid
-- [ ] Context menu
-- [ ] Cell editor
+- [X] Context menu
+- [X] Cell editor
 
 ## Examples
 

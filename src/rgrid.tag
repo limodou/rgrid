@@ -97,8 +97,9 @@
     })
   }
 
-  this.onbeforepage = function () {
+  this.onbeforepage = function (page) {
     self.table.show_loading(true)
+    self.start = (page - 1) * self.limit
   }
 
   this.rtable_options = {
@@ -129,6 +130,7 @@
     treeField: opts.treeField,
     hasChildrenField: opts.hasChildrenField,
     virtual: opts.virtual,
+    contextMenu: opts.contextMenu,
     onDblclick: opts.onDblclick,
     onClick: opts.onClick,
     onMove: opts.onMove,
@@ -146,11 +148,11 @@
     remoteSort: opts.remoteSort
   }
 
-  this.onpagechanged = function (page) {
+  <!-- this.onpagechanged = function (page) {
     self.start = (page - 1) * self.limit
     self.update()
   }
-
+ -->
   this.on('mount', function(){
     var item, items
     var tools = this.left_tools.concat(this.right_tools).concat([this.footer_tools])

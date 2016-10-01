@@ -16,17 +16,17 @@
     <script src="../dist/rtable.js"></script>
     <script>
       var cols = [
-        {name:'name1', title:'A/B', frozen:true},
-        {name:'name2', title:'A/C', frozen:true},
-        {name:'name3', title:'C/E/F'},
-        {name:'name4', title:'C/E/H'},
-        {name:'name5', title:'C/F/G'},
-        {name:'name6', title:'C/F/I'},
-        {name:'name7', title:'X%%X'},
-        {name:'name8', title:'Y'},
-        {name:'name9', title:'T/V'},
-        {name:'name10', title:'T/U'},
-        {name:'action', title:'ACTION', buttons:[
+        {name:'name1', title:'A/B', frozen:true, width:200},
+        {name:'name2', title:'A/C', frozen:true, width:200},
+        {name:'name3', title:'C/E/F', width:200},
+        {name:'name4', title:'C/E/H', width:200},
+        {name:'name5', title:'C/F/G', width:200},
+        {name:'name6', title:'C/F/I', width:200},
+        {name:'name7', title:'X%%X', width:200},
+        {name:'name8', title:'Y', width:200},
+        {name:'name9', title:'T/V', width:200},
+        {name:'name10', title:'T/U', width:200},
+        {name:'action', title:'ACTION', width:200, buttons:[
           {
             label:'Edit',
             onclick:function (row) {
@@ -35,7 +35,7 @@
           }
         ]}
       ]
-      var data = [], size=10000, c=10, d
+      var data = [], size=10, c=10, d
       for(var i=0; i<size; i++) {
         d = {id:i+1}
         for(var j=0; j<c; j++){
@@ -43,9 +43,7 @@
         }
         data.push(d)
       }
-      riot.mount('rtable#ex01', {cols:cols, data:data, height:400,
-        virtual:true,
-        rowHeight:24, indexCol:true, checkCol:true})
+      riot.mount('rtable#ex01', {cols:cols, data:data, height:'auto', rowHeight:24, indexCol:true, checkCol:true})
 
 /*
       var cols = [
