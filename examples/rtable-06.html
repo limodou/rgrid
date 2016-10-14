@@ -164,6 +164,11 @@
           return true
         },
 
+        onEditable: function (row, col) {
+          if (row.id==7 || row.id==8) return false
+          return true
+        },
+
         onMove: function(from, to, position) {
           console.log('onmove', from, to, position)
           grid.move(from, to, position)
@@ -288,6 +293,8 @@
         }
       }
 
+      grid.set_notation(5, 'name1', {type:'error', title:'aaaaaa'})
+      grid.refresh()
 
     </script>
   </body>

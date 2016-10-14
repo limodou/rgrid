@@ -51,7 +51,7 @@
   ADD-options:
     combineCols(Optional): list of cols's name, the index of list means grouping-level
 */
-riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style="width:{width-1}px;height:{height-1+xscroll_fix}px"> <div class="rtable-header rtable-fixed" riot-style="width:{fix_width}px;height:{header_height}px"> <div each="{fix_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="rtable-raw" class="rtable-cell-text" value="{title}" riot-style="{sort?\'padding-right:22px\':\'\'}" title="{tooltip}"></div> <i if="{type==\'check\' && parent.multiSelect}" onclick="{checkall}" class="fa {parent.selected_rows.length>0 ? \'fa-check-square-o\' : \'fa-square-o\'}" riot-style="cursor:pointer;height:{headerRowHeight}px;line-height:{headerRowHeight}px"></i> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> <i if="{sort}" class="rtable-sort fa {get_sorted(name)}" title="{sort}" onclick="{sort_handler}" riot-style="height:{rowHeight}px;line-height:{rowHeight}px;right:4px;"> </i> </div> </div> <div class="rtable-header rtable-main" riot-style="width:{width-fix_width-yscroll_fix}px;right:0px;height:{header_height}px;left:{fix_width}px;"> <div each="{main_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="rtable-raw" class="rtable-cell-text" value="{title}" riot-style="{sort?\'padding-right:22px\':\'\'}" title="{tooltip}"></div> <i if="{type==\'check\' && parent.multiSelect}" onclick="{checkall}" class="fa {parent.selected_rows.length>0 ? \'fa-check-square-o\' : \'fa-square-o\'}" riot-style="cursor:pointer;height:{headerRowHeight}px;line-height:{headerRowHeight}px"></i> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> <i if="{sort}" class="rtable-sort fa {get_sorted(name)}" title="{sort}" onclick="{sort_handler}" riot-style="height:{rowHeight}px;line-height:{rowHeight}px;right:4px;"> </i> </div> </div> <div class="rtable-body rtable-fixed" riot-style="width:{fix_width}px;bottom:0;padding-bottom:{xscroll_fix}px;top:{header_height}px;height:{height-header_height}px;"> <div class="rtable-content" riot-style="width:{fix_width}px;height:{rows.length*rowHeight}px;"> <div each="{row in visCells.fixed}" no-reorder class="{get_row_class(row.row, row.line)}"> <div if="{col.height!=0 && col.width!=0}" each="{col in row.cols}" no-reorder class="{get_cell_class(col)}" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};"> <div data-is="rtable-cell" if="{col.type!=\'check\' && !col.buttons}" tag="{col.tag}" value="{col.__value__}" row="{col.row}" col="{col}" riot-style="{col.indentWidth}" title="{col.tooltip}"></div> <span if="{col.expander}" data-is="rtable-raw" content="{col.expander}" class="rtable-expander" riot-style="left:{col.indent-12}px;" onclick="{toggle_expand}"></span> <i if="{col.type==\'check\' && onCheckable(col.row)}" onclick="{checkcol}" class="fa {is_selected(col.row)?\'fa-check-square-o\':\'fa-square-o\'}" riot-style="cursor:pointer;height:{rowHeight}px;line-height:{rowHeight}px"></i> </div> </div> </div> </div> <div class="rtable-body rtable-main" riot-style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+(browser.ie?yscroll_fix:0)}px;height:{height-header_height+(browser.ie?2*xscroll_fix:xscroll_fix)}px;"> <div class="rtable-content" riot-style="width:{main_width}px;height:{rows.length*rowHeight}px;"> <div each="{row in visCells.main}" no-reorder class="{get_row_class(row.row, row.line)}"> <div if="{col.height!=0 && col.width!=0}" each="{col in row.cols}" no-reorder class="{get_cell_class(col)}" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};"> <div data-is="rtable-cell" if="{col.type!=\'check\' && !col.buttons}" tag="{col.tag}" value="{col.__value__}" row="{col.row}" col="{col}" riot-style="{col.indentWidth}" title="{col.tooltip}"></div> <span if="{col.expander}" data-is="rtable-raw" value="{col.expander}" class="rtable-expander" riot-style="left:{col.indent-12}px;" onclick="{toggle_expand}"></span> <i if="{col.type==\'check\' && onCheckable(col.row)}" onclick="{checkcol}" class="fa {is_selected(col.row)?\'fa-check-square-o\':\'fa-square-o\'}" riot-style="cursor:pointer;height:{rowHeight}px;line-height:{rowHeight}px"></i> <virtual if="{col.buttons}" no-reorder each="{btn in col.buttons}"> <i if="{btn.icon}" class="fa fa-{btn.icon} action" title="{btn.title}" onclick="{parent.parent.action_click(parent.col, btn)}"></i> <a if="{btn.label}" class="action" title="{btn.title}" href="{btn.href || \'#\'}" onclick="{parent.parent.action_click(parent.col, btn)}">{btn.label}</a> </virtual> </div> </div> </div> </div> <div if="{rows.length==0 && noData}" data-is="rtable-raw" value="{noData}" class="rtable-nodata" riot-style="top:{height/2-header_height/2+rowHeight/2}px;"></div> <div riot-style="display:none;top:{height/2-header_height/2+rowHeight/2}px" class="rtable-loading"></div> </div> </div>', 'rtable .action,[riot-tag="rtable"] .action,[data-is="rtable"] .action{cursor:pointer;} rtable .rtable-root,[riot-tag="rtable"] .rtable-root,[data-is="rtable"] .rtable-root{ position:relative; border: 1px solid gray; overflow:hidden; } rtable .rtable-header,[riot-tag="rtable"] .rtable-header,[data-is="rtable"] .rtable-header{ position:absolute; box-sizing: border-box; } rtable .rtable-header.rtable-fixed,[riot-tag="rtable"] .rtable-header.rtable-fixed,[data-is="rtable"] .rtable-header.rtable-fixed{ left:0; top:0; } rtable .rtable-header.rtable-main,[riot-tag="rtable"] .rtable-header.rtable-main,[data-is="rtable"] .rtable-header.rtable-main{ top:0; overflow:hidden; } rtable .rtable-content,[riot-tag="rtable"] .rtable-content,[data-is="rtable"] .rtable-content{ overflow: hidden; } rtable .rtable-cell,[riot-tag="rtable"] .rtable-cell,[data-is="rtable"] .rtable-cell{ position:absolute; box-sizing: border-box; border-right:1px solid gray; border-bottom:1px solid gray; background-color: white; white-space: nowrap; text-overflow: ellipsis; } rtable .rtable-cell-text-wrapper,[riot-tag="rtable"] .rtable-cell-text-wrapper,[data-is="rtable"] .rtable-cell-text-wrapper{ height: 100%; } rtable .rtable-cell-text,[riot-tag="rtable"] .rtable-cell-text,[data-is="rtable"] .rtable-cell-text{ position:relative; padding-left:4px; padding-right:4px; height: 100%; } rtable .rtable-cell-text,[riot-tag="rtable"] .rtable-cell-text,[data-is="rtable"] .rtable-cell-text,rtable .rtable-cell-text>*,[riot-tag="rtable"] .rtable-cell-text>*,[data-is="rtable"] .rtable-cell-text>*{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } rtable .rtable-cell > .rtable-resizer,[riot-tag="rtable"] .rtable-cell > .rtable-resizer,[data-is="rtable"] .rtable-cell > .rtable-resizer{ width:4px; position:absolute; height:100%; cursor: col-resize; top:0px; right:0px; } rtable .rtable-cell .rtable-sort,[riot-tag="rtable"] .rtable-cell .rtable-sort,[data-is="rtable"] .rtable-cell .rtable-sort{ position: absolute; right: 2px; top:0px; z-index: 102; cursor: pointer; opacity: 0.3; } rtable .rtable-cell .rtable-sort.fa-sort-desc,[riot-tag="rtable"] .rtable-cell .rtable-sort.fa-sort-desc,[data-is="rtable"] .rtable-cell .rtable-sort.fa-sort-desc,rtable .rtable-cell .rtable-sort.fa-sort-asc,[riot-tag="rtable"] .rtable-cell .rtable-sort.fa-sort-asc,[data-is="rtable"] .rtable-cell .rtable-sort.fa-sort-asc{ opacity: 1; } rtable .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-header .rtable-cell,[data-is="rtable"] .rtable-header .rtable-cell{ text-align:center; vertical-align: middle; } rtable .rtable-body,[riot-tag="rtable"] .rtable-body,[data-is="rtable"] .rtable-body{ position:absolute; box-sizing: border-box; } rtable .rtable-body.rtable-fixed,[riot-tag="rtable"] .rtable-body.rtable-fixed,[data-is="rtable"] .rtable-body.rtable-fixed{ left:0; overflow: hidden; } rtable .rtable-body.rtable-main,[riot-tag="rtable"] .rtable-body.rtable-main,[data-is="rtable"] .rtable-body.rtable-main{ overflow: auto; } rtable .rtable-nodata,[riot-tag="rtable"] .rtable-nodata,[data-is="rtable"] .rtable-nodata{ position:relative; margin: auto; height: 34px; text-align: center; color: #ccc; line-height: 34px; } rtable .rtable-loading,[riot-tag="rtable"] .rtable-loading,[data-is="rtable"] .rtable-loading{ position:relative;; margin: auto; height: 34px; text-align: center; color: black; line-height: 34px; border: 1px solid gray; width: 100px; background-color: antiquewhite; z-index: 9999; } rtable .rtable-expander,[riot-tag="rtable"] .rtable-expander,[data-is="rtable"] .rtable-expander{ position:absolute; top:0px; cursor:pointer; font-size:14px; } rtable .rtable-row.hover .rtable-cell,[riot-tag="rtable"] .rtable-row.hover .rtable-cell,[data-is="rtable"] .rtable-row.hover .rtable-cell{ background-color: #e1eff8; } rtable .rtable-row.selected.hover .rtable-cell,[riot-tag="rtable"] .rtable-row.selected.hover .rtable-cell,[data-is="rtable"] .rtable-row.selected.hover .rtable-cell{ background-color: #ffefd5; } rtable .rtable-row.selected .rtable-cell,[riot-tag="rtable"] .rtable-row.selected .rtable-cell,[data-is="rtable"] .rtable-row.selected .rtable-cell{ background-color:#ffefd5; } rtable .rtable-root.zebra .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.even .rtable-cell{ background-color: #f9f9f9; border-bottom:none; border-right:1px solid #ddd; } rtable .rtable-root.zebra .rtable-row.even.hover .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.even.hover .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.even.hover .rtable-cell{ background-color: #e1eff8; } rtable .rtable-root.zebra .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.odd .rtable-cell{ border-bottom:none; border-right:1px solid #ddd; } rtable .rtable-root.zebra .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.even.selected .rtable-cell{ background-color: #ffefd5; } rtable .rtable-root.zebra .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-header .rtable-cell{ background-color: #f2f2f2; } rtable .rtable-root.simple .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.even .rtable-cell{ } rtable .rtable-root.simple .rtable-row.even.hover .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.even.hover .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.even.hover .rtable-cell{ } rtable .rtable-root.simple .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.odd .rtable-cell{ } rtable .rtable-root.simple .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.even.selected .rtable-cell{ } rtable .rtable-root.simple .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-header .rtable-cell{ background-color: #f2f2f2; } rtable .rtable-root.table,[riot-tag="rtable"] .rtable-root.table,[data-is="rtable"] .rtable-root.table{ border: none; } rtable .rtable-root.table .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-row.even .rtable-cell{ } rtable .rtable-root.table .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-row.odd .rtable-cell{ } rtable .rtable-root.table .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-row.even.selected .rtable-cell{ background-color: #ffefd5; } rtable .rtable-root.table .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-header .rtable-cell{ } rtable .rtable-root.table .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-cell{ border-right:none; border-bottom:1px solid #ddd; } rtable .rtable-root.table .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-header .rtable-cell{ border-bottom: 2px solid #ddd; } rtable .rtable-root.table-striped,[riot-tag="rtable"] .rtable-root.table-striped,[data-is="rtable"] .rtable-root.table-striped{ border: none; } rtable .rtable-root.table-striped .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.even .rtable-cell{ background-color: #f9f9f9; border-bottom:none; } rtable .rtable-root.table-striped .rtable-row.even.hover .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.even.hover .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.even.hover .rtable-cell{ background-color: #e1eff8; } rtable .rtable-root.table-striped .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.odd .rtable-cell{ border-bottom:none; } rtable .rtable-root.table-striped .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.even.selected .rtable-cell{ } rtable .rtable-root.table-striped .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell{ } rtable .rtable-root.table-striped .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-cell{ border-right:none; border-bottom:1px solid #ddd; } rtable .rtable-root.table-striped .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell{ border-bottom: 2px solid #ddd; }', '', function(opts) {
+riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style="width:{width-1}px;height:{height-1+xscroll_fix}px"> <div class="rtable-header rtable-fixed" riot-style="width:{fix_width}px;height:{header_height}px"> <div each="{fix_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="rtable-raw" class="rtable-cell-text" value="{title}" riot-style="{sort?\'padding-right:22px\':\'\'}" title="{tooltip}"></div> <i if="{type==\'check\' && parent.multiSelect}" onclick="{checkall}" class="fa {parent.selected_rows.length>0 ? \'fa-check-square-o\' : \'fa-square-o\'}" riot-style="cursor:pointer;height:{headerRowHeight}px;line-height:{headerRowHeight}px"></i> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> <i if="{sort}" class="rtable-sort fa {get_sorted(name)}" title="{sort}" onclick="{sort_handler}" riot-style="height:{rowHeight}px;line-height:{rowHeight}px;right:4px;"> </i> </div> </div> <div class="rtable-header rtable-main" riot-style="width:{width-fix_width-yscroll_fix}px;right:0px;height:{header_height}px;left:{fix_width}px;"> <div each="{main_columns}" no-reorder class="{rtable-cell:true}" riot-style="width:{width}px;height:{height}px;left:{left}px;top:{top}px;line-height:{height}px;"> <div if="{type!=\'check\'}" data-is="rtable-raw" class="rtable-cell-text" value="{title}" riot-style="{sort?\'padding-right:22px\':\'\'}" title="{tooltip}"></div> <i if="{type==\'check\' && parent.multiSelect}" onclick="{checkall}" class="fa {parent.selected_rows.length>0 ? \'fa-check-square-o\' : \'fa-square-o\'}" riot-style="cursor:pointer;height:{headerRowHeight}px;line-height:{headerRowHeight}px"></i> <div if="{!fixed && leaf}" class="rtable-resizer" onmousedown="{colresize}"></div> <i if="{sort}" class="rtable-sort fa {get_sorted(name)}" title="{sort}" onclick="{sort_handler}" riot-style="height:{rowHeight}px;line-height:{rowHeight}px;right:4px;"> </i> </div> </div> <div class="rtable-body rtable-fixed" riot-style="width:{fix_width}px;bottom:0;padding-bottom:{xscroll_fix}px;top:{header_height}px;height:{height-header_height}px;"> <div class="rtable-content" riot-style="width:{fix_width}px;height:{rows.length*rowHeight}px;"> <div each="{row in visCells.fixed}" no-reorder class="{get_row_class(row.row, row.line)}"> <div if="{col.height!=0 && col.width!=0}" each="{col in row.cols}" no-reorder class="{get_cell_class(col)}" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};"> <div data-is="rtable-cell" if="{col.type!=\'check\' && !col.buttons}" tag="{col.tag}" value="{col.__value__}" row="{col.row}" col="{col}" riot-style="{col.indentWidth}" title="{col.tooltip}"></div> <span if="{col.expander}" data-is="rtable-raw" content="{col.expander}" class="rtable-expander" riot-style="left:{col.indent-12}px;" onclick="{toggle_expand}"></span> <i if="{col.type==\'check\' && onCheckable(col.row)}" onclick="{checkcol}" class="fa {is_selected(col.row)?\'fa-check-square-o\':\'fa-square-o\'}" riot-style="cursor:pointer;height:{rowHeight}px;line-height:{rowHeight}px"></i> <span if="{col.notation}" class="rtable-notation {col.notation.type}" title="{col.notation.title}"></span> </div> </div> </div> </div> <div class="rtable-body rtable-main" riot-style="left:{fix_width}px;top:{header_height}px;bottom:0px;right:0px;width:{width-fix_width+(browser.ie?yscroll_fix:0)}px;height:{height-header_height+(browser.ie?2*xscroll_fix:xscroll_fix)}px;"> <div class="rtable-content" riot-style="width:{main_width}px;height:{rows.length*rowHeight}px;"> <div each="{row in visCells.main}" no-reorder class="{get_row_class(row.row, row.line)}"> <div if="{col.height!=0 && col.width!=0}" each="{col in row.cols}" no-reorder class="{get_cell_class(col)}" riot-style="width:{col.width}px;height:{col.height}px;left:{col.left}px;top:{col.top}px;line-height:{col.height}px;text-align:{col.align};"> <div data-is="rtable-cell" if="{col.type!=\'check\' && !col.buttons}" tag="{col.tag}" value="{col.__value__}" row="{col.row}" col="{col}" riot-style="{col.indentWidth}" title="{col.tooltip}"></div> <span if="{col.expander}" data-is="rtable-raw" value="{col.expander}" class="rtable-expander" riot-style="left:{col.indent-12}px;" onclick="{toggle_expand}"></span> <i if="{col.type==\'check\' && onCheckable(col.row)}" onclick="{checkcol}" class="fa {is_selected(col.row)?\'fa-check-square-o\':\'fa-square-o\'}" riot-style="cursor:pointer;height:{rowHeight}px;line-height:{rowHeight}px"></i> <virtual if="{col.buttons}" no-reorder each="{btn in col.buttons}"> <i if="{btn.icon}" class="fa fa-{btn.icon} action" title="{btn.title}" onclick="{parent.parent.action_click(parent.col, btn)}"></i> <a if="{btn.label}" class="action" title="{btn.title}" href="{btn.href || \'#\'}" onclick="{parent.parent.action_click(parent.col, btn)}">{btn.label}</a> </virtual> <span if="{col.notation}" class="rtable-notation {col.notation.type}" title="{col.notation.title}"></span> </div> </div> </div> </div> <div if="{rows.length==0 && noData}" data-is="rtable-raw" value="{noData}" class="rtable-nodata" riot-style="top:{height/2-header_height/2+rowHeight/2}px;"></div> <div riot-style="display:none;top:{height/2-header_height/2+rowHeight/2}px" class="rtable-loading"></div> </div> </div>', 'rtable .action,[riot-tag="rtable"] .action,[data-is="rtable"] .action{cursor:pointer;} rtable .rtable-root,[riot-tag="rtable"] .rtable-root,[data-is="rtable"] .rtable-root{ position:relative; border: 1px solid gray; overflow:hidden; } rtable .rtable-header,[riot-tag="rtable"] .rtable-header,[data-is="rtable"] .rtable-header{ position:absolute; box-sizing: border-box; } rtable .rtable-header.rtable-fixed,[riot-tag="rtable"] .rtable-header.rtable-fixed,[data-is="rtable"] .rtable-header.rtable-fixed{ left:0; top:0; } rtable .rtable-header.rtable-main,[riot-tag="rtable"] .rtable-header.rtable-main,[data-is="rtable"] .rtable-header.rtable-main{ top:0; overflow:hidden; } rtable .rtable-content,[riot-tag="rtable"] .rtable-content,[data-is="rtable"] .rtable-content{ overflow: hidden; } rtable .rtable-cell,[riot-tag="rtable"] .rtable-cell,[data-is="rtable"] .rtable-cell{ position:absolute; box-sizing: border-box; border-right:1px solid gray; border-bottom:1px solid gray; background-color: white; white-space: nowrap; text-overflow: ellipsis; } rtable .rtable-cell-text-wrapper,[riot-tag="rtable"] .rtable-cell-text-wrapper,[data-is="rtable"] .rtable-cell-text-wrapper{ height: 100%; } rtable .rtable-cell-text,[riot-tag="rtable"] .rtable-cell-text,[data-is="rtable"] .rtable-cell-text{ position:relative; padding-left:4px; padding-right:4px; height: 100%; } rtable .rtable-cell-text,[riot-tag="rtable"] .rtable-cell-text,[data-is="rtable"] .rtable-cell-text,rtable .rtable-cell-text>*,[riot-tag="rtable"] .rtable-cell-text>*,[data-is="rtable"] .rtable-cell-text>*{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } rtable .rtable-cell > .rtable-resizer,[riot-tag="rtable"] .rtable-cell > .rtable-resizer,[data-is="rtable"] .rtable-cell > .rtable-resizer{ width:4px; position:absolute; height:100%; cursor: col-resize; top:0px; right:0px; } rtable .rtable-cell .rtable-sort,[riot-tag="rtable"] .rtable-cell .rtable-sort,[data-is="rtable"] .rtable-cell .rtable-sort{ position: absolute; right: 2px; top:0px; z-index: 102; cursor: pointer; opacity: 0.3; } rtable .rtable-cell .rtable-sort.fa-sort-desc,[riot-tag="rtable"] .rtable-cell .rtable-sort.fa-sort-desc,[data-is="rtable"] .rtable-cell .rtable-sort.fa-sort-desc,rtable .rtable-cell .rtable-sort.fa-sort-asc,[riot-tag="rtable"] .rtable-cell .rtable-sort.fa-sort-asc,[data-is="rtable"] .rtable-cell .rtable-sort.fa-sort-asc{ opacity: 1; } rtable .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-header .rtable-cell,[data-is="rtable"] .rtable-header .rtable-cell{ text-align:center; vertical-align: middle; } rtable .rtable-body,[riot-tag="rtable"] .rtable-body,[data-is="rtable"] .rtable-body{ position:absolute; box-sizing: border-box; } rtable .rtable-body.rtable-fixed,[riot-tag="rtable"] .rtable-body.rtable-fixed,[data-is="rtable"] .rtable-body.rtable-fixed{ left:0; overflow: hidden; } rtable .rtable-body.rtable-main,[riot-tag="rtable"] .rtable-body.rtable-main,[data-is="rtable"] .rtable-body.rtable-main{ overflow: auto; } rtable .rtable-nodata,[riot-tag="rtable"] .rtable-nodata,[data-is="rtable"] .rtable-nodata{ position:relative; margin: auto; height: 34px; text-align: center; color: #ccc; line-height: 34px; } rtable .rtable-loading,[riot-tag="rtable"] .rtable-loading,[data-is="rtable"] .rtable-loading{ position:relative;; margin: auto; height: 34px; text-align: center; color: black; line-height: 34px; border: 1px solid gray; width: 100px; background-color: antiquewhite; z-index: 9999; } rtable .rtable-expander,[riot-tag="rtable"] .rtable-expander,[data-is="rtable"] .rtable-expander{ position:absolute; top:0px; cursor:pointer; font-size:14px; } rtable .rtable-row.hover .rtable-cell,[riot-tag="rtable"] .rtable-row.hover .rtable-cell,[data-is="rtable"] .rtable-row.hover .rtable-cell{ background-color: #e1eff8; } rtable .rtable-row.selected.hover .rtable-cell,[riot-tag="rtable"] .rtable-row.selected.hover .rtable-cell,[data-is="rtable"] .rtable-row.selected.hover .rtable-cell{ background-color: #ffefd5; } rtable .rtable-row.selected .rtable-cell,[riot-tag="rtable"] .rtable-row.selected .rtable-cell,[data-is="rtable"] .rtable-row.selected .rtable-cell{ background-color:#ffefd5; } rtable .rtable-root.zebra .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.even .rtable-cell{ background-color: #f9f9f9; border-bottom:none; border-right:1px solid #ddd; } rtable .rtable-root.zebra .rtable-row.even.hover .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.even.hover .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.even.hover .rtable-cell{ background-color: #e1eff8; } rtable .rtable-root.zebra .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.odd .rtable-cell{ border-bottom:none; border-right:1px solid #ddd; } rtable .rtable-root.zebra .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-row.even.selected .rtable-cell{ background-color: #ffefd5; } rtable .rtable-root.zebra .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.zebra .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.zebra .rtable-header .rtable-cell{ background-color: #f2f2f2; } rtable .rtable-root.simple .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.even .rtable-cell{ } rtable .rtable-root.simple .rtable-row.even.hover .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.even.hover .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.even.hover .rtable-cell{ } rtable .rtable-root.simple .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.odd .rtable-cell{ } rtable .rtable-root.simple .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-row.even.selected .rtable-cell{ } rtable .rtable-root.simple .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.simple .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.simple .rtable-header .rtable-cell{ background-color: #f2f2f2; } rtable .rtable-root.table,[riot-tag="rtable"] .rtable-root.table,[data-is="rtable"] .rtable-root.table{ border: none; } rtable .rtable-root.table .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-row.even .rtable-cell{ } rtable .rtable-root.table .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-row.odd .rtable-cell{ } rtable .rtable-root.table .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-row.even.selected .rtable-cell{ background-color: #ffefd5; } rtable .rtable-root.table .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-header .rtable-cell{ } rtable .rtable-root.table .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-cell{ border-right:none; border-bottom:1px solid #ddd; } rtable .rtable-root.table .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table .rtable-header .rtable-cell{ border-bottom: 2px solid #ddd; } rtable .rtable-root.table-striped,[riot-tag="rtable"] .rtable-root.table-striped,[data-is="rtable"] .rtable-root.table-striped{ border: none; } rtable .rtable-root.table-striped .rtable-row.even .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.even .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.even .rtable-cell{ background-color: #f9f9f9; border-bottom:none; } rtable .rtable-root.table-striped .rtable-row.even.hover .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.even.hover .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.even.hover .rtable-cell{ background-color: #e1eff8; } rtable .rtable-root.table-striped .rtable-row.odd .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.odd .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.odd .rtable-cell{ border-bottom:none; } rtable .rtable-root.table-striped .rtable-row.even.selected .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-row.even.selected .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-row.even.selected .rtable-cell{ } rtable .rtable-root.table-striped .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell{ } rtable .rtable-root.table-striped .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-cell{ border-right:none; border-bottom:1px solid #ddd; } rtable .rtable-root.table-striped .rtable-header .rtable-cell,[riot-tag="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell,[data-is="rtable"] .rtable-root.table-striped .rtable-header .rtable-cell{ border-bottom: 2px solid #ddd; } rtable .rtable-notation,[riot-tag="rtable"] .rtable-notation,[data-is="rtable"] .rtable-notation{ border: 6px solid; border-color: transparent transparent transparent transparent; width: 0px; height: 0px; position: absolute; top: 0px; right: -5px; } rtable .rtable-notation.error,[riot-tag="rtable"] .rtable-notation.error,[data-is="rtable"] .rtable-notation.error{ border-color: #b94a48 #b94a48 transparent transparent; } rtable .rtable-notation.warning,[riot-tag="rtable"] .rtable-notation.warning,[data-is="rtable"] .rtable-notation.warning{ border-color: #f89406 #f89406 transparent transparent; } rtable .rtable-notation.success,[riot-tag="rtable"] .rtable-notation.success,[data-is="rtable"] .rtable-notation.success{ border-color: #468847 #468847 transparent transparent; } rtable .rtable-notation.info,[riot-tag="rtable"] .rtable-notation.info,[data-is="rtable"] .rtable-notation.info{ border-color: #3a87ad #3a87ad transparent transparent; }', '', function(opts) {
 
   var self = this
   this.observable = opts.observable
@@ -68,6 +68,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   this.cols = opts.cols.slice()
   this.combineCols = opts.combineCols || []
   this.headerRowHeight = opts.headerRowHeight || 34
+  this.height = opts.height || 'auto'
   this.rowHeight = opts.rowHeight || 34
   this.indexColWidth = opts.indexColWidth || 40
   this.indexColFrozen = opts.indexColFrozen || false
@@ -75,7 +76,6 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   this.checkColFrozen = opts.checkColFrozen || false
   this.multiSelect = opts.multiSelect || false
   this.visCells = []
-  this.selected_rows = []
   this.sort_cols = []
   this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
@@ -88,6 +88,8 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   this.contextMenu = opts.contextMenu || []
   this.virtual = opts.virtual || false
 
+  this.minColWidth = opts.minColWidth || 100
+
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
   this.onRowClass = opts.onRowClass || function(){}
@@ -98,6 +100,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   this.onDeselected = opts.onDeselected || function(){}
   this.onLoadData = opts.onLoadData || function(parent){}
   this.onCheckable = opts.onCheckable || function(row){return true}
+  this.onEditable = opts.onEditable || function(row, col){return self.editable}
 
   this.tree = opts.tree
   this.showIcon = opts.showIcon === undefined ? true : opts.showIcon
@@ -110,8 +113,6 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   }
   this.iconInden = 16
   this.expanded = opts.expanded === undefined ? false: opts.expanded
-  this.parents_expand_status = {}
-  this.loaded_status = {}
   this.idField = opts.idField || 'id'
   this.parentField = opts.parentField || 'parent'
   this.orderField = opts.orderField || 'order'
@@ -119,6 +120,11 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   this.hasChildrenField = opts.hasChildrenField || 'has_children'
   this.indentWidth = 16
   this.colspanValue = opts.colspanValue || '--'
+
+  this.selected_rows = []
+  this.parents_expand_status = {}
+  this.loaded_status = {}
+  this.notations = {}
 
   var _opts = {tree:opts.tree, idField:this.idField, parentField:this.parentField,
     levelField:this.levelField, orderField:this.orderField, hasChildrenField:this.hasChildrenField}
@@ -154,6 +160,13 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
 
   }
 
+  this.load_clear = function() {
+    self.selected_rows = []
+    self.parents_expand_status = {}
+    self.loaded_status = {}
+    self.notations = {}
+  }
+
   this.bind = function () {
 
     self._data.on('*', function(r, d){
@@ -167,8 +180,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
       }
       if (r == 'loading') {
         self.show_loading(true)
-        self.parents_expand_status = {}
-        self.loaded_status = {}
+        self.load_clear()
         return
       } else if (r == 'load'){
         self.show_loading(false)
@@ -460,6 +472,8 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
       e.preventDefault()
       if (opts.editable) {
         if (!col.editor) return
+
+        if (!self.onEditable(col.row, col)) return
         e.preventUpdate = true
         document.selection && document.selection.empty && ( document.selection.empty(), 1)
         || window.getSelection && window.getSelection().removeAllRanges();
@@ -734,7 +748,15 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
 
     if (cal_cols.length > 0) {
       var w = this.width-width-this.yscroll_fix
-      var dw = Math.floor(w/cal_cols.length)
+      var dw, lw
+      lw = this.minColWidth*cal_cols.length
+
+      if (w >= lw) {
+        dw = Math.floor(w/cal_cols.length)
+      } else {
+        dw = this.minColWidth
+        w = lw
+      }
       for(var i=0, len=cal_cols.length; i<len; i++) {
         cal_cols[i].width = dw
         if (i == cal_cols.length - 1)
@@ -853,6 +875,8 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
       last = this.rows.length
     }
 
+    var b = new Date().getTime()
+
     len = last - first
     vis_rows = []
     vis_fixed_rows = []
@@ -920,7 +944,8 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
           class:col.class,
           tag:col.tag,
           editor:col.editor,
-          name:col.name
+          name:col.name,
+          notation:this.get_col_notation(row, col)
         }
 
         last_colspan = d
@@ -993,6 +1018,17 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
     }
   }
 
+  this.get_col_notation = function(row, col) {
+    var key = row.id + ':' + col.name
+    return this.notations[key] || null
+  }
+
+  this.set_notation = function(row, field, notation) {
+    var id = this.getId(row)
+    var key = id + ':' + field
+    this.notations[key] = notation
+  }
+
   this.get_sorted = function(name) {
     var col
 
@@ -1033,7 +1069,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
       for(id in self.parents_expand_status) {
         self.parents_expand_status[id] = expanded
         if (expanded)
-          self.load_node(row)
+          self.load_node(self._data.get(id))
       }
     } else {
       if (Array.isArray(row)) {
@@ -1042,14 +1078,14 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
           if (self.parents_expand_status.hasOwnProperty(id))
             self.parents_expand_status[id] = expanded
             if (expanded)
-              self.load_node(row)
+              self.load_node(self._data.get(id))
         }
       } else {
         id = self.getId(row)
         if (self.parents_expand_status.hasOwnProperty(id))
           self.parents_expand_status[id] = expanded
           if (expanded)
-            self.load_node(row)
+            self.load_node(self._data.get(id))
       }
     }
 
@@ -1244,7 +1280,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
       }
       for(var i=selected_rows.length-1; i>-1; i--){
         row = selected_rows[i]
-        if (!self.onCheckable(row)) return
+        if (!self.onCheckable(this._data.get(row))) return
         index = items.indexOf(row)
         if (index != -1){
           selected_rows.splice(i, 1)
@@ -1317,6 +1353,7 @@ riot.tag2('rtable', '<yield></yield> <div class="rtable-root {theme}" riot-style
   this.root.diff = data_proxy('diff')
   this.root.save = data_proxy('save')
   this.root.refresh = proxy('update')
+  this.root.set_notation = proxy('set_notation')
 
   this.root.setData = function(dataset){
     self._data = dataset

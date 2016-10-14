@@ -164,15 +164,30 @@ var select2_editor = function (parent, row, col) {
       choices = [[value, value]]
     }
   } else {
-    value = [col.value]
-    choices = [[col.value, col.value]]
+    if (value_from) {
+      if (col.row[value_from] instanceof Object){
+        value = col.row[value_from]['value']
+        choices = [[col.row[value_from]['value'], col.row[value_from]['text']]]
+      } else {
+        value = col.row[value_from]['value']
+        choices = [[value, col.value]]
+      }
+    } else {
+      value = [col.value]
+      choices = [[col.value, col.value]]
+    }
   }
-  var choices = col.editor.choices ? col.editor.choices : choices
+  var choices = col.editor.choices ? col.editor.choices : choices, selected
   if (col.editor.placeholder)
     tmpl.push('<option value="">'+col.editor.placeholder+'</option>')
   for(var i=0, len=choices.length; i<len; i++) {
     item = {value:value, option_value:choices[i][0], option_text:choices[i][1]}
-    tmpl.push(riot.util.tmpl('<option {value.indexOf(option_value)>-1?"selected":""} value={option_value}>{option_text}</option>', item))
+    if (Array.isArray(value))
+      item['selected'] = value.indexOf(item['option_value']) > -1
+    else {
+      item['selected'] = value == item['option_value']
+    }
+    tmpl.push(riot.util.tmpl('<option {selected?"selected":""} value={option_value}>{option_text}</option>', item))
   }
   tmpl.push('</select>')
   var input = $(tmpl.join(''))

@@ -258,7 +258,31 @@
       border-bottom: 2px solid #ddd;
     }
 
+    .rtable-notation{
+        border: 6px solid;
+        border-color: transparent transparent transparent transparent;
+        width: 0px;
+        height: 0px;
+        position: absolute;
+        top: 0px;
+        right: -5px;
+    }
 
+    .rtable-notation.error{
+        border-color: #b94a48 #b94a48 transparent transparent;
+    }
+
+    .rtable-notation.warning{
+        border-color: #f89406 #f89406 transparent transparent;
+    }
+
+    .rtable-notation.success{
+        border-color: #468847 #468847 transparent transparent;
+    }
+
+    .rtable-notation.info{
+        border-color: #3a87ad #3a87ad transparent transparent;
+    }
   </style>
 
   <yield/>
@@ -330,6 +354,10 @@
               style="cursor:pointer;height:{rowHeight}px;line-height:{rowHeight}px"></i>
             <!-- <input if={col.type=='check' && !useFontAwesome} type="checkbox" onclick={checkcol} checked={console.log(is_selected(col.row)) || is_selected(col.row)}
               class="rtable-check" style="margin-top:{rowHeight/2-7}px"></input> -->
+
+            <!-- notation -->
+            <span if={col.notation} class="rtable-notation {col.notation.type}" title={col.notation.title}></span>
+
           </div>
         </div>
       </div>
@@ -365,6 +393,10 @@
                   href={ btn.href || '#' }
                   onclick={parent.parent.action_click(parent.col, btn)}>{ btn.label }</a>
               </virtual>
+
+              <!-- notation -->
+              <span if={col.notation} class="rtable-notation {col.notation.type}" title={col.notation.title}></span>
+
             </div>
           </div>
         </div>
@@ -394,6 +426,7 @@
   this.cols = opts.cols.slice()
   this.combineCols = opts.combineCols || []
   this.headerRowHeight = opts.headerRowHeight || 34
+  this.height = opts.height || 'auto'
   this.rowHeight = opts.rowHeight || 34
   this.indexColWidth = opts.indexColWidth || 40
   this.indexColFrozen = opts.indexColFrozen || false
@@ -401,7 +434,6 @@
   this.checkColFrozen = opts.checkColFrozen || false
   this.multiSelect = opts.multiSelect || false
   this.visCells = []
-  this.selected_rows = []
   this.sort_cols = []
   this.clickSelect = opts.clickSelect === undefined ? 'row' : opts.clickSelect
   this.noData = opts.noData || 'No Data'
@@ -413,6 +445,9 @@
   this.minColWidth = opts.minColWidth || 5
   this.contextMenu = opts.contextMenu || []
   this.virtual = opts.virtual || false
+  //最小列宽度，当未给出列宽度时，如果剩余宽度>无宽度列数*最小列宽度时，平均分配剩余宽度，否则
+  //每列宽度为最小宽度
+  this.minColWidth = opts.minColWidth || 100
 
   this.onUpdate = opts.onUpdate || function(){}
   this.onSort = opts.onSort || function(){}
@@ -424,6 +459,7 @@
   this.onDeselected = opts.onDeselected || function(){}
   this.onLoadData = opts.onLoadData || function(parent){}
   this.onCheckable = opts.onCheckable || function(row){return true} //是否显示checkbox
+  this.onEditable = opts.onEditable || function(row, col){return self.editable} //是否允许单元格编辑
 
   //tree options
   this.tree = opts.tree
@@ -437,8 +473,6 @@
   }
   this.iconInden = 16
   this.expanded = opts.expanded === undefined ? false: opts.expanded
-  this.parents_expand_status = {}
-  this.loaded_status = {} //remember node loaded status
   this.idField = opts.idField || 'id'
   this.parentField = opts.parentField || 'parent'
   this.orderField = opts.orderField || 'order'
@@ -446,6 +480,12 @@
   this.hasChildrenField = opts.hasChildrenField || 'has_children'
   this.indentWidth = 16
   this.colspanValue = opts.colspanValue || '--'
+
+  //中间状态数据
+  this.selected_rows = [] //选中状态
+  this.parents_expand_status = {} //父结点展开状态
+  this.loaded_status = {} //结点装入状态
+  this.notations = {} //数据单元格指示器保存
 
   var _opts = {tree:opts.tree, idField:this.idField, parentField:this.parentField,
     levelField:this.levelField, orderField:this.orderField, hasChildrenField:this.hasChildrenField}
@@ -481,6 +521,14 @@
     <!-- this.update() -->
   }
 
+  //装入前清理
+  this.load_clear = function() {
+    self.selected_rows = [] //选中状态
+    self.parents_expand_status = {} //父结点展开状态
+    self.loaded_status = {} //结点装入状态
+    self.notations = {} //数据单元格指示器保存
+  }
+
   this.bind = function () {
     // 绑定事件
     self._data.on('*', function(r, d){
@@ -494,8 +542,7 @@
       }
       if (r == 'loading') {
         self.show_loading(true)
-        self.parents_expand_status = {}
-        self.loaded_status = {} //remember node loaded status
+        self.load_clear() //清理中间状态数据
         return //不更新界面
       } else if (r == 'load'){
         self.show_loading(false)
@@ -799,6 +846,8 @@
       e.preventDefault()
       if (opts.editable) {
         if (!col.editor) return
+        //判断单元格是否可以编辑
+        if (!self.onEditable(col.row, col)) return
         e.preventUpdate = true
         document.selection && document.selection.empty && ( document.selection.empty(), 1)
         || window.getSelection && window.getSelection().removeAllRanges();
@@ -1095,7 +1144,15 @@
     //计算无width的列
     if (cal_cols.length > 0) {
       var w = this.width-width-this.yscroll_fix
-      var dw = Math.floor(w/cal_cols.length)
+      var dw, lw
+      lw = this.minColWidth*cal_cols.length
+      //剩余宽度大小剩余列总宽度，则平分
+      if (w >= lw) {
+        dw = Math.floor(w/cal_cols.length)
+      } else {
+        dw = this.minColWidth
+        w = lw
+      }
       for(var i=0, len=cal_cols.length; i<len; i++) {
         cal_cols[i].width = dw
         if (i == cal_cols.length - 1)
@@ -1224,6 +1281,8 @@
       last = this.rows.length
     }
 
+    var b = new Date().getTime()
+
     len = last - first
     vis_rows = []
     vis_fixed_rows = []
@@ -1294,7 +1353,8 @@
           class:col.class,
           tag:col.tag,
           editor:col.editor,
-          name:col.name
+          name:col.name,
+          notation:this.get_col_notation(row, col)
         }
 
         //记录上一次的colspan单元格
@@ -1375,6 +1435,20 @@
     }
   }
 
+  this.get_col_notation = function(row, col) {
+    var key = row.id + ':' + col.name
+    return this.notations[key] || null
+  }
+
+  /* notation value should be
+   * {type:error|warning|success|info, title:'infomation'}
+   */
+  this.set_notation = function(row, field, notation) {
+    var id = this.getId(row)
+    var key = id + ':' + field
+    this.notations[key] = notation
+  }
+
   this.get_sorted = function(name) {
     var col
 
@@ -1415,7 +1489,7 @@
       for(id in self.parents_expand_status) {
         self.parents_expand_status[id] = expanded
         if (expanded)
-          self.load_node(row)
+          self.load_node(self._data.get(id))
       }
     } else {
       if (Array.isArray(row)) {
@@ -1424,14 +1498,14 @@
           if (self.parents_expand_status.hasOwnProperty(id))
             self.parents_expand_status[id] = expanded
             if (expanded)
-              self.load_node(row)
+              self.load_node(self._data.get(id))
         }
       } else {
         id = self.getId(row)
         if (self.parents_expand_status.hasOwnProperty(id))
           self.parents_expand_status[id] = expanded
           if (expanded)
-            self.load_node(row)
+            self.load_node(self._data.get(id))
       }
     }
     <!-- self.update() -->
@@ -1637,7 +1711,7 @@
       }
       for(var i=selected_rows.length-1; i>-1; i--){
         row = selected_rows[i]
-        if (!self.onCheckable(row)) return
+        if (!self.onCheckable(this._data.get(row))) return
         index = items.indexOf(row)
         if (index != -1){
           selected_rows.splice(i, 1)
@@ -1714,6 +1788,7 @@
   this.root.diff = data_proxy('diff')
   this.root.save = data_proxy('save')
   this.root.refresh = proxy('update')
+  this.root.set_notation = proxy('set_notation')
 
   <!-- this.root.load = function(newrows){
     self._data.clear()

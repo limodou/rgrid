@@ -26,10 +26,7 @@
   <!-- footer 按钮 -->
   <div class="clearfix tools">
     <pagination if={pagination} data={data} url={url} page={page} total={total} observable={observable}
-      limit={limit} onpagechanged={onpagechanged} onbeforepage={onbeforepage}></pagination>
-    <div if={footer_tools.length>0} class="pull-right {btn_group_class}">
-      <button each={btn in footer_tools} data-is="rgrid-button" btn={btn}></button>
-    </div>
+      limit={limit} onpagechanged={onpagechanged} onbeforepage={onbeforepage} buttons={footer_tools} theme={page_theme}></pagination>
   </div>
 
   /*
@@ -53,7 +50,9 @@
     this.data = new DataSet()
   this.cols = opts.cols
   this.url = opts.url
-  this.page = opts.page || 1
+  //解析url中的page参数
+  var query = new QueryString(this.url)
+  this.page = opts.page || parseInt(query.get('page')) || 1
   this.limit = opts.limit || 10
   this.total = opts.total || 0
   this.pagination = opts.pagination == undefined ? true : opts.pagination
@@ -70,6 +69,7 @@
   this.btn_group_class = opts.btn_group_class || 'btn-group btn-group-sm'
   this.onLoaded = opts.onLoaded
   this.autoLoad = opts.audoLoad || true
+  this.page_theme = opts.page_theme || 'simple'
 
   this.onsort = function (sorts) {
     var _url
@@ -98,6 +98,7 @@
   }
 
   this.onbeforepage = function (page) {
+    self.page = page
     self.table.show_loading(true)
     self.start = (page - 1) * self.limit
   }
@@ -142,6 +143,7 @@
     onLoadData: opts.onLoadData || this.onloaddata,
     onSort: opts.onSort || this.onsort,
     onCheckable: opts.onCheckable,
+    onEditable: opts.onEditable,
     colspanValue: opts.colspanValue,
     draggable: opts.draggable,
     editable: opts.editable,
@@ -176,7 +178,7 @@
               if (btn.checkSelected)
                 return self.table.get_selected().length == 0
           }
-          item.class = 'btn btn-sm ' + (item.class || 'btn-primary')
+          item.class = 'btn ' + (item.class || 'btn-primary')
         }
     }
     this.table = this.root.querySelector('rtable')
@@ -226,7 +228,7 @@
 
     self.url = url || self.url
     if (self.pagination) {
-      url = get_url(self.url, {limit:self.limit})
+      url = get_url(self.url, {limit:self.limit, page:self.page})
     } else url = self.url
     if (opts.tree) f = self.data.load_tree(url, param, _f)
     else f = self.data.load(url, param, this.onLoaded || _f)
