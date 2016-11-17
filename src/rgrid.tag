@@ -6,7 +6,8 @@
   </style>
 
   <!-- 条件 -->
-  <query-condition if={has_query} rules={query_ules} fields={query_fields} layout={query_layout} data={query_data}></query-condition>
+  <query-condition if={has_query} rules={query_ules}
+    fields={query_fields} layout={query_layout} data={query_data}></query-condition>
   <!-- 按钮生成 -->
   <div if={left_tools.length>0 || right_tools.length>0} class="btn-toolbar">
     <div if={left_tools.length>0} class="rgrid-tools pull-left">
@@ -138,6 +139,7 @@
     onEdit: opts.onEdit,
     onEdited: opts.onEdited,
     onSelect: opts.onSelect,
+    onDeselect: opts.onDeselect,
     onSelected: opts.onSelected,
     onDeselected: opts.onDeselected,
     onLoadData: opts.onLoadData || this.onloaddata,
@@ -199,6 +201,8 @@
     this.root.diff = this.table.diff
     this.root.getButton = this.getButton
     this.root.refresh = this.update
+    this.root.select = this.table.select
+    this.root.deselect = this.table.deselect
     this.root.instance = this
     if (this.url && this.autoLoad) {
       this.table.show_loading(true)

@@ -167,9 +167,10 @@
     .rtable-row.hover .rtable-cell {
       background-color: #e1eff8;
     }
+    /* 选中状态hover不处理为选中背景色
     .rtable-row.selected.hover .rtable-cell {
       background-color: #ffefd5;
-    }
+    }*/
 
     .rtable-row.selected .rtable-cell {
       background-color:#ffefd5;
@@ -184,15 +185,15 @@
       border-bottom:none;
       border-right:1px solid #ddd;
     }
-    .rtable-root.zebra .rtable-row.even.hover .rtable-cell {
-      background-color: #e1eff8;
-    }
     .rtable-root.zebra .rtable-row.odd .rtable-cell {
       border-bottom:none;
       border-right:1px solid #ddd;
     }
-    .rtable-root.zebra .rtable-row.even.selected .rtable-cell {
+    .rtable-root.zebra .rtable-row.selected .rtable-cell {
       background-color: #ffefd5;
+    }
+    .rtable-root.zebra .rtable-row.hover .rtable-cell {
+      background-color: #e1eff8;
     }
     .rtable-root.zebra .rtable-header .rtable-cell {
       background-color: #f2f2f2;
@@ -201,11 +202,11 @@
     /*simple*/
     .rtable-root.simple .rtable-row.even .rtable-cell {
     }
-    .rtable-root.simple .rtable-row.even.hover .rtable-cell {
-    }
     .rtable-root.simple .rtable-row.odd .rtable-cell {
     }
-    .rtable-root.simple .rtable-row.even.selected .rtable-cell {
+    .rtable-root.simple .rtable-row.selected .rtable-cell {
+    }
+    .rtable-root.simple .rtable-row.hover .rtable-cell {
     }
     .rtable-root.simple .rtable-header .rtable-cell {
       background-color: #f2f2f2;
@@ -219,7 +220,7 @@
     }
     .rtable-root.table .rtable-row.odd .rtable-cell {
     }
-    .rtable-root.table .rtable-row.even.selected .rtable-cell {
+    .rtable-root.table .rtable-row.selected .rtable-cell {
       background-color: #ffefd5;
     }
     .rtable-root.table .rtable-header .rtable-cell {
@@ -240,13 +241,12 @@
       background-color: #f9f9f9;
       border-bottom:none;
     }
-    .rtable-root.table-striped .rtable-row.even.hover .rtable-cell {
-      background-color: #e1eff8;
-    }
     .rtable-root.table-striped .rtable-row.odd .rtable-cell {
       border-bottom:none;
     }
-    .rtable-root.table-striped .rtable-row.even.selected .rtable-cell {
+    .rtable-root.table-striped .rtable-row.selected .rtable-cell {
+    }
+    .rtable-root.table-striped .rtable-row.hover .rtable-cell {
     }
     .rtable-root.table-striped .rtable-header .rtable-cell {
     }
@@ -456,6 +456,7 @@
   this.onEdited = opts.onEdited || function(){return true}
   this.onSelected = opts.onSelected || function(){}
   this.onSelect = opts.onSelect || function(){return true}
+  this.onDeselect = opts.onDeselect || function(){return true}
   this.onDeselected = opts.onDeselected || function(){}
   this.onLoadData = opts.onLoadData || function(parent){}
   this.onCheckable = opts.onCheckable || function(row){return true} //是否显示checkbox
@@ -1483,13 +1484,18 @@
   }
 
   this._expand = function(row, expanded) {
-    var item, i, len, id, self=this
+    var item, i, len, id, rows, row
 
     if (!row) {
-      for(id in self.parents_expand_status) {
-        self.parents_expand_status[id] = expanded
-        if (expanded)
-          self.load_node(self._data.get(id))
+      rows = self._data.get()
+      for(var i=0, len=rows.length; i<len; i++) {
+        row = rows[i]
+        id = self.getId(row)
+        if (row[self.hasChildrenField]) {
+          self.parents_expand_status[id] = expanded
+          if (expanded)
+            self.load_node(self._data.get(id))
+        }
       }
     } else {
       if (Array.isArray(row)) {
@@ -1696,10 +1702,7 @@
   this.deselect = function(rows) {
     var r = [], row, selected_rows = this.selected_rows, index, items = [], id
     if (!rows) {
-      this.selected_rows = []
-      this.onDeselected()
-      if (this.observable)
-        this.observable.trigger('deselected')
+      items = this.selected_rows.slice()
     }
     else {
       if (!Array.isArray(rows))
@@ -1714,14 +1717,14 @@
         if (!self.onCheckable(this._data.get(row))) return
         index = items.indexOf(row)
         if (index != -1){
-          selected_rows.splice(i, 1)
-          items.splice(index, 1)
-          this.onDeselected(this._data.get(row))
-          if (this.observable)
-            this.observable.trigger('deselected', this._data.get(row))
+          if (this.onDeselect(this._data.get(row))) {
+            selected_rows.splice(i, 1)
+            items.splice(index, 1)
+            this.onDeselected(this._data.get(row))
+            if (this.observable)
+              this.observable.trigger('deselected', this._data.get(row))
+          }
         }
-        if (rows.length == 0)
-          break
       }
     }
     <!-- this.update() -->
@@ -1756,6 +1759,8 @@
   this.root.expand = proxy('expand')
   this.root.collapse = proxy('collapse')
   this.root.show_loading = proxy('show_loading')
+  this.root.select = proxy('select')
+  this.root.deselect = proxy('deselect')
 
   /* resize width and height */
   this.resize = function () {
@@ -1767,6 +1772,8 @@
     self.content_fixed.scrollTop = self.content.scrollTop
     self.update()
   }
+
+  this.root.resize = proxy('resize')
 
   function data_proxy (funcname) {
     return function() { return self._data[funcname].apply(self._data, arguments)}

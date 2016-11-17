@@ -191,7 +191,12 @@
         },
 
         onSelect: function (row) {
-          if (row['id'] == 1) {
+          if (row['id'] == 1 || row['id'] == 2) {
+            return false
+          } return true
+        },
+        onDeselect: function (row) {
+          if (row['id'] == 1 || row['id'] == 2) {
             return false
           } return true
         },

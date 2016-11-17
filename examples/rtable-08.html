@@ -26,15 +26,15 @@
     </style>
     <script>
       var cols = [
-        {name:'name1', title:'This is a long title', headerTooltip:'Help Message',
-          width:100, frozen:true, columnTooltip:function(row, col, value){return col.__value__}},
-        {name:'name2', title:'B', width: 120, frozen:true},
-        {name:'name3', title:'C', sort:'desc', width:100, columnTooltip:'This is a very long column name'},
-        {name:'name4', title:'D', sort:'asc', align:'center', width:200, class:'myclass'},
-        {name:'name5', title:'E', width:200, render: function(row, col, value){
+        {name:'name1', title:'Name1', headerTooltip:'Help Message',
+          width:200, frozen:true, columnTooltip:function(row, col, value){return col.__value__}},
+        {name:'name2', title:'Name2', width: 200, frozen:true},
+        {name:'name3', title:'Name3', sort:'desc', width:200, columnTooltip:'This is a very long column name'},
+        {name:'name4', title:'Name4', sort:'asc', align:'center', width:200, class:'myclass'},
+        {name:'name5', title:'Name5', width:200, render: function(row, col, value){
           return '<a href="#" onclick="alert(\'hello\')">' + value + '</a>'
         }},
-        {name:'name6', title:'F', width:200}
+        {name:'name6', title:'Name6', width:200}
       ]
       var data = [], size=5, c=6, d
       data.push({id:1, name1:'A1', name2:'B1', name3:'C1', name4:'D1', name5:'E1', name6:'F1'})
@@ -45,6 +45,7 @@
       data.push({id:6, name1:'A1', name2:'B1', name3:'C1', name4:'D1', name5:'E1', name6:'F1'})
       riot.mount('rtable', {cols:cols,
         data:data,
+        width:600,
         height:'auto',
         indexCol:true,
         multiSelect:true,

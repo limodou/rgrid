@@ -316,6 +316,16 @@ DataSet.prototype._insert = function (data, target, position) {
   return addedIds;
 };
 
+DataSet.prototype._findLastFirstLevelNode = function () {
+  var i, len, node
+
+  for(len=this._data.length, i=len-1; i>-1; i--) {
+    node = this._data[i]
+    if (!node[this._parentField] || node[this._parentField] == 0) {
+      return node
+    }
+  }
+}
 /**
  * Insert a single item before index. Will fail when an item with the same id already exists.
  * @param {Object} item
@@ -363,18 +373,39 @@ DataSet.prototype._insertItem = function (item, index, position, delta, parent) 
   this.length++;
   var last_order, level, x
   if (this._isTree) {
-    d[this._parentField] = parent || node[this._parentField]
-    if (!d[this._levelField])
-      d[this._levelField] = node[this._levelField]
-    if (position == 'after')
-      d[this._orderField] = node[this._orderField] + 1
-    else
-      d[this._orderField] = node[this._orderField]
+    if (node) {
+      d[this._parentField] = parent || node[this._parentField]
+      if (!d[this._levelField])
+        d[this._levelField] = node[this._levelField]
+      if (!d[this._orderField]) {
+        if (position == 'after')
+          d[this._orderField] = node[this._orderField] + 1
+        else
+          d[this._orderField] = node[this._orderField]
+      }
 
-    level = node[this._levelField]
-    last_order = d[this._orderField]
+      level = node[this._levelField]
+      last_order = d[this._orderField]
 
-    this._reOrder(index+1, level, last_order)
+      this._reOrder(index+1, level, last_order)
+
+    } else {
+      d[this._parentField] = 0
+      if (!d[this._levelField])
+        d[this._levelField] = 0
+      if (!d[this._orderField]) {
+        if (position == 'after') {
+          node = this._findLastFirstLevelNode()
+          if (node) {
+            d[this._orderField] = node.order
+          } else {
+            d[this._orderField] = 1
+          }
+        } else
+          d[this._orderField] = 1
+      }
+    }
+
   }
 
   return {id:id, index:index};
@@ -382,7 +413,7 @@ DataSet.prototype._insertItem = function (item, index, position, delta, parent) 
 
 DataSet.prototype._reOrder = function (index, level, last_order) {
   var i, len, item, _l;
-  for(i=index, len=this.length; i<len; i++) {
+  for(i=index, len=this._data.length; i<len; i++) {
     item = this._data[i]
     _l = item[this._levelField]
     if (_l>level) continue
@@ -464,6 +495,7 @@ DataSet.prototype._move = function (item, target, position) {
  * @param {Number} Index for element
  */
 DataSet.prototype._findNext = function (index) {
+  if (index === undefined) return -1
   var n = index + 1
 
   if (n >= this.length) return -1
@@ -799,7 +831,7 @@ DataSet.prototype.tree = function (options) {
   idField = options.idField || me._idField
   orderField = options.orderField || me._orderField
 
-  order.push(options.parentField || me._parentField)
+  order.push(options.levelField || me._levelField)
   order.push(orderField)
 
   var items = this.get({order:order})
@@ -813,6 +845,10 @@ DataSet.prototype.tree = function (options) {
     parentId = item[parentField] || 0
     if (parentId) {
       parent = ids[parentId]
+      if (!parent){
+        console.log(item)
+        throw new Error(id + ' parent ' + parentId + ' is not existed')
+      }
       if (parent.hasOwnProperty(childrenField)) {
         parent[childrenField].push(item)
       } else {
@@ -1366,7 +1402,7 @@ DataSet.prototype._addItem = function (item, parent, position) {
           this._data.splice(index+1, 0, d)
           level = d[this._levelField]
           last_order = d[this._orderField]
-          this._reOrder(index+1, level, last_order)
+          this._reOrder(index+2, level, last_order)
         } else {
           index = this._findNext(index)
           if (index == -1) {
@@ -1385,6 +1421,15 @@ DataSet.prototype._addItem = function (item, parent, position) {
     } else {
       if (!d[this._levelField])
         d[this._levelField] = 0
+      //查找最后的order
+      order = 1
+      for(var ii=this.length-2; ii>-1; ii--) {
+        if (this._data[ii][this._levelField] == 0){
+          order = this._data[ii][this._orderField] + 1
+          break
+        }
+      }
+      d[this._orderField] = order
     }
   }
 
