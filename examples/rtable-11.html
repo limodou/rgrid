@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <title>rtable Example 06 - Tree</title>
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../bower_components/pikaday/css/pikaday.css">
+    <link rel="stylesheet" href="../bower_components/select2/dist/css/select2.css">
+    <link rel="stylesheet" href="contextmenu/basicContext.min.css">
+    <link rel="stylesheet" href="contextmenu/themes/default.min.css">
+  </head>
+  <body>
+    <h1>Tree</h1>
+
+    <div style="padding:5px 0px;">
+      <button onclick="Add()">Add</button>
+      <button onclick="AddFirstChild()">Add Frist Child</button>
+      <button onclick="AddLastChild()">Add Last Child</button>
+      <button onclick="Remove()">Remove</button>
+      <button onclick="InsertBefore()">Insert Before</button>
+      <button onclick="InsertAfter()">Insert After</button>
+      <button onclick="Update()">Update</button>
+      <button onclick="ExpandAll()">Expand All</button>
+      <button onclick="Expand()">Expand</button>
+      <button onclick="CollapseAll()">Collapse All</button>
+      <button onclick="Collapse()">Collapse</button>
+    </div>
+    <rtable id="grid"></rtable>
+
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/riot/riot+compiler.min.js"></script>
+    <script src="../bower_components/pikaday/pikaday.js"></script>
+    <script src="../bower_components/pikaday/plugins/pikaday.jquery.js"></script>
+    <script src="../bower_components/jquery-ui/jquery-ui.js"></script>
+    <script src="../bower_components/select2/dist/js/select2.js"></script>
+    <script src="contextmenu/basicContext.min.js"></script>
+    <script src="../src/dataset.js"></script>
+    <script src="../dist/rtable.js"></script>
+    <script src="../src/editor.js"></script>
+    <style>
+      .rtable-cell.red {background-color: red;}
+      .rtable-cell.green {background-color: green;}
+      .rtable-cell.blue {background-color: blue;}
+    </style>
+    <script type="riot/tag">
+      <image>
+        <img src="{opts.value}" style="margin:-5px -10px" />
+      </image>
+    </script>
+    <script type="riot/tag">
+      <progress>
+        <div style="border:1px solid #ccc;margin:10px auto;top:0px;bottom:0px;background-color:white;width:90%;height:10px;">
+          <div style="height:10px;background:#4d4;width:{opts.value}%"></div>
+        </div>
+      </progress>
+    </script>
+    <script>
+      var cols = [
+        {name:'id', title:'ID', width:40, align:'center'},
+        {name:'name1', title:'Name1', width:300},
+        {name:'name2', title:'Name2', width:200, editor:'string'},
+      ]
+      var data = []
+      riot.mount('rtable', {cols:cols,
+        data:data,
+        height:'auto',
+        indexCol:true,
+        checkCol:true,
+        multiSelect:true,
+        rowHeight: 34,
+        // clickSelect:null,
+        maxHeight:400,
+        minHeight:200,
+
+        tree:true,
+        expanded:true,
+        parentField:'parent',
+        orderField:'order',
+        levelField:'level',
+        treeField:'name1',
+        useFontAwesome:true,
+        draggable:true,
+        colspanValue:'-',
+        onMove: function(from, to, position) {
+          grid.move(from, to, position)
+        },
+        // theme: 'table-striped',
+        draggable:true,
+        editable:true
+      })
+
+      var grid = document.getElementById('grid')
+      var begin = 100
+      function make_item () {
+        var d = {}
+        for(var j=0; j<2; j++){
+          d['name'+(j+1)] = 'New-'+(begin+1)+'-'+(begin+1)
+        }
+        begin ++
+        return d
+      }
+      function Add (e) {
+        grid.add(make_item())
+      }
+
+      function AddFirstChild (e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.addFirstChild(make_item(), row)
+        }
+      }
+
+      function AddLastChild (e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.add(make_item(), row)
+        }
+      }
+
+      function Remove (e) {
+        var rows = grid.get_selected()
+        grid.remove(rows)
+      }
+
+      function InsertBefore(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.insertBefore(make_item(), row)
+        }
+      }
+
+      function InsertAfter(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.insertAfter(make_item(), row)
+        }
+      }
+
+      function Update(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          var d = make_item()
+          d.id = row.id
+          grid.update(d)
+        }
+      }
+
+      function ExpandAll(e) {
+        grid.expand()
+      }
+
+      function Expand(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.expand(row)
+        }
+      }
+
+      function CollapseAll(e) {
+        grid.collapse()
+      }
+
+      function Collapse(e) {
+        var rows = grid.get_selected(), row
+        if (rows) {
+          row = rows[0]
+          grid.collapse(row)
+        }
+      }
+
+      grid.set_notation(5, 'name1', {type:'error', title:'aaaaaa'})
+      grid.refresh()
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <title>rtable Example 03 - Index, Checkbox, Selection</title>
+  </head>
+  <body>
+    <h1>Index, Checkbox, Selection</h1>
+
+    <rtable></rtable>
+
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/riot/riot.min.js"></script>
+    <script src="../src/dataset.js"></script>
+    <script src="../dist/rtable.js"></script>
+    <script>
+      var cols = [
+        {name:'name1', title:'This is a long title', width:40},
+        {name:'name2', title:'B', width: 120, fixed:true},
+        {name:'name3', title:'C', width:260},
+        {name:'name4', title:'D', width:260},
+        {name:'name5', title:'E', width:260},
+        {name:'name6', title:'F', width:260}
+      ]
+      var data = [], size=2, c=6, d
+      for(var i=0; i<size; i++) {
+        d = {id:i+1}
+        for(var j=0; j<c; j++){
+          d['name'+(j+1)] = 'Name-'+(i+1)+'-'+(j+1)
+        }
+        data.push(d)
+      }
+      riot.mount('rtable', {cols:cols, data:data, height:'auto', indexCol:true,
+        virtual:true,
+        checkCol:true, multiSelect:true})
+
+    </script>
+</html>

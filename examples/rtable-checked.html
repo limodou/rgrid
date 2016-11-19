@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <title>rtable Example 06 - Checked</title>
+  </head>
+  <body>
+
+    <my-tag></my-tag>
+
+    <script src="../bower_components/riot/riot+compiler.min.js"></script>
+    <script type="riot/tag">
+      <my-tag>
+        <button type="button" onclick="{click}">Check</button>
+        <input type="checkbox" name="checkbox" checked={on_selected}>
+        <div id="log">{checked}</log>
+        this.checked = opts.checked
+
+        this.click = function (e) {
+          this.checked = !this.checked
+          console.log(this.checked)
+        }
+        this.on_selected = function () {
+          return this.checked
+        }
+      </my-tag>
+    </script>
+    <script>
+      riot.mount('my-tag', {checked:false})
+    </script>
+  </body>
+</html>
